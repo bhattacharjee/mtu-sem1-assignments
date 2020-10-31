@@ -142,13 +142,15 @@ class GA(object):
             if f > max_fitness:
                 max_fitness = f
                 self.best = inst
-        print(f"Results from iteration {i}: {self.best.fitness()}")
+        print(f"Results from iteration {self.step_count}: {self.best.fitness()}")
 
     def step(self):
+        self.step_count += 1
         self.calculate_fitness()
         mating_pool = self.get_mating_pool(self.population_size)
-        self.mate_and_mutate(mating_pool)
-        self.print_step_result()
+        children = self.mate_and_mutate(mating_pool)
+        self.print_step_result(self.population, children)
+        [self.population.append(child) for child in children]
 
 # Select the unchanged from par1, and then jumble up par2
 def order_one_crossover_helper(par1:list, par2:list, x, y)->list:
