@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from lab_tsp_insertion import *
-import random, collections, math
+import random, collections, math, copy
 from numpy.random import choice
 
 def validate_array(arr):
@@ -49,7 +49,7 @@ class Instance(object):
 
     def fitness(self) -> int:
         if -1 != self.fitness_value:
-            return 1.0 / (1 + self.fitness_value)
+            return 100000 / (1 + self.fitness_value) * 100000000
         self.fitness_value = 0
         for i in range(1, len(self.solution)):
             c1, c2 = self.solution[i-1], self.solution[i]
@@ -64,7 +64,7 @@ class Instance(object):
         dist = round(math.sqrt((x2-x1)**2 + (y2-y1)**2))
         self.fitness_value += dist
         assert(self.fitness_value > 0)
-        return 1.0 / (self.fitness_value + 1)
+        return 100000 / (1 + self.fitness_value) * 100000000
 
 
 
@@ -119,7 +119,6 @@ class GA(object):
         r = random.uniform(0,1)
         if (r > probability):
             return child
-        print("Mutating")
         return self.mutation_fn(child)
 
     def mate_and_mutate(self, mating_pool:list):
@@ -153,7 +152,7 @@ class GA(object):
                 max_fitness = f
                 self.best = inst
         #print(f"Results from iteration {self.step_count}: {self.best.fitness()} {self.best}")
-        print(f"Results from iteration {self.step_count}: {self.best.fitness()} {self.best.get_total_distance()}")
+        print(f"{self.best.get_total_distance()} :  Results from iteration {self.step_count}: {self.best.fitness()} ")
 
     def step(self):
         self.step_count += 1
@@ -168,6 +167,7 @@ def inversion_mutation(child:list):
     x = y = random.choice(range(length))
     while x == y:
         y = random.choice(range(length))
+    child = copy.deepcopy(child)
     (child[x], child[y]) = (child[y], child[x])
     return child
 
