@@ -115,6 +115,16 @@ class GA(object):
         return children
 
     def mutate(self, child:list, probability=float)->list:
+        r = random.uniform(0,1)
+        if (r < probability):
+            return child
+        length = len(child)
+        x = y = random.choice(range(length))
+        while x == y:
+            y = random.choice(range(length))
+        print(f"Before : {child}")
+        (child[x], child[y]) = (child[y], child[x])
+        print(f"After  : {child}")
         return child
 
     def mate_and_mutate(self, mating_pool:list):
