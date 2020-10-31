@@ -4,6 +4,10 @@ from lab_tsp_insertion import *
 import random, collections, math
 from numpy.random import choice
 
+def validate_array(arr):
+    duplicates = [item for item, count in collections.Counter(arr).items() if count > 1]
+    return [] == duplicates
+
 class Instance(object):
     def __init__(self, cities:dict, solution:list=None, identifier:int=0):
         self.cities = self.solution = self.solution_cost = None
@@ -60,13 +64,14 @@ class Instance(object):
 
 
 class GA(object):
-    def __init__(self, cities:dict, population_size:int):
+    def __init__(self, cities:dict, population_size:int, crossover_fn):
         self.cities = cities
         self.population_size = population_size
         self.instance_count = 0
         self.population = [Instance(cities=cities,identifier=self.get_instance_count())\
                                 for i in range(self.population_size)]
         self.fitness_array = []
+        self.crossover_fn = crossover_fn
 
     def get_instance_count(self):
         self.instance_count += 1
@@ -93,26 +98,61 @@ class GA(object):
         s2 = random.choice(mating_pool)
         #print('*' * 100, "\n", s1, "\n", s2)
         while s1 == s2:
-            s1, s2 = random.choice(mating_pool)
+            s1 = random.choice(mating_pool)
         return s1 if (1/(s1.fitness() + 1)) > (1/(s2.fitness() + 1)) else s2
+
+    def crossover(self, p1, p2):
+        parr1 = p1.solution
+        parr2 = p2.solution
+        children = self.crossover_fn(parr1, parr2)
+        return children
+
+    def mutate(self, child:list, probability=float)->list:
+        return child
 
     def mate_and_mutate(self, mating_pool:list):
         parent_is_mated = [False for i in range(len(mating_pool))]
+        children = []
         children_created = 0
-        #while True in parent_is_mated or self.population_size != children_created:
-        #    pass
-        p1 = p2 = None
-        p1 = self.binary_tournament_selection(mating_pool)
-        p2 = self.binary_tournament_selection(mating_pool)
-        while p1 == p2:
+        while children_created < self.population_size:
+            p1 = self.binary_tournament_selection(mating_pool)
             p2 = self.binary_tournament_selection(mating_pool)
-        pass
+            while p1 == p2:
+                p2 = self.binary_tournament_selection(mating_pool)
+            tchildren = self.crossover(p1, p2)
+            children_created += len(tchildren)
+            for child in tchildren:
+                child = self.mutate(child, 1)
+                inst = Instance(cities=self.cities, solution=child, identifier=self.get_instance_count())
+                children.append(inst)
+            assert(len(children) > 0)
+        return children
 
     def step(self):
         self.calculate_fitness()
         mating_pool = self.get_mating_pool(self.population_size)
         self.mate_and_mutate(mating_pool)
 
+# Select the unchanged from par1, and then jumble up par2
+def order_one_crossover_helper(par1:list, par2:list, x, y)->list:
+    unchanged = par1[x:(y+1)]
+    child = []
+    for i in par2:
+        if i not in unchanged:
+            child.append(i)
+    [child.append(i) for i in unchanged]
+    assert(len(child) == len(par1) and validate_array(child))
+    return child
+
+def order_one_crossover(parr1:list, parr2:list)->tuple:
+    assert(len(parr1) == len(parr2))
+    length = len(parr1)
+    x = random.choice(range(length))
+    y = random.choice(range(length))
+    x, y = min(x, y), max(x, y)
+    c1 = order_one_crossover_helper(parr1, parr2, x, y)
+    c2 = order_one_crossover_helper(parr2, parr1, x, y)
+    return c1, c2
 
 def get_cities(directory):
     allcities = {}
@@ -125,7 +165,7 @@ def main():
     directory = sys.argv[1]
     popsize = 10 if len(sys.argv) <= 2 else int(sys.argv[2])
     allcities = get_cities(directory)
-    ga = GA(allcities, popsize)
+    ga = GA(allcities, popsize, crossover_fn=order_one_crossover)
     #for inst in ga.population:
     #    print(inst.fitness(), inst.fitness_value)
     ga.step()
