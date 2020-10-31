@@ -25,7 +25,7 @@ class Instance(object):
         return [] == duplicates
 
     def __repr__(self):
-        return f"{self.id} : {self.solution_cost} <== {self.solution}"
+        return f"{self.id} : {self.fitness_value} <== {self.solution}"
 
     def get_solution(self):
         return self.solution
