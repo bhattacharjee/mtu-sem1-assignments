@@ -30,7 +30,6 @@ class Instance(object):
 
     def __eq__(self, other):
         assert(isinstance(other, Instance))
-        print('eq called')
         return self.solution == other.solution
 
     def get_solution(self):
@@ -82,17 +81,17 @@ class GA(object):
         # inverted to get the fitness to be used, higher value means more fit
         self.fitness_array = [1/(i+1) for i in self.fitness_array]
 
-    def get_mating_pool(self) -> list:
+    def get_mating_pool(self, size) -> list:
         assert(len(self.population) >= self.population_size)
         tot_fitness = sum(self.fitness_array)
         probabilities = [i/tot_fitness for i in self.fitness_array]
-        choices = choice(self.population, self.population_size, probabilities)
+        choices = choice(self.population, size, probabilities)
         return choices
 
     def binary_tournament_selection(self, mating_pool:list):
         s1 = random.choice(mating_pool)
         s2 = random.choice(mating_pool)
-        print('*' * 100, "\n", s1, "\n", s2)
+        #print('*' * 100, "\n", s1, "\n", s2)
         while s1 == s2:
             s1, s2 = random.choice(mating_pool)
         return s1 if (1/(s1.fitness() + 1)) > (1/(s2.fitness() + 1)) else s2
@@ -111,7 +110,7 @@ class GA(object):
 
     def step(self):
         self.calculate_fitness()
-        mating_pool = self.get_mating_pool()
+        mating_pool = self.get_mating_pool(self.population_size)
         self.mate_and_mutate(mating_pool)
 
 
