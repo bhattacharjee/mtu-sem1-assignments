@@ -162,7 +162,7 @@ class GA(object):
         self.print_step_result(self.population, children)
         self.population = children
 
-def inversion_mutation(child:list)
+def inversion_mutation(child:list):
     length = len(child)
     x = y = random.choice(range(length))
     while x == y:
