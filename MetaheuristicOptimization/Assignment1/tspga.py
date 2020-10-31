@@ -28,6 +28,11 @@ class Instance(object):
     def __repr__(self):
         return f"{self.id} : {self.fitness_value} <== {self.solution}"
 
+    def __eq__(self, other):
+        assert(isinstance(other, Instance))
+        print('eq called')
+        return self.solution == other.solution
+
     def get_solution(self):
         return self.solution
 
@@ -54,12 +59,19 @@ class Instance(object):
         return self.fitness_value
 
 
+
 class GA(object):
     def __init__(self, cities:dict, population_size:int):
         self.cities = cities
         self.population_size = population_size
-        self.population = [Instance(cities=cities,identifier=i) for i in range(self.population_size)]
+        self.instance_count = 0
+        self.population = [Instance(cities=cities,identifier=self.get_instance_count())\
+                                for i in range(self.population_size)]
         self.fitness_array = []
+
+    def get_instance_count(self):
+        self.instance_count += 1
+        return self.instance_count
 
     def print_population(self):
         [print(inst) for inst in self.population]
@@ -70,26 +82,37 @@ class GA(object):
         # inverted to get the fitness to be used, higher value means more fit
         self.fitness_array = [1/(i+1) for i in self.fitness_array]
 
-    def select_new_parents(self) -> list:
+    def get_mating_pool(self) -> list:
         assert(len(self.population) >= self.population_size)
-        if len(self.population) == self.population_size:
-            return self.population
         tot_fitness = sum(self.fitness_array)
         probabilities = [i/tot_fitness for i in self.fitness_array]
         choices = choice(self.population, self.population_size, probabilities)
         return choices
 
-    def mate_and_mutate(self, new_parents:list):
-        parent_is_mated = [False for i in len(new_parents)]
+    def binary_tournament_selection(self, mating_pool:list):
+        s1 = random.choice(mating_pool)
+        s2 = random.choice(mating_pool)
+        print('*' * 100, "\n", s1, "\n", s2)
+        while s1 == s2:
+            s1, s2 = random.choice(mating_pool)
+        return s1 if (1/(s1.fitness() + 1)) > (1/(s2.fitness() + 1)) else s2
+
+    def mate_and_mutate(self, mating_pool:list):
+        parent_is_mated = [False for i in range(len(mating_pool))]
         children_created = 0
-        while True in parent_is_mated or self.population_size != children_created:
-            pass
+        #while True in parent_is_mated or self.population_size != children_created:
+        #    pass
+        p1 = p2 = None
+        p1 = self.binary_tournament_selection(mating_pool)
+        p2 = self.binary_tournament_selection(mating_pool)
+        while p1 == p2:
+            p2 = self.binary_tournament_selection(mating_pool)
         pass
 
     def step(self):
         self.calculate_fitness()
-        new_parents = self.select_new_parents()
-        self.mate_and_mutate(new_parents)
+        mating_pool = self.get_mating_pool()
+        self.mate_and_mutate(mating_pool)
 
 
 def get_cities(directory):
