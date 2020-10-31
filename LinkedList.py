@@ -109,8 +109,13 @@ class LinkedList(object):
             assert(None == self.tail)
         return ret
 
+    def destroy(self):
+        while (None != self.head):
+            node = self.head
+            self.delete_node(node)
+            del node
 
-"""
+
 #Some tests
 ll = LinkedList()
 ll.insert_head(LinkedListNode("one"))
@@ -123,4 +128,6 @@ ll.insert_before(node, LinkedListNode("three.five"))
 ll.insert_after(node, LinkedListNode("two.five"))
 for i in ll.nodes():
     print(i())
-"""
+ll.destroy()
+for i in ll.nodes():
+    print(i)
