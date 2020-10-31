@@ -68,10 +68,12 @@ class GA(object):
         self.cities = cities
         self.population_size = population_size
         self.instance_count = 0
+        self.step_count = 0
+        self.crossover_fn = crossover_fn
+        self.fitness_array = []
+        self.best = None
         self.population = [Instance(cities=cities,identifier=self.get_instance_count())\
                                 for i in range(self.population_size)]
-        self.fitness_array = []
-        self.crossover_fn = crossover_fn
 
     def get_instance_count(self):
         self.instance_count += 1
@@ -128,10 +130,25 @@ class GA(object):
             assert(len(children) > 0)
         return children
 
+    def print_step_result(self, parents, children):
+        max_fitness = -1
+        for inst in parents:
+            f = 1 / (inst.fitness() + 1)
+            if f > max_fitness:
+                max_fitness = f
+                self.best = inst
+        for inst in children:
+            f = 1 / (inst.fitness() + 1)
+            if f > max_fitness:
+                max_fitness = f
+                self.best = inst
+        print(f"Results from iteration {i}: {self.best.fitness()}")
+
     def step(self):
         self.calculate_fitness()
         mating_pool = self.get_mating_pool(self.population_size)
         self.mate_and_mutate(mating_pool)
+        self.print_step_result()
 
 # Select the unchanged from par1, and then jumble up par2
 def order_one_crossover_helper(par1:list, par2:list, x, y)->list:
@@ -168,7 +185,8 @@ def main():
     ga = GA(allcities, popsize, crossover_fn=order_one_crossover)
     #for inst in ga.population:
     #    print(inst.fitness(), inst.fitness_value)
-    ga.step()
+    for i in range(50):
+        ga.step()
 
 if "__main__" == __name__:
     main()
