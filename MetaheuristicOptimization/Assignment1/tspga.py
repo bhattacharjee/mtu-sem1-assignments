@@ -70,12 +70,13 @@ class Instance(object):
 
 
 class GA(object):
-    def __init__(self, cities:dict, population_size:int, crossover_fn):
+    def __init__(self, cities:dict, population_size:int, crossover_fn, mutation_fn):
         self.cities = cities
         self.population_size = population_size
         self.instance_count = 0
         self.step_count = 0
         self.crossover_fn = crossover_fn
+        self.mutation_fn = mutation_fn
         self.fitness_array = []
         self.best = None
         self.population = [Instance(cities=cities,identifier=self.get_instance_count())\
@@ -118,12 +119,7 @@ class GA(object):
         r = random.uniform(0,1)
         if (r > probability):
             return child
-        length = len(child)
-        x = y = random.choice(range(length))
-        while x == y:
-            y = random.choice(range(length))
-        (child[x], child[y]) = (child[y], child[x])
-        return child
+        return self.mutation_fn(child)
 
     def mate_and_mutate(self, mating_pool:list):
         parent_is_mated = [False for i in range(len(mating_pool))]
@@ -166,6 +162,14 @@ class GA(object):
         self.print_step_result(self.population, children)
         self.population = children
 
+def inversion_mutation(child:list)
+    length = len(child)
+    x = y = random.choice(range(length))
+    while x == y:
+        y = random.choice(range(length))
+    (child[x], child[y]) = (child[y], child[x])
+    return child
+
 # Select the unchanged from par1, and then jumble up par2
 def order_one_crossover_helper(par1:list, par2:list, x, y)->list:
     unchanged = par1[x:(y+1)]
@@ -198,7 +202,7 @@ def main():
     directory = "small"# sys.argv[1]
     popsize = 10 if len(sys.argv) <= 2 else int(sys.argv[2])
     allcities = get_cities(directory)
-    ga = GA(allcities, popsize, crossover_fn=order_one_crossover)
+    ga = GA(allcities, popsize, crossover_fn=order_one_crossover, mutation_fn=inversion_mutation)
     #for inst in ga.population:
     #    print(inst.fitness(), inst.fitness_value)
     for i in range(500):
