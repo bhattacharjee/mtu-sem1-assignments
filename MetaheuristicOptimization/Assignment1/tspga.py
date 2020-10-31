@@ -119,6 +119,7 @@ class GA(object):
         r = random.uniform(0,1)
         if (r > probability):
             return child
+        print("Mutating")
         return self.mutation_fn(child)
 
     def mate_and_mutate(self, mating_pool:list):
@@ -133,7 +134,7 @@ class GA(object):
             tchildren = self.crossover(p1, p2)
             children_created += len(tchildren)
             for child in tchildren:
-                child = self.mutate(child, 0.5)
+                child = self.mutate(child, 0.01)
                 inst = Instance(cities=self.cities, solution=child, identifier=self.get_instance_count())
                 children.append(inst)
             assert(len(children) > 0)
