@@ -43,9 +43,13 @@ class Instance(object):
     def get_solution_copy(self) -> int:
         return copy.deepcopy(self.solution)
 
+    def get_total_distance(self) -> int:
+        self.fitness()
+        return self.fitness_value
+
     def fitness(self) -> int:
         if -1 != self.fitness_value:
-            return self.fitness_value
+            return 1.0 / (1 + self.fitness_value)
         self.fitness_value = 0
         for i in range(1, len(self.solution)):
             c1, c2 = self.solution[i-1], self.solution[i]
@@ -60,7 +64,7 @@ class Instance(object):
         dist = round(math.sqrt((x2-x1)**2 + (y2-y1)**2))
         self.fitness_value += dist
         assert(self.fitness_value > 0)
-        return self.fitness_value
+        return 1.0 / (self.fitness_value + 1)
 
 
 
@@ -77,10 +81,6 @@ class GA(object):
         self.population = [Instance(cities=cities,identifier=self.get_instance_count())\
                                 for i in range(self.population_size)]
 
-    def get_fitness(self, child):
-        f = child.fitness()
-        return 1 / (f + 1)
-
     def get_instance_count(self):
         self.instance_count += 1
         return self.instance_count
@@ -89,7 +89,7 @@ class GA(object):
         [print(inst) for inst in self.population]
 
     def calculate_fitness(self):
-        self.fitness_array = [self.get_fitness(inst) for inst in self.population]
+        self.fitness_array = [inst.fitness() for inst in self.population]
 
     def get_mating_pool(self, size) -> list:
         assert(len(self.population) >= self.population_size)
@@ -104,8 +104,8 @@ class GA(object):
         #print('*' * 100, "\n", s1, "\n", s2)
         while s1 == s2:
             s1 = random.choice(mating_pool)
-        f1 = self.get_fitness(s1)
-        f2 = self.get_fitness(s2)
+        f1 = s1.fitness()
+        f2 = s2.fitness()
         return s1 if f1 > f2 else s2
 
     def crossover(self, p1, p2):
@@ -116,15 +116,13 @@ class GA(object):
 
     def mutate(self, child:list, probability=float)->list:
         r = random.uniform(0,1)
-        if (r < probability):
+        if (r > probability):
             return child
         length = len(child)
         x = y = random.choice(range(length))
         while x == y:
             y = random.choice(range(length))
-        print(f"Before : {child}")
         (child[x], child[y]) = (child[y], child[x])
-        print(f"After  : {child}")
         return child
 
     def mate_and_mutate(self, mating_pool:list):
@@ -139,7 +137,7 @@ class GA(object):
             tchildren = self.crossover(p1, p2)
             children_created += len(tchildren)
             for child in tchildren:
-                child = self.mutate(child, 1)
+                child = self.mutate(child, 0.5)
                 inst = Instance(cities=self.cities, solution=child, identifier=self.get_instance_count())
                 children.append(inst)
             assert(len(children) > 0)
@@ -148,18 +146,17 @@ class GA(object):
     def print_step_result(self, parents, children):
         max_fitness = -1
         for inst in parents:
-            f = self.get_fitness(inst)
+            f = inst.fitness()
             if f > max_fitness:
                 max_fitness = f
                 self.best = inst
         for inst in children:
-            f = self.get_fitness(inst)
+            f = inst.fitness()
             if f > max_fitness:
                 max_fitness = f
                 self.best = inst
         #print(f"Results from iteration {self.step_count}: {self.best.fitness()} {self.best}")
-        print(f"Results from iteration {self.step_count}: {self.best.fitness()}")
-        print(self.best)
+        print(f"Results from iteration {self.step_count}: {self.best.fitness()} {self.best.get_total_distance()}")
 
     def step(self):
         self.step_count += 1
