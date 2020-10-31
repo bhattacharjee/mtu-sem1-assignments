@@ -20,6 +20,7 @@ class Instance(object):
             self.cities = cities
             self.solution = solution
             self.fitness_value = -1
+            self.id = identifier
         assert(self.validate())
 
     def validate(self) -> bool:
@@ -63,6 +64,7 @@ class Instance(object):
 
 
 
+
 class GA(object):
     def __init__(self, cities:dict, population_size:int, crossover_fn):
         self.cities = cities
@@ -75,6 +77,10 @@ class GA(object):
         self.population = [Instance(cities=cities,identifier=self.get_instance_count())\
                                 for i in range(self.population_size)]
 
+    def get_fitness(self, child):
+        f = child.fitness()
+        return 1 / (f + 1)
+
     def get_instance_count(self):
         self.instance_count += 1
         return self.instance_count
@@ -83,10 +89,7 @@ class GA(object):
         [print(inst) for inst in self.population]
 
     def calculate_fitness(self):
-        self.fitness_array = [inst.fitness() for inst in self.population]
-        # Each instance just returns the total distance required, this must be
-        # inverted to get the fitness to be used, higher value means more fit
-        self.fitness_array = [1/(i+1) for i in self.fitness_array]
+        self.fitness_array = [self.get_fitness(inst) for inst in self.population]
 
     def get_mating_pool(self, size) -> list:
         assert(len(self.population) >= self.population_size)
@@ -101,7 +104,9 @@ class GA(object):
         #print('*' * 100, "\n", s1, "\n", s2)
         while s1 == s2:
             s1 = random.choice(mating_pool)
-        return s1 if (1/(s1.fitness() + 1)) > (1/(s2.fitness() + 1)) else s2
+        f1 = self.get_fitness(s1)
+        f2 = self.get_fitness(s2)
+        return s1 if f1 > f2 else s2
 
     def crossover(self, p1, p2):
         parr1 = p1.solution
@@ -119,8 +124,8 @@ class GA(object):
         while children_created < self.population_size:
             p1 = self.binary_tournament_selection(mating_pool)
             p2 = self.binary_tournament_selection(mating_pool)
-            while p1 == p2:
-                p2 = self.binary_tournament_selection(mating_pool)
+            #while p1 == p2:
+            #    p2 = self.binary_tournament_selection(mating_pool)
             tchildren = self.crossover(p1, p2)
             children_created += len(tchildren)
             for child in tchildren:
@@ -133,16 +138,18 @@ class GA(object):
     def print_step_result(self, parents, children):
         max_fitness = -1
         for inst in parents:
-            f = 1 / (inst.fitness() + 1)
+            f = self.get_fitness(inst)
             if f > max_fitness:
                 max_fitness = f
                 self.best = inst
         for inst in children:
-            f = 1 / (inst.fitness() + 1)
+            f = self.get_fitness(inst)
             if f > max_fitness:
                 max_fitness = f
                 self.best = inst
+        #print(f"Results from iteration {self.step_count}: {self.best.fitness()} {self.best}")
         print(f"Results from iteration {self.step_count}: {self.best.fitness()}")
+        print(self.best)
 
     def step(self):
         self.step_count += 1
@@ -150,7 +157,7 @@ class GA(object):
         mating_pool = self.get_mating_pool(self.population_size)
         children = self.mate_and_mutate(mating_pool)
         self.print_step_result(self.population, children)
-        [self.population.append(child) for child in children]
+        self.population = children
 
 # Select the unchanged from par1, and then jumble up par2
 def order_one_crossover_helper(par1:list, par2:list, x, y)->list:
@@ -181,13 +188,13 @@ def get_cities(directory):
     return allcities
 
 def main():
-    directory = sys.argv[1]
+    directory = "small"# sys.argv[1]
     popsize = 10 if len(sys.argv) <= 2 else int(sys.argv[2])
     allcities = get_cities(directory)
     ga = GA(allcities, popsize, crossover_fn=order_one_crossover)
     #for inst in ga.population:
     #    print(inst.fitness(), inst.fitness_value)
-    for i in range(50):
+    for i in range(500):
         ga.step()
 
 if "__main__" == __name__:
