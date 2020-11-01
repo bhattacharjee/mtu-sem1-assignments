@@ -6,7 +6,7 @@ file:
 Rename this file to TSP_x.py where x is your student number 
 """
 
-import random
+import random, collections
 from Individual import *
 import sys
 import matplotlib.pyplot as plt
@@ -163,6 +163,8 @@ class BasicTSP:
         self.matingPool = []
         for ind_i in new_pool:
             self.matingPool.append( ind_i.copy() )
+        duplicates = [item for item, count in collections.Counter(self.matingPool).items() if count > 1]
+        print(duplicates)
 
 
     def newGeneration(self):
