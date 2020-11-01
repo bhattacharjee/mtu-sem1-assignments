@@ -123,7 +123,8 @@ class BasicTSP:
         indexA = random.randint(0, self.genSize-1)
         indexB = random.randint(0, self.genSize-1)
         indexA, indexB = min(indexA, indexB), max(indexA, indexB)
-        data_to_reverse = ind.genes
+        data_to_reverse = ind.genes[indexA:(indexB+1)]
+        print(data_to_reverse)
         pass
 
     def crossover(self, indA:Individual, indB:Individual):
