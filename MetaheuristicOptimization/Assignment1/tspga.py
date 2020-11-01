@@ -71,7 +71,7 @@ class Instance(object):
             c1, c2 = self.solution[i-1], self.solution[i]
             x1, y1 = self.cities[c1]
             x2, y2 = self.cities[c2]
-            dist = round(math.sqrt((x2-x1)**2 + (y2-y1)**2))
+            dist = math.sqrt((x2-x1)**2 + (y2-y1)**2)
             self.fitness_value += dist
         last_city = self.solution[len(self.solution)-1]
         first_city = self.solution[0]
