@@ -16,7 +16,8 @@ myStudentNum = 12345 # Replace 12345 with your student number
 random.seed(myStudentNum)
 
 class BasicTSP:
-    def __init__(self, _fName:str, _popSize:int, _mutationRate:float, _maxIterations:int):
+    def __init__(self, _fName:str, _popSize:int, _mutationRate:float, _maxIterations:int,\
+            mutationType:str="inversion"):
         """
         Parameters and general variables
         """
@@ -37,6 +38,7 @@ class BasicTSP:
         self.iteration      = 0
         self.fName          = _fName
         self.data           = {}
+        self.mutationType   = mutationType.lower()
 
         self.readInstance()
         self.initPopulation()
@@ -142,7 +144,10 @@ class BasicTSP:
 
     def mutation(self, ind:Individual):
         if random.random() > self.mutationRate:
-            self.reciprocal_index_mutation(ind)
+            if self.mutationType == "reciprocal":
+                self.reciprocal_index_mutation(ind)
+            else:
+                assert(False)
         ind.computeFitness()
         self.updateBest(ind)
 
@@ -218,9 +223,9 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[1].plot(ga.stat_run_best_fitness_history, label=label)
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 
-def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, runs:int, fig, ax):
+def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, mutationType:str, runs:int, fig, ax):
     time1 = time.perf_counter()
-    ga = BasicTSP(filename, popsize, mutationRate, runs)
+    ga = BasicTSP(filename, popsize, mutationRate, runs, mutationType)
     ga.search()
     time1 = time.perf_counter() - time1
     plot_ga(fig, ax, ga, title)
@@ -242,7 +247,7 @@ def main():
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
 
 
-    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, runs=100, fig=fig, ax=ax)
+    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, mutationType="reciprocal", runs=100, fig=fig, ax=ax)
     print(f"Time taken to run {t}")
 
     fig.legend()
