@@ -11,6 +11,7 @@ from Individual import *
 import sys
 import matplotlib.pyplot as plt
 import numpy
+from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
 
 myStudentNum = 12345 # Replace 12345 with your student number
 random.seed(myStudentNum)
@@ -23,7 +24,8 @@ class BasicTSP:
             _maxIterations:int,\
             mutationType:str="inversion",
             selectionType:str="binarytournament",
-            crossoverType="order1"):
+            crossoverType:str="order1",
+            initPopulationAlgo:str="random"):
         """
         Parameters and general variables
         """
@@ -47,6 +49,7 @@ class BasicTSP:
         self.mutationType   = mutationType.lower()
         self.selectionType  = selectionType.lower()
         self.crossoverType  = crossoverType.lower()
+        self.initPopulationAlgo = initPopulationAlgo.lower()
 
         self.readInstance()
         self.initPopulation()
@@ -71,7 +74,7 @@ class BasicTSP:
             self.data[int(cid)] = (int(x), int(y))
         file.close()
 
-    def initPopulation(self):
+    def initPopulation_random(self):
         """
         Creating random individuals in the population
         """
@@ -80,12 +83,38 @@ class BasicTSP:
             individual.computeFitness()
             self.population.append(individual)
 
+    def initPopulation_heuristic1(self):
+        for i in range(0, self.popSize):
+            solution, cost = insertion_heuristic1(self.data)
+            individual = Individual(self.genSize, self.data, solution)
+            assert(individual.validate())
+            individual.computeFitness()
+            self.population.append(individual)
+
+    def initPopulation_heuristic2(self):
+        for i in range(0, self.popSize):
+            solution, cost = insertion_heuristic2(self.data)
+            individual = Individual(self.genSize, self.data, solution)
+            assert(individual.validate())
+            individual.computeFitness()
+            self.population.append(individual)
+
+    def initPopulation(self):
+        if self.initPopulationAlgo == "random":
+            self.initPopulation_random()
+        elif self.initPopulationAlgo == "insertionheuristic1":
+            self.initPopulation_heuristic1()
+        elif self.initPopulationAlgo == "insertionheuristic2":
+            self.initPopulation_heuristic2()
+        else:
+            assert(False)
         self.best = self.population[0].copy()
         for ind_i in self.population:
             if self.best.getFitness() > ind_i.getFitness():
                 self.best = ind_i.copy()
         self.updateStats()
         print ("Best initial sol: ",self.best.getFitness())
+
 
     def updateBest(self, candidate:Individual):
         if self.best == None or candidate.getFitness() < self.best.getFitness():
@@ -125,6 +154,30 @@ class BasicTSP:
         Your Uniform Crossover Implementation
         """
         pass
+
+    def order1Crossover2Helper(self, par1:list, par2:list, x:int, y:int)->list:
+        assert(x <= y)
+        unchanged = par1[x:(y+1)]
+        child = []
+        for i in par2:
+            if i not in unchanged:
+                child.append(i)
+        [child.append(i) for i in unchanged]
+        assert(len(child) == len(par1))
+        return child
+
+    def order1Crossover2(self, indA:Individual, indB:Individual):
+        x = random.randint(0, self.genSize-1)
+        y = random.randint(0, self.genSize-1)
+        x, y = min(x,y), max(x,y)
+        c1 = self.order1Crossover2Helper(indA.genes, indB.genes, x, y)
+        c2 = self.order1Crossover2Helper(indB.genes, indA.genes, x, y)
+        c1 = Individual(self.genSize, self.data, c1)
+        c2 = Individual(self.genSize, self.data, c2)
+        assert(c1.validate())
+        assert(c2.validate())
+        return c1, c2
+
 
     def order1Crossover(self, indA:Individual, indB:Individual):
         """
@@ -244,18 +297,35 @@ class BasicTSP:
         3. Mutation
         """
         children = []
-        for i in range(0, len(self.population)):
+        if self.crossoverType != "order1variation2":
+            for i in range(0, len(self.population)):
+                """
+                Depending of your experiment you need to use the most suitable algorithms for:
+                1. Select two candidates
+                2. Apply Crossover
+                3. Apply Mutation
+                """
+                parent1, parent2 = self.selection()
+                child = self.crossover(parent1,parent2)
+                self.mutation(child)
+                children.append(child)
+            assert(len(children) == len(self.population))
+        else:
             """
-            Depending of your experiment you need to use the most suitable algorithms for:
-            1. Select two candidates
-            2. Apply Crossover
-            3. Apply Mutation
+            This variation of order 1 crossover produces two children with the
+            same set of indices.
+            The regular crossover produces just one child, and for the next
+            child, a different set of indices are used.
+            This check is a little bit out of place here, but I didn't want to
+            change the framework too much.
             """
-            parent1, parent2 = self.selection()
-            child = self.crossover(parent1,parent2)
-            self.mutation(child)
-            children.append(child)
-        assert(len(children) == len(self.population))
+            while len(children) < len(self.population):
+                parent1, parent2 = self.selection()
+                child1, child2 = self.order1Crossover2(parent1,parent2)
+                self.mutation(child1)
+                self.mutation(child2)
+                children.append(child1)
+                children.append(child2)
         self.population = children
 
     def GAStep(self):
@@ -295,6 +365,7 @@ def create_and_run_ga(\
         mutationType:str,
         selectionType:str,
         crossoverType:str,
+        initPopulationAlgo:str,
         runs:int, fig, ax):
     time1 = time.perf_counter()
     ga = BasicTSP(\
@@ -304,7 +375,8 @@ def create_and_run_ga(\
             runs,
             mutationType,
             selectionType,
-            crossoverType)
+            crossoverType,
+            initPopulationAlgo)
     ga.search()
     time1 = time.perf_counter() - time1
     plot_ga(fig, ax, ga, title)
@@ -328,9 +400,10 @@ def main():
             filename=sys.argv[1],
             popsize=300,
             mutationRate=0.1,
-            mutationType="scramble",
+            mutationType="inversion",
             selectionType="binaryTournament",
-            crossoverType="order1",
+            crossoverType="order1variation2",
+            initPopulationAlgo="insertionheuristic2",
             runs=500,
             fig=fig,
             ax=ax)
