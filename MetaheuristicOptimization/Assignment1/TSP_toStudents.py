@@ -316,15 +316,12 @@ def main():
         print ("Expecting python BasicTSP.py [instance] ")
         sys.exit(0)
 
-
     problem_file = sys.argv[1]
-
 
     fig, ax = plt.subplots(1, 3)
     ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
     ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
-
 
     ga, t = create_and_run_ga(\
             title="Basic GA",
