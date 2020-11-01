@@ -154,6 +154,7 @@ class BasicTSP:
         random.shuffle(scramble_data)
         for i in range(indexA, (indexB+1)):
             ind.genes[i] = scramble_data[i - indexA]
+        assert(ind.validate())
 
     def inversionMutation(self, ind:Individual):
         """
@@ -166,6 +167,7 @@ class BasicTSP:
         reversed_data = data_to_reverse[::-1]
         for i in range(indexA, (indexB+1)):
             ind.genes[i] = reversed_data[i - indexA]
+        assert(ind.validate())
 
     def dummy_crossover(self, indA:Individual, indB:Individual):
         """
@@ -181,12 +183,15 @@ class BasicTSP:
         return child
 
     def crossover(self, indA:Individual, indB:Individual):
+        child = None
         if self.crossoverType == "order1":
-            return self.order1Crossover(indA, indB)
+            child = self.order1Crossover(indA, indB)
         elif self.crossoverType == "dummy":
-            return self.dummy_crossover(indA, indB)
+            child = self.dummy_crossover(indA, indB)
         else:
             assert(False)
+        #child.computeFitness()
+        return child
 
     def reciprocal_index_mutation(self, ind:Individual):
         """
@@ -195,6 +200,7 @@ class BasicTSP:
         indexA = random.randint(0, self.genSize-1)
         indexB = random.randint(0, self.genSize-1)
         ind.genes[indexA], ind.genes[indexB] = ind.genes[indexB], ind.genes[indexA]
+        assert(ind.validate())
 
     def mutation(self, ind:Individual):
         if random.random() > self.mutationRate:
