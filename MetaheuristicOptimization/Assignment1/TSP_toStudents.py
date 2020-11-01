@@ -137,6 +137,7 @@ class BasicTSP:
             if indB.genes[i] not in cgenes:
                 cgenes.append(indB.genes[i])
         child = Individual(self.genSize, self.data, cgenes)
+        assert(child.validate())
         return child
 
     def reciprocal_index_mutation(self, ind:Individual):
@@ -151,6 +152,8 @@ class BasicTSP:
         if random.random() > self.mutationRate:
             if self.mutationType == "reciprocal":
                 self.reciprocal_index_mutation(ind)
+            elif self.mutationType == "inversion":
+                self.inversionMutation(ind)
             else:
                 assert(False)
         ind.computeFitness()
@@ -173,7 +176,7 @@ class BasicTSP:
         self.matingPool = []
         for ind_i in new_pool:
             self.matingPool.append( ind_i.copy() )
-        duplicates = [item for item, count in collections.Counter(self.matingPool).items() if count > 1]
+        #duplicates = [item for item, count in collections.Counter(self.matingPool).items() if count > 1]
         #print(f"{len(duplicates)} mating_pool={len(self.matingPool)}")
 
 
@@ -197,7 +200,7 @@ class BasicTSP:
             self.mutation(child)
             children.append(child)
         assert(len(children) == len(self.population))
-        self.population = children
+        #self.population = children
 
     def GAStep(self):
         """
@@ -252,7 +255,7 @@ def main():
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
 
 
-    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, mutationType="reciprocal", runs=100, fig=fig, ax=ax)
+    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, mutationType="inversion", runs=100, fig=fig, ax=ax)
     print(f"Time taken to run {t}")
 
     fig.legend()
