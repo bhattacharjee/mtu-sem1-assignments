@@ -3,6 +3,13 @@
 from lab_tsp_insertion import *
 import random, collections, math, copy
 from numpy.random import choice
+import matplotlib.pyplot as plt
+
+def random_heuristic(cities):
+    c = list(cities.keys())
+    c = copy.deepcopy(c)
+    random.shuffle(c)
+    return c, -1
 
 def validate_array(arr):
     duplicates = [item for item, count in collections.Counter(arr).items() if count > 1]
@@ -14,8 +21,11 @@ class Instance(object):
         self.id = self.solution_cost = self.fitness_value = None
         if (None == solution):
             self.cities = cities
-            self.solution, self.fitness_value = insertion_heuristic1(self.cities)
+            #print('Calling insertion heuristic')
+            self.solution, self.fitness_value = copy.deepcopy(random_heuristic(self.cities))
             self.id = identifier
+            self.fitness_value = -1
+            self.fitness()
         else:
             self.cities = cities
             self.solution = solution
@@ -34,8 +44,13 @@ class Instance(object):
         return f"{self.id} : {self.fitness_value} <== {self.solution}"
 
     def __eq__(self, other):
-        assert(isinstance(other, Instance))
+        assert(isinstance(other, Instance) or None == other)
+        if (None == other):
+            return False
         return self.solution == other.solution
+
+    def __hash__(self):
+        return self.id
 
     def get_solution(self):
         return self.solution
@@ -49,6 +64,7 @@ class Instance(object):
 
     def fitness(self) -> int:
         if -1 != self.fitness_value:
+            #return self.fitness_value
             return 100000 / (1 + self.fitness_value) * 100000000
         self.fitness_value = 0
         for i in range(1, len(self.solution)):
@@ -64,13 +80,13 @@ class Instance(object):
         dist = round(math.sqrt((x2-x1)**2 + (y2-y1)**2))
         self.fitness_value += dist
         assert(self.fitness_value > 0)
+        #return self.fitness_value
         return 100000 / (1 + self.fitness_value) * 100000000
-
-
-
 
 class GA(object):
     def __init__(self, cities:dict, population_size:int, crossover_fn, mutation_fn):
+        self.best_of_each_iteration = []
+        self.all_time_best = None
         self.cities = cities
         self.population_size = population_size
         self.instance_count = 0
@@ -78,9 +94,14 @@ class GA(object):
         self.crossover_fn = crossover_fn
         self.mutation_fn = mutation_fn
         self.fitness_array = []
+        self.average_distances = []
         self.best = None
         self.population = [Instance(cities=cities,identifier=self.get_instance_count())\
                                 for i in range(self.population_size)]
+        all_distances = [x.get_total_distance() for x in self.population]
+        average = sum(all_distances) / len(all_distances)
+        self.average_distances.append(average)
+        print("Done initializing GA")
 
     def get_instance_count(self):
         self.instance_count += 1
@@ -96,14 +117,15 @@ class GA(object):
         assert(len(self.population) >= self.population_size)
         tot_fitness = sum(self.fitness_array)
         probabilities = [i/tot_fitness for i in self.fitness_array]
-        choices = choice(self.population, size, probabilities)
+        choices = choice(self.population, size=size, p=probabilities, replace=False)
+        #print(sum(probabilities))
+        #duplicates = [item for item, count in collections.Counter(choices).items() if count > 1]
         return choices
 
     def binary_tournament_selection(self, mating_pool:list):
         s1 = random.choice(mating_pool)
         s2 = random.choice(mating_pool)
-        #print('*' * 100, "\n", s1, "\n", s2)
-        while s1 == s2:
+        while s1.id == s2.id:
             s1 = random.choice(mating_pool)
         f1 = s1.fitness()
         f2 = s2.fitness()
@@ -119,10 +141,12 @@ class GA(object):
         r = random.uniform(0,1)
         if (r > probability):
             return child
-        return self.mutation_fn(child)
+        child = self.mutation_fn(child)
+        validate_array(child)
+        return child
 
     def mate_and_mutate(self, mating_pool:list):
-        parent_is_mated = [False for i in range(len(mating_pool))]
+        #parent_is_mated = [False for i in range(len(mating_pool))]
         children = []
         children_created = 0
         while children_created < self.population_size:
@@ -133,7 +157,7 @@ class GA(object):
             tchildren = self.crossover(p1, p2)
             children_created += len(tchildren)
             for child in tchildren:
-                child = self.mutate(child, 0.01)
+                child = self.mutate(child, 1.0/self.population_size)
                 inst = Instance(cities=self.cities, solution=child, identifier=self.get_instance_count())
                 children.append(inst)
             assert(len(children) > 0)
@@ -151,8 +175,13 @@ class GA(object):
             if f > max_fitness:
                 max_fitness = f
                 self.best = inst
+        if None == self.all_time_best:
+            self.all_time_best = self.best
+        elif self.all_time_best.fitness() < self.best.fitness():
+            self.all_time_best = self.best
+        self.best_of_each_iteration.append(self.best)
         #print(f"Results from iteration {self.step_count}: {self.best.fitness()} {self.best}")
-        print(f"{self.best.get_total_distance()} :  Results from iteration {self.step_count}: {self.best.fitness()} ")
+        print(f"{self.best.get_total_distance()} :  Results from iteration {self.step_count}: {self.best.fitness()} {self.all_time_best.fitness()}")
 
     def step(self):
         self.step_count += 1
@@ -162,13 +191,31 @@ class GA(object):
         self.print_step_result(self.population, children)
         self.population = children
 
-def inversion_mutation(child:list):
+        # Update average
+        all_distances = [x.get_total_distance() for x in self.population]
+        average = sum(all_distances) / len(all_distances)
+        self.average_distances.append(average)
+        #print([x.get_total_distance() for x in self.population])
+
+def inversion_mutation(child:list)->list:
     length = len(child)
     x = y = random.choice(range(length))
     while x == y:
         y = random.choice(range(length))
     child = copy.deepcopy(child)
     (child[x], child[y]) = (child[y], child[x])
+    return child
+
+def scramble_mutation(child:list)->list:
+    length = len(child)
+    x = y = random.choice(range(length))
+    while x == y:
+        y = random.choice(range(length))
+    child = copy.deepcopy(child)
+    temp = child[x:(y+1)]
+    random.shuffle(temp)
+    for index, city in enumerate(temp):
+        child[x + index] = city
     return child
 
 # Select the unchanged from par1, and then jumble up par2
@@ -201,13 +248,23 @@ def get_cities(directory):
 
 def main():
     directory = "small"# sys.argv[1]
-    popsize = 10 if len(sys.argv) <= 2 else int(sys.argv[2])
     allcities = get_cities(directory)
-    ga = GA(allcities, popsize, crossover_fn=order_one_crossover, mutation_fn=inversion_mutation)
+    popsize = 10 if len(sys.argv) <= 2 else int(sys.argv[2])
+    ga = GA(allcities, popsize, crossover_fn=order_one_crossover, mutation_fn=scramble_mutation)
     #for inst in ga.population:
     #    print(inst.fitness(), inst.fitness_value)
-    for i in range(500):
+    for i in range(1000):
         ga.step()
+    fitness_arr = [x.fitness() for x in ga.best_of_each_iteration]
+    distance_arr = [int(x.get_total_distance()) for x in ga.best_of_each_iteration]
+    fig, ax = plt.subplots(1, 3)
+    ax[0].set(title='Fitness', ylabel='fitness', xlabel='run')
+    ax[0].plot(fitness_arr)
+    ax[1].set(title='Min Distance', ylabel='distance', xlabel='run')
+    ax[1].plot(distance_arr)
+    ax[2].set(title='Average Distance', ylabel='distance', xlabel='run')
+    ax[2].plot(ga.average_distances)
+    plt.show()
 
 if "__main__" == __name__:
     main()
