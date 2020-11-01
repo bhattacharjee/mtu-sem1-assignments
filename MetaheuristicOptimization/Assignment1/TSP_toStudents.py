@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import numpy
 from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
 
-myStudentNum = 12345 # Replace 12345 with your student number
+myStudentNum = 195734 # Replace 12345 with your student number
 random.seed(myStudentNum)
 
 class BasicTSP:
@@ -50,7 +50,9 @@ class BasicTSP:
         self.selectionType  = selectionType.lower()
         self.crossoverType  = crossoverType.lower()
         self.initPopulationAlgo = initPopulationAlgo.lower()
-
+        self.best_update_history = [] # list of tuples (nrun, best)
+        self.run_perf_times = []    # How much time did each run take
+        self.init_population_perf_time = None
         self.readInstance()
         self.initPopulation()
 
@@ -60,8 +62,29 @@ class BasicTSP:
         string += f"Mutation Type     : {self.mutationType}\n"
         string += f"Selection Type    : {self.selectionType}\n"
         string += f"Crossover Type   : {self.crossoverType}\n"
+        string += f"Population size   : {self.popSize}\n"
         return string
 
+    def print_stats(self):
+        print("********************************** STATS **********************************")
+        print(f"Genes                           = {self.genSize}")
+        print(f"")
+        print(f"Run Specifications")
+        print(f"      Mutation Type             = {self.mutationType}")
+        print(f"      MutationRate              = {self.mutationRate}")
+        print(f"      Selection Type            = {self.selectionType}")
+        print(f"      Crossover Type            = {self.crossoverType}")
+        print(f"      Init Populatin Algo       = {self.initPopulationAlgo}")
+        print(f"      Population Size           = {self.popSize}")
+        print(f"-----")
+        print(f"Performance")
+        print(f"Iterations                      = {self.iteration}")
+        print(f"Best Fitness                    = {self.best.getFitness()}")
+        print(f"Best Fitness Last Update Run    = {self.best_update_history[-1:][0][0]}")
+        print(f"Mean Time Per Step              = {sum(self.run_perf_times) / len(self.run_perf_times)}")
+        print(f"Total time for all steps        = {sum(self.run_perf_times)}")
+        print(f"Time to initialize population   = {self.init_population_perf_time}")
+        print("***************************************************************************")
 
     def updateStats(self):
         thisrun_fitness = [cand.getFitness() for cand in self.population]
@@ -109,6 +132,7 @@ class BasicTSP:
             self.population.append(individual)
 
     def initPopulation(self):
+        time1 = time.perf_counter()
         if self.initPopulationAlgo == "random":
             self.initPopulation_random()
         elif self.initPopulationAlgo == "insertionheuristic1":
@@ -122,12 +146,15 @@ class BasicTSP:
             if self.best.getFitness() > ind_i.getFitness():
                 self.best = ind_i.copy()
         self.updateStats()
+        time1 = time.perf_counter() - time1
+        self.init_population_perf_time = time1
         print ("Best initial sol: ",self.best.getFitness())
 
 
     def updateBest(self, candidate:Individual):
         if self.best == None or candidate.getFitness() < self.best.getFitness():
             self.best = candidate.copy()
+            self.best_update_history.append((self.iteration, self.best.getFitness()))
             print ("iteration: ",self.iteration, "best: ",self.best.getFitness())
 
     def randomSelection(self):
@@ -400,10 +427,12 @@ class BasicTSP:
         1. Updating mating pool with current population
         2. Creating a new Generation
         """
-
+        time1 = time.perf_counter()
         self.updateMatingPool()
         self.newGeneration()
         self.updateStats()
+        time1 = time.perf_counter() - time1
+        self.run_perf_times.append(time1)
 
     def search(self):
         """
@@ -426,9 +455,10 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 """
 def plot_ga(fig, ax, ga, label="None"):
-    ax[0].plot([int(i) for i in ga.stat_global_best_history], label=label)
-    ax[1].plot([int(i) for i in ga.stat_run_best_fitness_history], label=label)
-    ax[2].plot([int(i) for i in ga.stat_mean_fitness_history], label=label)
+    ax[0].plot(ga.stat_global_best_history, label=label)
+    ax[1].plot(ga.stat_run_best_fitness_history, label=label)
+    ax[2].plot(ga.stat_mean_fitness_history, label=label)
+    #ax[3].plot(ga.run_perf_times)
 
 def create_and_run_ga(\
         title:str,
@@ -468,6 +498,7 @@ def main(nruns=1):
     ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
     ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+    #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     for i in range(nruns):
         ga, t = create_and_run_ga(\
@@ -482,6 +513,7 @@ def main(nruns=1):
                 runs=150,
                 fig=fig,
                 ax=ax)
+        ga.print_stats()
     print(f"Time taken to run {t}")
 
     fig.legend()
