@@ -148,7 +148,7 @@ class BasicTSP:
         for i in range(indexA, (indexB+1)):
             ind.genes[i] = reversed_data[i - indexA]
 
-    def crossover(self, indA:Individual, indB:Individual):
+    def dummy_crossover(self, indA:Individual, indB:Individual):
         """
         Executes a dummy crossover and returns the genes for a new individual
         """
@@ -160,6 +160,9 @@ class BasicTSP:
         child = Individual(self.genSize, self.data, cgenes)
         assert(child.validate())
         return child
+
+    def crossover(self, indA:Individual, indB:Individual):
+        return self.dummy_crossover(indA, indB)
 
     def reciprocal_index_mutation(self, ind:Individual):
         """
