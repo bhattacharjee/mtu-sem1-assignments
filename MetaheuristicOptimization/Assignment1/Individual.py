@@ -68,14 +68,14 @@ class Individual:
         assert(None == other or isinstance(other, Individual))
         if None == other:
             return False
-        if None == self.data and None != other.data:
+        if None == self.genes and None != other.genes:
             return False
-        if None != self.data and None == other.data:
+        if None != self.data and None == other.genes:
             return False
-        if len(self.data) != len(other.data):
+        if len(self.genes) != len(other.genes):
             return False
-        self_keys = list(self.data.keys())
-        other_keys = list(other.data.keys())
+        self_keys = self.genes
+        other_keys = other.genes
         for i in range(len(self_keys)):
             if self_keys[i] != other_keys[i]:
                 return False
