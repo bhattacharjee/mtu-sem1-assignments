@@ -158,19 +158,27 @@ class BasicTSP:
         else:
             assert(False)
 
+    """
+    Two alternate implementations
+    1.
+    fixed_gene_indices = [random.randint(0, self.genSize-1) for i in N_FIXED_BITS]
+
+    2.
+    #while len(fixed_gene_indices) < N_FIXED_BITS:
+        index = random.randint(0, self.genSize-1)
+        while index in fixed_gene_indices:
+            index = random.randint(0, self.genSize-1)
+        fixed_gene_indices.append(index)
+
+    But the implementation using random.sample is more elegant
+    """
     def uniformCrossover(self, indA:Individual, indB:Individual):
         """
         Your Uniform Crossover Implementation
         """
         N_FIXED_BITS = 5
         N_FIXED_BITS = N_FIXED_BITS if N_FIXED_BITS <= len(indA.genes) else len(indA.genes)
-        fixed_gene_indices = []
-        # fixed_gene_indices = [random.randint(0, self.genSize-1) for i in N_FIXED_BITS]
-        while len(fixed_gene_indices) < N_FIXED_BITS:
-            index = random.randint(0, self.genSize-1)
-            while index in fixed_gene_indices:
-                index = random.randint(0, self.genSize-1)
-            fixed_gene_indices.append(index)
+        fixed_gene_indices = random.sample(list(range(self.genSize)), N_FIXED_BITS)
         fixed_genes = [indA.genes[i] for i in fixed_gene_indices]
         genes_from_par2 = [g for g in indB.genes if g not in fixed_genes]
         child_genes = [g for g in indA.genes]
@@ -186,6 +194,9 @@ class BasicTSP:
         assert(child.validate())
         return child
 
+    """
+    # somewhat inelegant version, a better version below is used
+    # Keeping this in case there are bugs, we can revert quickly
     def order1Crossover2Helper(self, par1:list, par2:list, x:int, y:int)->list:
         assert(x <= y)
         unchanged = par1[x:(y+1)]
@@ -193,6 +204,14 @@ class BasicTSP:
         for i in par2:
             if i not in unchanged:
                 child.append(i)
+        [child.append(i) for i in unchanged]
+        assert(len(child) == len(par1))
+        return child
+    """
+    def order1Crossover2Helper(self, par1:list, par2:list, x:int, y:int)->list:
+        assert(x <= y)
+        unchanged = par1[x:(y+1)]
+        child = [g for g in par2 if g not in unchanged]
         [child.append(i) for i in unchanged]
         assert(len(child) == len(par1))
         return child
@@ -210,10 +229,10 @@ class BasicTSP:
         return c1, c2
 
 
+    """
+    # A somewhat inelegant version, better version below is used
+    # Keeping this for reference in case there are bugs we can revert quickly
     def order1Crossover(self, indA:Individual, indB:Individual):
-        """
-        Your Order-1 Crossover Implementation
-        """
         x = random.randint(0, self.genSize-1)
         y = random.randint(0, self.genSize-1)
         x, y = min(x,y), max(x,y)
@@ -222,6 +241,20 @@ class BasicTSP:
         for i in indB.genes:
             if i not in unchanged:
                 child_genes.append(i)
+        [child_genes.append(i) for i in unchanged]
+        child = Individual(self.genSize, self.data, child_genes)
+        assert(child.validate())
+        return child
+    """
+    def order1Crossover(self, indA:Individual, indB:Individual):
+        """
+        Your Order-1 Crossover Implementation
+        """
+        x = random.randint(0, self.genSize-1)
+        y = random.randint(0, self.genSize-1)
+        x, y = min(x,y), max(x,y)
+        unchanged = indA.genes[x:(y+1)]
+        child_genes = [g for g in indB.genes if g not in unchanged]
         [child_genes.append(i) for i in unchanged]
         child = Individual(self.genSize, self.data, child_genes)
         assert(child.validate())
@@ -393,9 +426,9 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 """
 def plot_ga(fig, ax, ga, label="None"):
-    ax[0].plot(ga.stat_global_best_history, label=label)
-    ax[1].plot(ga.stat_run_best_fitness_history, label=label)
-    ax[2].plot(ga.stat_mean_fitness_history, label=label)
+    ax[0].plot([int(i) for i in ga.stat_global_best_history], label=label)
+    ax[1].plot([int(i) for i in ga.stat_run_best_fitness_history], label=label)
+    ax[2].plot([int(i) for i in ga.stat_mean_fitness_history], label=label)
 
 def create_and_run_ga(\
         title:str,
@@ -442,10 +475,10 @@ def main(nruns=1):
                 filename=sys.argv[1],
                 popsize=300,
                 mutationRate=0.1,
-                mutationType="scramble",
+                mutationType="inversion",
                 selectionType="binaryTournament",
-                crossoverType="uniform",
-                initPopulationAlgo="insertionheuristic1",
+                crossoverType="order1variation2",
+                initPopulationAlgo="random",
                 runs=150,
                 fig=fig,
                 ax=ax)
@@ -454,5 +487,5 @@ def main(nruns=1):
     fig.legend()
 
 if "__main__" == __name__:
-    main(nruns=5)
+    main(nruns=1)
     plt.show()
