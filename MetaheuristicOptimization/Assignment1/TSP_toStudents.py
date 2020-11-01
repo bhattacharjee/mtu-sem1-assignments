@@ -120,6 +120,10 @@ class BasicTSP:
         """
         Your Inversion Mutation implementation
         """
+        indexA = random.randint(0, self.genSize-1)
+        indexB = random.randint(0, self.genSize-1)
+        indexA, indexB = min(indexA, indexB), max(indexA, indexB)
+        data_to_reverse = ind.genes
         pass
 
     def crossover(self, indA:Individual, indB:Individual):
