@@ -96,7 +96,13 @@ class BasicTSP:
         """
         Your stochastic universal sampling Selection Implementation
         """
-        pass
+        x = random.choice(self.matingPool)
+        y = random.choice(self.matingPool)
+        indA = x if x.getFitness() < y.getFitness() else y
+        x = random.choice(self.matingPool)
+        y = random.choice(self.matingPool)
+        indB = x if x.getFitness() < y.getFitness() else y
+        return [indA, indB]
 
     def uniformCrossover(self, indA:Individual, indB:Individual):
         """
@@ -196,7 +202,7 @@ class BasicTSP:
             2. Apply Crossover
             3. Apply Mutation
             """
-            parent1, parent2 = self.randomSelection()
+            parent1, parent2 = self.binaryTournamentSelection()
             child = self.crossover(parent1,parent2)
             self.mutation(child)
             children.append(child)
