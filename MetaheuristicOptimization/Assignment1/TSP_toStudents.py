@@ -54,6 +54,15 @@ class BasicTSP:
         self.readInstance()
         self.initPopulation()
 
+    def get_description(self)->str:
+        string = ""
+        string += f"Population Init    : {self.initPopulationAlgo}\n"
+        string += f"Mutation Type     : {self.mutationType}\n"
+        string += f"Selection Type    : {self.selectionType}\n"
+        string += f"Crossover Type   : {self.crossoverType}\n"
+        return string
+
+
     def updateStats(self):
         thisrun_fitness = [cand.getFitness() for cand in self.population]
         thisrun_best_fitness = max(thisrun_fitness)
@@ -153,7 +162,29 @@ class BasicTSP:
         """
         Your Uniform Crossover Implementation
         """
-        pass
+        N_FIXED_BITS = 5
+        N_FIXED_BITS = N_FIXED_BITS if N_FIXED_BITS <= len(indA.genes) else len(indA.genes)
+        fixed_gene_indices = []
+        # fixed_gene_indices = [random.randint(0, self.genSize-1) for i in N_FIXED_BITS]
+        while len(fixed_gene_indices) < N_FIXED_BITS:
+            index = random.randint(0, self.genSize-1)
+            while index in fixed_gene_indices:
+                index = random.randint(0, self.genSize-1)
+            fixed_gene_indices.append(index)
+        fixed_genes = [indA.genes[i] for i in fixed_gene_indices]
+        genes_from_par2 = [g for g in indB.genes if g not in fixed_genes]
+        child_genes = [g for g in indA.genes]
+        # Now overwrite the positions from the other index
+        curindex = 0
+        for g in genes_from_par2:
+            while(curindex in fixed_gene_indices):
+                curindex += 1
+            child_genes[curindex] = g
+            curindex += 1
+        child = Individual(self.genSize, self.data, child_genes)
+        #print("\n", "*" * 80, "\n", "\nBEFORE CROSSOVER ", indA.genes, "\nAFTER  CROSSOVER ", child.genes, "\nOTHER PARENT     ", indB.genes, "\nFIRST PARENT     ", indA.genes, "\nUNCHANGED ", fixed_genes)
+        assert(child.validate())
+        return child
 
     def order1Crossover2Helper(self, par1:list, par2:list, x:int, y:int)->list:
         assert(x <= y)
@@ -239,6 +270,8 @@ class BasicTSP:
         child = None
         if self.crossoverType == "order1":
             child = self.order1Crossover(indA, indB)
+        elif self.crossoverType == "uniform":
+            child = self.uniformCrossover(indA, indB)
         elif self.crossoverType == "dummy":
             child = self.dummy_crossover(indA, indB)
         else:
@@ -352,6 +385,13 @@ class BasicTSP:
         print ("Total iterations: ", self.iteration)
         print ("Best Solution: ", self.best.getFitness())
 
+"""
+def plot_ga(fig, ax, ga, label="None"):
+    ax[0].plot(ga.stat_global_best_history, label=label)
+    ax[1].scatter(list(range(len(ga.stat_run_best_fitness_history))), ga.stat_run_best_fitness_history)
+    #ax[2].scatter(list(range(len(ga.stat_mean_fitness_history))), ga.stat_mean_fitness_history)
+    ax[2].plot(ga.stat_mean_fitness_history, label=label)
+"""
 def plot_ga(fig, ax, ga, label="None"):
     ax[0].plot(ga.stat_global_best_history, label=label)
     ax[1].plot(ga.stat_run_best_fitness_history, label=label)
@@ -380,9 +420,10 @@ def create_and_run_ga(\
     ga.search()
     time1 = time.perf_counter() - time1
     plot_ga(fig, ax, ga, title)
+    fig.suptitle(ga.get_description(), horizontalalignment="left")
     return ga, time1
 
-def main():
+def main(nruns=1):
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -395,23 +436,23 @@ def main():
     ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
 
-    ga, t = create_and_run_ga(\
-            title="Basic GA",
-            filename=sys.argv[1],
-            popsize=300,
-            mutationRate=0.1,
-            mutationType="inversion",
-            selectionType="binaryTournament",
-            crossoverType="order1variation2",
-            initPopulationAlgo="insertionheuristic2",
-            runs=500,
-            fig=fig,
-            ax=ax)
+    for i in range(nruns):
+        ga, t = create_and_run_ga(\
+                title="Basic GA - Run %d" % (i,),
+                filename=sys.argv[1],
+                popsize=300,
+                mutationRate=0.1,
+                mutationType="scramble",
+                selectionType="binaryTournament",
+                crossoverType="uniform",
+                initPopulationAlgo="insertionheuristic1",
+                runs=150,
+                fig=fig,
+                ax=ax)
     print(f"Time taken to run {t}")
 
     fig.legend()
 
 if "__main__" == __name__:
-    for i in range(1):
-        main()
+    main(nruns=5)
     plt.show()
