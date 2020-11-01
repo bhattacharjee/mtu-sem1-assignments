@@ -22,7 +22,8 @@ class BasicTSP:
             _mutationRate:float,
             _maxIterations:int,\
             mutationType:str="inversion",
-            selectionType:str="binarytournament"):
+            selectionType:str="binarytournament",
+            crossoverType="order1"):
         """
         Parameters and general variables
         """
@@ -45,6 +46,7 @@ class BasicTSP:
         self.data           = {}
         self.mutationType   = mutationType.lower()
         self.selectionType  = selectionType.lower()
+        self.crossoverType  = crossoverType.lower()
 
         self.readInstance()
         self.initPopulation()
@@ -128,7 +130,18 @@ class BasicTSP:
         """
         Your Order-1 Crossover Implementation
         """
-        pass
+        x = random.randint(0, self.genSize-1)
+        y = random.randint(0, self.genSize-1)
+        x, y = min(x,y), max(x,y)
+        child_genes = []
+        unchanged = indA.genes[x:(y+1)]
+        for i in indB.genes:
+            if i not in unchanged:
+                child_genes.append(i)
+        [child_genes.append(i) for i in unchanged]
+        child = Individual(self.genSize, self.data, child_genes)
+        assert(child.validate())
+        return child
 
     def scrambleMutation(self, ind:Individual):
         """
@@ -162,7 +175,12 @@ class BasicTSP:
         return child
 
     def crossover(self, indA:Individual, indB:Individual):
-        return self.dummy_crossover(indA, indB)
+        if self.crossoverType == "order1":
+            return self.order1Crossover(indA, indB)
+        elif self.crossoverType == "dummy":
+            return self.dummy_crossover(indA, indB)
+        else:
+            assert(False)
 
     def reciprocal_index_mutation(self, ind:Individual):
         """
@@ -255,7 +273,15 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[1].plot(ga.stat_run_best_fitness_history, label=label)
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 
-def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, mutationType:str, selectionType:str, runs:int, fig, ax):
+def create_and_run_ga(\
+        title:str,
+        filename:str,
+        popsize:int,
+        mutationRate:float,
+        mutationType:str,
+        selectionType:str,
+        crossoverType:str,
+        runs:int, fig, ax):
     time1 = time.perf_counter()
     ga = BasicTSP(\
             filename,
@@ -263,7 +289,8 @@ def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, 
             mutationRate,
             runs,
             mutationType,
-            selectionType)
+            selectionType,
+            crossoverType)
     ga.search()
     time1 = time.perf_counter() - time1
     plot_ga(fig, ax, ga, title)
@@ -292,6 +319,7 @@ def main():
             mutationRate=0.1,
             mutationType="inversion",
             selectionType="binaryTournament",
+            crossoverType="order1",
             runs=500,
             fig=fig,
             ax=ax)
