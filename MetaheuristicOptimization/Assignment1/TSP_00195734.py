@@ -188,10 +188,10 @@ class BasicTSP:
     """
     Two alternate implementations
     1.
-    fixed_gene_indices = [random.randint(0, self.genSize-1) for i in N_FIXED_BITS]
+    fixed_gene_indices = [random.randint(0, self.genSize-1) for i in n_fixed_bits]
 
     2.
-    #while len(fixed_gene_indices) < N_FIXED_BITS:
+    #while len(fixed_gene_indices) < n_fixed_bits:
         index = random.randint(0, self.genSize-1)
         while index in fixed_gene_indices:
             index = random.randint(0, self.genSize-1)
@@ -203,10 +203,11 @@ class BasicTSP:
         """
         Your Uniform Crossover Implementation
         """
-        N_FIXED_BITS = 5
-        N_FIXED_BITS = N_FIXED_BITS if N_FIXED_BITS <= len(indA.genes) else len(indA.genes)
-        fixed_gene_indices = random.sample(list(range(self.genSize)), N_FIXED_BITS)
-        fixed_genes = [indA.genes[i] for i in fixed_gene_indices]
+        n_fixed_bits = random.randint(5, self.genSize // 2) if 5 < (self.genSize // 2) else 5
+        n_fixed_bits = n_fixed_bits if n_fixed_bits <= len(indA.genes) else len(indA.genes)
+        # Use set() because lookup is O(1) and we're going to lookup quite a bit
+        fixed_gene_indices = frozenset(random.sample(list(range(self.genSize)), n_fixed_bits))
+        fixed_genes = frozenset([indA.genes[i] for i in fixed_gene_indices])
         genes_from_par2 = [g for g in indB.genes if g not in fixed_genes]
         child_genes = [g for g in indA.genes]
         # Now overwrite the positions from the other index
@@ -224,16 +225,16 @@ class BasicTSP:
     """
     # somewhat inelegant version, a better version below is used
     # Keeping this in case there are bugs, we can revert quickly
-    def order1Crossover2Helper(self, par1:list, par2:list, x:int, y:int)->list:
-        assert(x <= y)
-        unchanged = par1[x:(y+1)]
-        child = []
-        for i in par2:
-            if i not in unchanged:
-                child.append(i)
-        [child.append(i) for i in unchanged]
-        assert(len(child) == len(par1))
-        return child
+    #def order1Crossover2Helper(self, par1:list, par2:list, x:int, y:int)->list:
+    #    assert(x <= y)
+    #    unchanged = par1[x:(y+1)]
+    #    child = []
+    #    for i in par2:
+    #        if i not in unchanged:
+    #            child.append(i)
+    #    [child.append(i) for i in unchanged]
+    #    assert(len(child) == len(par1))
+    #    return child
     """
     def order1Crossover2Helper(self, par1:list, par2:list, x:int, y:int)->list:
         assert(x <= y)
@@ -259,19 +260,19 @@ class BasicTSP:
     """
     # A somewhat inelegant version, better version below is used
     # Keeping this for reference in case there are bugs we can revert quickly
-    def order1Crossover(self, indA:Individual, indB:Individual):
-        x = random.randint(0, self.genSize-1)
-        y = random.randint(0, self.genSize-1)
-        x, y = min(x,y), max(x,y)
-        child_genes = []
-        unchanged = indA.genes[x:(y+1)]
-        for i in indB.genes:
-            if i not in unchanged:
-                child_genes.append(i)
-        [child_genes.append(i) for i in unchanged]
-        child = Individual(self.genSize, self.data, child_genes)
-        assert(child.validate())
-        return child
+    #def order1Crossover(self, indA:Individual, indB:Individual):
+    #    x = random.randint(0, self.genSize-1)
+    #    y = random.randint(0, self.genSize-1)
+    #    x, y = min(x,y), max(x,y)
+    #    child_genes = []
+    #    unchanged = indA.genes[x:(y+1)]
+    #    for i in indB.genes:
+    #        if i not in unchanged:
+    #            child_genes.append(i)
+    #    [child_genes.append(i) for i in unchanged]
+    #    child = Individual(self.genSize, self.data, child_genes)
+    #    assert(child.validate())
+    #    return child
     """
     def order1Crossover(self, indA:Individual, indB:Individual):
         """
@@ -508,7 +509,7 @@ def main(nruns=1):
                 mutationRate=0.1,
                 mutationType="inversion",
                 selectionType="binaryTournament",
-                crossoverType="order1variation2",
+                crossoverType="uniform",
                 initPopulationAlgo="random",
                 runs=150,
                 fig=fig,
