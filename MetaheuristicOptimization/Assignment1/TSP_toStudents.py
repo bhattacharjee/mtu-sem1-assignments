@@ -147,7 +147,13 @@ class BasicTSP:
         """
         Your Scramble Mutation implementation
         """
-        pass
+        indexA = random.randint(0, self.genSize-1)
+        indexB = random.randint(0, self.genSize-1)
+        indexA, indexB = min(indexA, indexB), max(indexA, indexB)
+        scramble_data= ind.genes[indexA:(indexB+1)]
+        random.shuffle(scramble_data)
+        for i in range(indexA, (indexB+1)):
+            ind.genes[i] = scramble_data[i - indexA]
 
     def inversionMutation(self, ind:Individual):
         """
@@ -196,6 +202,8 @@ class BasicTSP:
                 self.reciprocal_index_mutation(ind)
             elif self.mutationType == "inversion":
                 self.inversionMutation(ind)
+            elif self.mutationType == "scramble":
+                self.scrambleMutation(ind)
             else:
                 assert(False)
         ind.computeFitness()
@@ -317,7 +325,7 @@ def main():
             filename=sys.argv[1],
             popsize=300,
             mutationRate=0.1,
-            mutationType="inversion",
+            mutationType="scramble",
             selectionType="binaryTournament",
             crossoverType="order1",
             runs=500,
