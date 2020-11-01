@@ -520,4 +520,7 @@ def main(nruns=1):
 
 if "__main__" == __name__:
     main(nruns=1)
-    plt.show()
+    try:
+        plt.show()
+    except:
+        print("Could not show performance graphs")
