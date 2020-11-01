@@ -6,7 +6,7 @@ file:
 Rename this file to TSP_x.py where x is your student number 
 """
 
-import random, collections
+import random, collections, time
 from Individual import *
 import sys
 import matplotlib.pyplot as plt
@@ -164,7 +164,7 @@ class BasicTSP:
         for ind_i in new_pool:
             self.matingPool.append( ind_i.copy() )
         duplicates = [item for item, count in collections.Counter(self.matingPool).items() if count > 1]
-        print(duplicates)
+        #print(f"{len(duplicates)} mating_pool={len(self.matingPool)}")
 
 
     def newGeneration(self):
@@ -218,6 +218,14 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[1].plot(ga.stat_run_best_fitness_history, label=label)
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 
+def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, runs:int, fig, ax):
+    time1 = time.perf_counter()
+    ga = BasicTSP(filename, popsize, mutationRate, runs)
+    ga.search()
+    time1 = time.perf_counter() - time1
+    plot_ga(fig, ax, ga, title)
+    return ga, time1
+
 def main():
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
@@ -227,14 +235,16 @@ def main():
 
     problem_file = sys.argv[1]
 
-    ga = BasicTSP(sys.argv[1], 300, 0.1, 100)
-    ga.search()
 
     fig, ax = plt.subplots(1, 3)
     ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
     ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
-    plot_ga(fig, ax, ga, "Basic TSP")
+
+
+    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, runs=100, fig=fig, ax=ax)
+    print(f"Time taken to run {t}")
+
     fig.legend()
     plt.show()
 
