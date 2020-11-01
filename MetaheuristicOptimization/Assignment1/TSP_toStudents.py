@@ -16,8 +16,13 @@ myStudentNum = 12345 # Replace 12345 with your student number
 random.seed(myStudentNum)
 
 class BasicTSP:
-    def __init__(self, _fName:str, _popSize:int, _mutationRate:float, _maxIterations:int,\
-            mutationType:str="inversion", selectionType:str="binarytournament"):
+    def __init__(self,
+            _fName:str,
+            _popSize:int,
+            _mutationRate:float,
+            _maxIterations:int,\
+            mutationType:str="inversion",
+            selectionType:str="binarytournament"):
         """
         Parameters and general variables
         """
@@ -104,6 +109,14 @@ class BasicTSP:
         y = random.choice(self.matingPool)
         indB = x if x.getFitness() < y.getFitness() else y
         return [indA, indB]
+
+    def selection(self):
+        if self.selectionType == "random":
+            return self.randomSelection()
+        elif self.selectionType == "binarytournament":
+            return self.binaryTournamentSelection()
+        else:
+            assert(False)
 
     def uniformCrossover(self, indA:Individual, indB:Individual):
         """
@@ -203,7 +216,7 @@ class BasicTSP:
             2. Apply Crossover
             3. Apply Mutation
             """
-            parent1, parent2 = self.binaryTournamentSelection()
+            parent1, parent2 = self.selection()
             child = self.crossover(parent1,parent2)
             self.mutation(child)
             children.append(child)
@@ -241,7 +254,13 @@ def plot_ga(fig, ax, ga, label="None"):
 
 def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, mutationType:str, selectionType:str, runs:int, fig, ax):
     time1 = time.perf_counter()
-    ga = BasicTSP(filename, popsize, mutationRate, runs, mutationType, selectionType)
+    ga = BasicTSP(\
+            filename,
+            popsize,
+            mutationRate,
+            runs,
+            mutationType,
+            selectionType)
     ga.search()
     time1 = time.perf_counter() - time1
     plot_ga(fig, ax, ga, title)
@@ -269,7 +288,7 @@ def main():
             popsize=300,
             mutationRate=0.1,
             mutationType="inversion",
-            selectionType="binarytournament",
+            selectionType="binaryTournament",
             runs=500,
             fig=fig,
             ax=ax)
