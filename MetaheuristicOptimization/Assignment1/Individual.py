@@ -5,6 +5,7 @@ Basic TSP Example
 file: Individual.py
 """
 
+import collections
 import random
 import math
 import uuid
@@ -80,6 +81,21 @@ class Individual:
             if self_keys[i] != other_keys[i]:
                 return False
         return True
+
+    def validate(self):
+        """
+        Validate that it is a proper setting
+        """
+        allkeys = list(self.data.keys())
+        for key in allkeys:
+            if key not in self.genes:
+                return False
+        if len(allkeys) != len(self.genes):
+            return False
+        duplicates = [item for item, count in collections.Counter(self.genes).items() if count > 1]
+        #print ("\n", "-" * 80, "\n", allkeys,"\n", self.genes, "\n", duplicates, "\n", "*" * 80)
+        return None == duplicates or 0 == len(duplicates)
+
 
     def __hash__(self):
         """
