@@ -91,7 +91,7 @@ class BasicTSP:
         Your Order-1 Crossover Implementation
         """
         pass
-    
+
     def scrambleMutation(self, ind):
         """
         Your Scramble Mutation implementation
@@ -116,19 +116,17 @@ class BasicTSP:
         child = Individual(self.genSize, self.data, cgenes)
         return child
 
-    def mutation(self, ind):
+    def reciprocal_index_mutation(self, ind):
         """
         Mutate an individual by swaping two cities with certain probability (i.e., mutation rate)
         """
-        if random.random() > self.mutationRate:
-            return
         indexA = random.randint(0, self.genSize-1)
         indexB = random.randint(0, self.genSize-1)
+        ind.genes[indexA], ind.genes[indexB] = ind.genes[indexB], ind.genes[indexA]
 
-        tmp = ind.genes[indexA]
-        ind.genes[indexA] = ind.genes[indexB]
-        ind.genes[indexB] = tmp
-
+    def mutation(self, ind):
+        if random.random() > self.mutationRate:
+            self.reciprocal_index_mutation(ind)
         ind.computeFitness()
         self.updateBest(ind)
 
@@ -147,6 +145,7 @@ class BasicTSP:
         2. Crossover
         3. Mutation
         """
+        children = []
         for i in range(0, len(self.population)):
             """
             Depending of your experiment you need to use the most suitable algorithms for:
@@ -157,6 +156,9 @@ class BasicTSP:
             parent1, parent2 = self.randomSelection()
             child = self.crossover(parent1,parent2)
             self.mutation(child)
+            children.append(child)
+        assert(len(children) == len(self.population))
+        self.population = children
 
     def GAStep(self):
         """
