@@ -124,8 +124,9 @@ class BasicTSP:
         indexB = random.randint(0, self.genSize-1)
         indexA, indexB = min(indexA, indexB), max(indexA, indexB)
         data_to_reverse = ind.genes[indexA:(indexB+1)]
-        print(data_to_reverse)
-        pass
+        reversed_data = data_to_reverse[::-1]
+        for i in range(indexA, (indexB+1)):
+            ind.genes[i] = reversed_data[i - indexA]
 
     def crossover(self, indA:Individual, indB:Individual):
         """
@@ -200,7 +201,7 @@ class BasicTSP:
             self.mutation(child)
             children.append(child)
         assert(len(children) == len(self.population))
-        #self.population = children
+        self.population = children
 
     def GAStep(self):
         """
@@ -255,11 +256,12 @@ def main():
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
 
 
-    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, mutationType="inversion", runs=100, fig=fig, ax=ax)
+    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, mutationType="inversion", runs=500, fig=fig, ax=ax)
     print(f"Time taken to run {t}")
 
     fig.legend()
-    plt.show()
 
 if "__main__" == __name__:
-    main()
+    for i in range(5):
+        main()
+    plt.show()
