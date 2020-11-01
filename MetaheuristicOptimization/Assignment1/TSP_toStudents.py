@@ -17,7 +17,7 @@ random.seed(myStudentNum)
 
 class BasicTSP:
     def __init__(self, _fName:str, _popSize:int, _mutationRate:float, _maxIterations:int,\
-            mutationType:str="inversion"):
+            mutationType:str="inversion", selectionType:str="binarytournament"):
         """
         Parameters and general variables
         """
@@ -39,6 +39,7 @@ class BasicTSP:
         self.fName          = _fName
         self.data           = {}
         self.mutationType   = mutationType.lower()
+        self.selectionType  = selectionType.lower()
 
         self.readInstance()
         self.initPopulation()
@@ -238,9 +239,9 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[1].plot(ga.stat_run_best_fitness_history, label=label)
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 
-def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, mutationType:str, runs:int, fig, ax):
+def create_and_run_ga(title:str, filename:str, popsize:int, mutationRate:float, mutationType:str, selectionType:str, runs:int, fig, ax):
     time1 = time.perf_counter()
-    ga = BasicTSP(filename, popsize, mutationRate, runs, mutationType)
+    ga = BasicTSP(filename, popsize, mutationRate, runs, mutationType, selectionType)
     ga.search()
     time1 = time.perf_counter() - time1
     plot_ga(fig, ax, ga, title)
@@ -262,12 +263,21 @@ def main():
     ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
 
 
-    ga, t = create_and_run_ga(title="Basic GA", filename=sys.argv[1], popsize=300, mutationRate=0.1, mutationType="inversion", runs=500, fig=fig, ax=ax)
+    ga, t = create_and_run_ga(\
+            title="Basic GA",
+            filename=sys.argv[1],
+            popsize=300,
+            mutationRate=0.1,
+            mutationType="inversion",
+            selectionType="binarytournament",
+            runs=500,
+            fig=fig,
+            ax=ax)
     print(f"Time taken to run {t}")
 
     fig.legend()
 
 if "__main__" == __name__:
-    for i in range(5):
+    for i in range(1):
         main()
     plt.show()
