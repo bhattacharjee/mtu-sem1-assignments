@@ -10,6 +10,7 @@ import random
 from Individual import *
 import sys
 import matplotlib.pyplot as plt
+import numpy
 
 myStudentNum = 12345 # Replace 12345 with your student number
 random.seed(myStudentNum)
@@ -149,9 +150,20 @@ class BasicTSP:
         """
         Updating the mating pool before creating a new generation
         """
+        population_fitness = [cand.getFitness() for cand in self.population]
+        """
+        The smaller the distance of an individual, the more weight it should recieve
+        Hence the inversion of the fitness is what we'll use to calculate the probability
+        """
+        inv_fitness = [1 / (x+1) for x in population_fitness]
+        sum_inv_fitness = sum(inv_fitness)
+        probabilities = [x / sum_inv_fitness for x in inv_fitness]
+        new_pool = numpy.random.choice(self.population, size=len(self.population), p=probabilities, replace=True)
+
         self.matingPool = []
-        for ind_i in self.population:
+        for ind_i in new_pool:
             self.matingPool.append( ind_i.copy() )
+
 
     def newGeneration(self):
         """
