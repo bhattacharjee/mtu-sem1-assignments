@@ -512,6 +512,13 @@ def create_and_run_ga(\
 g_initial_algo = {
         1: "random", 2: "random", 3: "random",
         4: "random", 5: "insertionheuristic1", 6:"insertionheuristic1"}
+g_crossover_type = {
+        1:"order1", 2:"uniform", 3:"order1",
+        4:"uniform", 5:"order1", 6:"uniform"}
+g_mutation_type = {
+        1:"inversion", 2:"scramble", 3:"scramble",
+        4:"inversion", 5:"scramble", 6:"inversion"}
+
 
 def execute(\
         file_name,
@@ -522,6 +529,8 @@ def execute(\
         no_graphs=False,
         n_iterations=150):
     global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -534,15 +543,23 @@ def execute(\
         ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
+    # Override population size and mutation rate for BASIC GA (configuration 1
+    # and 2)
+    if 1 == configuration or 2 == configuration:
+        print("BASIC GA: Overriding pop_size = 100 and mutation_rate = 0.05")
+        pop_size = 100
+        mutation_rate = 0.05
+        print("")
+
     for i in range(nruns):
         ga, t = create_and_run_ga(\
                 title="Basic GA - Run %d" % (i,),
                 filename=file_name,
                 popsize=pop_size,
                 mutationRate=mutation_rate,
-                mutationType="inversion",
+                mutationType=g_mutation_type[configuration],
                 selectionType="binaryTournament",
-                crossoverType="uniform",
+                crossoverType=g_crossover_type[configuration],
                 initPopulationAlgo=g_initial_algo[configuration],
                 no_graph=no_graphs,
                 runs=n_iterations, fig=fig, ax=ax)
@@ -561,6 +578,7 @@ if "__main__" == __name__:
     parser.add_argument("-ng", "--no-graphs", help="Do not show any graphs", action="store_true")
     parser.add_argument("-c", "--configuration", help="Configuration", choices=[1, 2, 3, 4, 5, 6], default=1, type=int)
     parser.add_argument("-i", "--iterations", help="Number of iterations to perform", default=500, type=int)
+    #parser.add_argument("-vmr", "--vary-mutation-rate", help="Plot with varying mutation rate, specified as a list", nargs="*", default=[], type=int)
     args = parser.parse_args()
     filename        = args.file_name
     mutationRate    = args.mutation_rate
