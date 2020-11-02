@@ -32,7 +32,7 @@ class CompareRunStats(object):
         if label not in self.readings.keys():
             self.readings[label] = []
         self.readings[label].append(stats)
-        print("---->", label, run_no, stats)
+        #print("---->", label, run_no, stats)
     """
         This is what the stats look like, a dictionary, where each value is
         an array of stats for different runs with the same configuration
@@ -100,7 +100,6 @@ class CompareRunStats(object):
                 allkeys.append(key)
             else:
                 allkeys.append(xlabellambda(key))
-        print(f"({allkeys} --- {aggregates}")
         ax.bar(allkeys, aggregates)
         if not norotate:
             plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
@@ -109,16 +108,32 @@ class CompareRunStats(object):
 
     # Process and print graph
     def process(self, barxlabel, xbarlabellambda, norotate=False):
-        fig, ax = plt.subplots(1, 3)
+        fig, ax = plt.subplots(2, 2)
         #for key, val in self.readings.items():
         #    print(key)
         #    print(json.dumps(val, indent=4))
+        self.bar_chart(\
+                "total_time_to_run",
+                "MEAN RUN TIME",
+                barxlabel,
+                "time (s)",
+                lambda x:sum(x)/len(x),
+                barxlabel,
+                xbarlabellambda,
+                ax[0][0],
+                norotate)
         self.plot_line_graph(\
                 field="total_time_to_run",
                 title="TOTAL RUN TIME",
                 xlabel="Run",
                 ylabel="time (s)",
-                y_lim_zero=False, ax=ax[0])
+                y_lim_zero=False, ax=ax[0][1])
+        self.plot_line_graph(\
+                field="mean_time_per_iteration",
+                title="TIME TO RUN PER ITERATION",
+                xlabel="Run",
+                ylabel="time (s)",
+                y_lim_zero=False, ax=ax[1][1])
         self.bar_chart(
                 "mean_time_per_iteration",
                 "MEAN TIME PER ITERATION",
@@ -127,7 +142,7 @@ class CompareRunStats(object):
                 lambda x: sum(x) / len(x), # min/max anything else
                 barxlabel,
                 xbarlabellambda, #How to modify xlabels
-                ax[1],
+                ax[1][0],
                 norotate)
         fig.legend()
 
