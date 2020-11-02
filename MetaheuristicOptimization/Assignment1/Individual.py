@@ -23,7 +23,11 @@ class Individual:
         """
         Associate an UUID, needed for debug code
         """
-        self.uuid       = uuid.uuid4()
+        if __debug__:
+            # This has a severe performance penalty, and doubles run time
+            self.uuid       = uuid.uuid4()
+        else:
+            self.uuid       = None
 
         if cgenes: # Child genes from crossover
             self.genes = cgenes
@@ -50,6 +54,8 @@ class Individual:
         d1 = self.data[c1]
         d2 = self.data[c2]
         return math.sqrt( (d1[0]-d2[0])**2 + (d1[1]-d2[1])**2 )
+        # Use this version for performance
+        #return (d1[0]-d2[0])**2 + (d1[1]-d2[1])**2
 
     def getFitness(self):
         return self.fitness
@@ -101,7 +107,7 @@ class Individual:
         """
         Again, needed for debug code to find duplicates
         """
-        return self.uuid.int
+        return self.uuid.int if self.uuid != None else 0
 
     def __repr__(self):
-        return f"Individual: {self.uuid.urn}"
+        return f"Individual: {self.uuid.urn if None != self.uuid else 'GUID_UNAVAILABLE'}"
