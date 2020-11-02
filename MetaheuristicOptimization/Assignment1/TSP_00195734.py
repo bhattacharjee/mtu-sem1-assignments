@@ -21,6 +21,20 @@ from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
 import argparse
 #import pprofile
 
+# Class to compare run statistics and print comarative graphs
+class CompareRunStats(object):
+    def __init__(self):
+        self.readings = {}
+
+    def add_results(self, label:str, run_no:int, stats:dict):
+        if label not in self.readings.keys():
+            self.readings[label] = []
+        self.readings[label].append(stats)
+        print("---->", label, run_no, stats)
+
+    # Process and print graph
+    def process(self):
+        pass
 
 class BasicTSP:
     def __init__(self,
@@ -594,6 +608,8 @@ def execute_vary_mutation_rate(\
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+
+    crs = CompareRunStats()
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -628,10 +644,11 @@ def execute_vary_mutation_rate(\
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
             stats = ga.get_stats_dict()
-            print(stats)
+            crs.add_results("MutationRate: %f" % i, j, stats)
             ga.print_stats()
     print(f"Time taken to run {t}")
 
+    crs.process()
     if not no_graphs:
         fig.legend()
 
@@ -751,7 +768,6 @@ if "__main__" == __name__:
     n_runs          = args.n_runs
     config          = args.configuration
     niterations     = args.iterations
-    print(args.vary_mutation_rate)
 
     if (None != args.vary_configs and 0 != len(args.vary_configs)):
         if min(args.vary_configs) < 1 or max(args.vary_configs) > 6:
