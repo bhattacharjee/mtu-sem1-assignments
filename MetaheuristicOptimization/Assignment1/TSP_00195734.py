@@ -12,6 +12,7 @@ import sys
 import matplotlib.pyplot as plt
 import numpy
 from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
+#import pprofile
 
 myStudentNum = 195734 # Replace 12345 with your student number
 random.seed(myStudentNum)
@@ -481,7 +482,15 @@ def create_and_run_ga(\
             selectionType,
             crossoverType,
             initPopulationAlgo)
+    """
+    prof = pprofile.StatisticalProfile()
+    with prof(
+        period=0.00001, # Sample every 1ms
+        single=True, # Only sample current thread
+    ):
+    """
     ga.search()
+    #prof.print_stats()
     time1 = time.perf_counter() - time1
     plot_ga(fig, ax, ga, title)
     fig.suptitle(ga.get_description(), horizontalalignment="left")
@@ -506,7 +515,7 @@ def main(nruns=1):
                 title="Basic GA - Run %d" % (i,),
                 filename=sys.argv[1],
                 popsize=300,
-                mutationRate=0.1,
+                mutationRate=0.05,
                 mutationType="inversion",
                 selectionType="binaryTournament",
                 crossoverType="uniform",
