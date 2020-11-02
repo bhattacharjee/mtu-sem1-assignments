@@ -324,6 +324,7 @@ class BasicTSP:
             stats["iterations_till_best_fitness"] = self.best_update_history[-1:][0][0]
         except:
             stats["iterations_till_best_fitness"] = 0
+        stats["n_genes"] = self.genSize
         return stats
 
     def updateStats(self):
@@ -969,6 +970,57 @@ def execute_vary_configs(\
     if not no_graphs:
         fig.legend()
 
+def execute_vary_files(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        files_list=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    crs = CompareRunStats()
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    for files in files_list:
+        for j in range(nruns):
+            ga, t = create_and_run_ga(\
+                    title="Run %d - configuration %d" % (j, configuration,),
+                    filename=files,
+                    popsize=pop_size,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            ga.print_stats()
+            stats = ga.get_stats_dict()
+            crs.add_results("geneSize: %d" % stats["n_genes"], j, stats)
+    print(f"Time taken to run {t}")
+
+    crs.process(\
+            "EFFECTS OF NUMBER OF GENES",
+            "n GENES",
+            lambda x: x[len("geneSize: "):],
+            norotate=True)
+    if not no_graphs:
+        fig.legend()
 
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
@@ -982,6 +1034,7 @@ if "__main__" == __name__:
     parser.add_argument("-vmr", "--vary-mutation-rate", help="Plot with varying mutation rate, specified as a list", nargs="*", default=[], type=float)
     parser.add_argument("-vps", "--vary-population-size", help="Plot with varying population size, specified as a list", nargs="*", default=[], type=int)
     parser.add_argument("-vc", "--vary-configs", help="Compare different configurations", nargs="*", default=[], type=int)
+    parser.add_argument("-vf", "--vary-files", help="Compare across different files (gene size)", nargs="*", default=[], type=str)
     args = parser.parse_args()
     filename        = args.file_name
     mutationRate    = args.mutation_rate
@@ -1023,6 +1076,15 @@ if "__main__" == __name__:
                 no_graphs=noGraphs,
                 n_iterations=niterations,
                 configs_list=args.vary_configs)
+    elif None != args.vary_files and 0 != len(args.vary_files):
+        execute_vary_files(file_name=filename,
+                nruns=n_runs,
+                pop_size=populationSize,
+                mutation_rate=mutationRate,
+                configuration=config,
+                no_graphs=noGraphs,
+                n_iterations=niterations,
+                files_list=args.vary_files)
     else:
         execute(file_name=filename,
                 nruns=n_runs,
