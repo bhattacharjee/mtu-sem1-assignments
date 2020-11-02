@@ -87,7 +87,7 @@ class CompareRunStats(object):
         if y_lim_zero:
             ax.set_ylim(ymin=0)
 
-    def bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggr, barxlabel, xlabellambda, ax):
+    def bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggr, barxlabel, xlabellambda, ax, norotate):
         aggregates = []
         allkeys = []
         for key in self.readings.keys():
@@ -102,12 +102,13 @@ class CompareRunStats(object):
                 allkeys.append(xlabellambda(key))
         print(f"({allkeys} --- {aggregates}")
         ax.bar(allkeys, aggregates)
-        plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
+        if not norotate:
+            plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
         ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
 
 
     # Process and print graph
-    def process(self, barxlabel, xbarlabellambda):
+    def process(self, barxlabel, xbarlabellambda, norotate=False):
         fig, ax = plt.subplots(1, 3)
         #for key, val in self.readings.items():
         #    print(key)
@@ -126,7 +127,8 @@ class CompareRunStats(object):
                 lambda x: sum(x) / len(x), # min/max anything else
                 barxlabel,
                 xbarlabellambda, #How to modify xlabels
-                ax[1])
+                ax[1],
+                norotate)
         fig.legend()
 
 class BasicTSP:
@@ -817,6 +819,8 @@ def execute_vary_configs(\
         print ("Expecting python BasicTSP.py [instance] ")
         sys.exit(0)
 
+    crs = CompareRunStats()
+
     if not no_graphs:
         fig, ax = plt.subplots(1, 3)
         ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
@@ -838,8 +842,14 @@ def execute_vary_configs(\
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
             ga.print_stats()
+            stats = ga.get_stats_dict()
+            crs.add_results("Configuration: %d" % configuration, j, stats)
     print(f"Time taken to run {t}")
 
+    crs.process(\
+            "CONFIGURATION",
+            lambda x: x[len("Configuration: "):],
+            norotate=True)
     if not no_graphs:
         fig.legend()
 
