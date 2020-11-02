@@ -6,7 +6,11 @@ file:
 Rename this file to TSP_x.py where x is your student number 
 """
 
-import random, collections, time
+import random
+myStudentNum = 195734 # Replace 12345 with your student number
+random.seed(myStudentNum)
+
+import collections, time
 from Individual import *
 import sys
 import matplotlib.pyplot as plt
@@ -14,8 +18,6 @@ import numpy
 from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
 #import pprofile
 
-myStudentNum = 195734 # Replace 12345 with your student number
-random.seed(myStudentNum)
 
 class BasicTSP:
     def __init__(self,
