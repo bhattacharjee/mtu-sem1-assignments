@@ -147,8 +147,9 @@ class CompareRunStats(object):
         ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
 
     # Process and print graph
-    def process(self, barxlabel, xbarlabellambda, norotate=False):
+    def process(self, description, barxlabel, xbarlabellambda, norotate=False):
         fig, ax = plt.subplots(3, 3)
+        fig.suptitle(description)
         #for key, val in self.readings.items():
         #    print(key)
         #    print(json.dumps(val, indent=4))
@@ -851,6 +852,7 @@ def execute_vary_mutation_rate(\
 
     print("Calling crs.process")
     crs.process(\
+            "EFFECTS OF VARYING MUTATION RATE",
             "MUTATION RATE",
             lambda x: "%0.3f" % float(x[len("MutationRate: "):]))
     if not no_graphs:
@@ -953,6 +955,7 @@ def execute_vary_configs(\
     print(f"Time taken to run {t}")
 
     crs.process(\
+            "EFFECTS OF VARYING CONFIGURATIONS",
             "CONFIGURATION",
             lambda x: x[len("Configuration: "):],
             norotate=True)
