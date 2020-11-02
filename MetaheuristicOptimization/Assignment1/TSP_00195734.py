@@ -18,6 +18,7 @@ from Individual import *
 import sys
 import matplotlib.pyplot as plt
 from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
+import argparse
 #import pprofile
 
 
@@ -475,6 +476,7 @@ def create_and_run_ga(\
         selectionType:str,
         crossoverType:str,
         initPopulationAlgo:str,
+        no_graph,
         runs:int, fig, ax):
     time1 = time.perf_counter()
     ga = BasicTSP(\
@@ -496,8 +498,9 @@ def create_and_run_ga(\
     ga.search()
     #prof.print_stats()
     time1 = time.perf_counter() - time1
-    plot_ga(fig, ax, ga, title)
-    fig.suptitle(ga.get_description(), horizontalalignment="left")
+    if not no_graph:
+        plot_ga(fig, ax, ga, title)
+        fig.suptitle(ga.get_description(), horizontalalignment="left")
     return ga, time1
 
 def execute(\
@@ -505,17 +508,20 @@ def execute(\
         nruns:int=1,
         pop_size:int=300,
         mutation_rate:float=0.05,
-        configuration=0):
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150):
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
         sys.exit(0)
 
-    fig, ax = plt.subplots(1, 3)
-    ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-    ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-    ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
-    #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     for i in range(nruns):
         ga, t = create_and_run_ga(\
@@ -527,19 +533,41 @@ def execute(\
                 selectionType="binaryTournament",
                 crossoverType="uniform",
                 initPopulationAlgo="random",
-                runs=150,
-                fig=fig,
-                ax=ax)
+                no_graph=no_graphs,
+                runs=n_iterations, fig=fig, ax=ax)
         ga.print_stats()
     print(f"Time taken to run {t}")
 
-    fig.legend()
+    if not no_graphs:
+        fig.legend()
 
 if "__main__" == __name__:
-    execute(\
-            file_name=sys.argv[1],
-            nruns=1)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--file-name", help="File name to parse, str", required=True, type=str)
+    parser.add_argument("-ps", "--population-size", help="Population Size", default=300, type=int)
+    parser.add_argument("-mr", "--mutation-rate", help="Mutation rate", default=0.05, type=float)
+    parser.add_argument("-nr", "--n-runs", help="Number of runs", default=1, type=int)
+    parser.add_argument("-ng", "--no-graphs", help="Do not show any graphs", action="store_true")
+    parser.add_argument("-c", "--configuration", help="Configuration", choices=[range(1,7)], default=1, type=int)
+    parser.add_argument("-i", "--iterations", help="Number of iterations to perform", default=500, type=int)
+    args = parser.parse_args()
+    filename        = args.file_name
+    mutationRate    = args.mutation_rate
+    populationSize  = args.population_size
+    noGraphs        = args.no_graphs
+    n_runs          = args.n_runs
+    config          = args.configuration
+    niterations     = args.iterations
+
+    execute(file_name=filename,
+            nruns=n_runs,
+            pop_size=populationSize,
+            mutation_rate=mutationRate,
+            configuration=config,
+            no_graphs=noGraphs,
+            n_iterations=niterations)
     try:
-        plt.show()
+        if not noGraphs:
+            plt.show()
     except:
         print("Could not show performance graphs")
