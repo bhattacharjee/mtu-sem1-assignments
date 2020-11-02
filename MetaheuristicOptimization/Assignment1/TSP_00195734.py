@@ -500,13 +500,16 @@ def create_and_run_ga(\
     fig.suptitle(ga.get_description(), horizontalalignment="left")
     return ga, time1
 
-def main(nruns=1):
+def execute(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=0):
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
         sys.exit(0)
-
-    problem_file = sys.argv[1]
 
     fig, ax = plt.subplots(1, 3)
     ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
@@ -517,9 +520,9 @@ def main(nruns=1):
     for i in range(nruns):
         ga, t = create_and_run_ga(\
                 title="Basic GA - Run %d" % (i,),
-                filename=sys.argv[1],
-                popsize=300,
-                mutationRate=0.05,
+                filename=file_name,
+                popsize=pop_size,
+                mutationRate=mutation_rate,
                 mutationType="inversion",
                 selectionType="binaryTournament",
                 crossoverType="uniform",
@@ -533,7 +536,9 @@ def main(nruns=1):
     fig.legend()
 
 if "__main__" == __name__:
-    main(nruns=1)
+    execute(\
+            file_name=sys.argv[1],
+            nruns=1)
     try:
         plt.show()
     except:
