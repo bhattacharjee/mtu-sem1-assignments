@@ -538,9 +538,9 @@ def execute(\
 
     if not no_graphs:
         fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     # Override population size and mutation rate for BASIC GA (configuration 1
@@ -569,6 +569,153 @@ def execute(\
     if not no_graphs:
         fig.legend()
 
+def execute_vary_mutation_rate(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        mutation_rates=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    # Override population size and mutation rate for BASIC GA (configuration 1
+    # and 2)
+    if 1 == configuration or 2 == configuration:
+        print("BASIC GA: Overriding pop_size = 100 and mutation_rate = 0.05")
+        pop_size = 100
+        mutation_rate = 0.05
+        print("")
+
+    for i in mutation_rates:
+        for j in range(nruns):
+            ga, t = create_and_run_ga(\
+                    title="Run %d - mutation_rate %f" % (j, i,),
+                    filename=file_name,
+                    popsize=pop_size,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            ga.print_stats()
+    print(f"Time taken to run {t}")
+
+    if not no_graphs:
+        fig.legend()
+
+def execute_vary_population_size(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        population_sizes=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    # Override population size and mutation rate for BASIC GA (configuration 1
+    # and 2)
+    if 1 == configuration or 2 == configuration:
+        print("BASIC GA: Overriding pop_size = 100 and mutation_rate = 0.05")
+        pop_size = 100
+        mutation_rate = 0.05
+        print("")
+
+    for i in population_sizes:
+        for j in range(nruns):
+            ga, t = create_and_run_ga(\
+                    title="Run %d - population_size %d" % (j, i,),
+                    filename=file_name,
+                    popsize=i,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            ga.print_stats()
+    print(f"Time taken to run {t}")
+
+    if not no_graphs:
+        fig.legend()
+
+
+def execute_vary_configs(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        configs_list=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    for configuration in configs_list:
+        for j in range(nruns):
+            ga, t = create_and_run_ga(\
+                    title="Run %d - configuration %d" % (j, configuration,),
+                    filename=file_name,
+                    popsize=pop_size,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            ga.print_stats()
+    print(f"Time taken to run {t}")
+
+    if not no_graphs:
+        fig.legend()
+
+
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file-name", help="File name to parse, str", required=True, type=str)
@@ -578,7 +725,9 @@ if "__main__" == __name__:
     parser.add_argument("-ng", "--no-graphs", help="Do not show any graphs", action="store_true")
     parser.add_argument("-c", "--configuration", help="Configuration", choices=[1, 2, 3, 4, 5, 6], default=1, type=int)
     parser.add_argument("-i", "--iterations", help="Number of iterations to perform", default=500, type=int)
-    #parser.add_argument("-vmr", "--vary-mutation-rate", help="Plot with varying mutation rate, specified as a list", nargs="*", default=[], type=int)
+    parser.add_argument("-vmr", "--vary-mutation-rate", help="Plot with varying mutation rate, specified as a list", nargs="*", default=[], type=float)
+    parser.add_argument("-vps", "--vary-population-size", help="Plot with varying population size, specified as a list", nargs="*", default=[], type=int)
+    parser.add_argument("-vc", "--vary-configs", help="Compare different configurations", nargs="*", default=[], type=int)
     args = parser.parse_args()
     filename        = args.file_name
     mutationRate    = args.mutation_rate
@@ -587,14 +736,48 @@ if "__main__" == __name__:
     n_runs          = args.n_runs
     config          = args.configuration
     niterations     = args.iterations
+    print(args.vary_mutation_rate)
 
-    execute(file_name=filename,
-            nruns=n_runs,
-            pop_size=populationSize,
-            mutation_rate=mutationRate,
-            configuration=config,
-            no_graphs=noGraphs,
-            n_iterations=niterations)
+    if (None != args.vary_configs and 0 != len(args.vary_configs)):
+        if min(args.vary_configs) < 1 or max(args.vary_configs) > 6:
+            print("Varying configs, all configs should be between 1 and 6")
+            sys.exit(0)
+
+    if 0 != len(args.vary_mutation_rate):
+        execute_vary_mutation_rate(file_name=filename,
+                nruns=n_runs,
+                pop_size=populationSize,
+                mutation_rate=mutationRate,
+                configuration=config,
+                no_graphs=noGraphs,
+                n_iterations=niterations,
+                mutation_rates=args.vary_mutation_rate)
+    elif 0 != len(args.vary_population_size):
+        execute_vary_population_size(file_name=filename,
+                nruns=n_runs,
+                pop_size=populationSize,
+                mutation_rate=mutationRate,
+                configuration=config,
+                no_graphs=noGraphs,
+                n_iterations=niterations,
+                population_sizes=args.vary_population_size)
+    elif None != args.vary_configs and 0 != len(args.vary_configs):
+        execute_vary_configs(file_name=filename,
+                nruns=n_runs,
+                pop_size=populationSize,
+                mutation_rate=mutationRate,
+                configuration=config,
+                no_graphs=noGraphs,
+                n_iterations=niterations,
+                configs_list=args.vary_configs)
+    else:
+        execute(file_name=filename,
+                nruns=n_runs,
+                pop_size=populationSize,
+                mutation_rate=mutationRate,
+                configuration=config,
+                no_graphs=noGraphs,
+                n_iterations=niterations)
     try:
         if not noGraphs:
             plt.show()
