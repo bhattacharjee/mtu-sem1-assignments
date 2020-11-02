@@ -10,6 +10,7 @@ import random
 myStudentNum = 195734 # Replace 12345 with your student number
 random.seed(myStudentNum)
 import numpy
+# Since we use numpy's random choice, its seed must be set too
 numpy.random.seed(myStudentNum)
 
 import collections, time
