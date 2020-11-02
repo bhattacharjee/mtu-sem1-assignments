@@ -172,11 +172,11 @@ class CompareRunStats(object):
                 pmarker='.',
                 ax=ax[0][1])
         self.bar_chart(\
-                "time_to_initialize_population",
-                "MEDIAN TIME TO INITIALIZE PROBLEM",
+                "best_fitness",
+                "BEST FITNESS",
                 barxlabel,
-                "time (s)",
-                lambda x: statistics.median(x),
+                "Disatnce",
+                lambda x: min(x),
                 barxlabel,
                 xbarlabellambda,
                 ax[0][2],
