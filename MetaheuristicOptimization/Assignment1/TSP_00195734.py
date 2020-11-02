@@ -157,7 +157,7 @@ class CompareRunStats(object):
                 "MEAN RUN TIME",
                 barxlabel,
                 "time (s)",
-                lambda x: statistics.median(x)
+                lambda x: statistics.median(x),
                 barxlabel,
                 xbarlabellambda,
                 ax[0][0],
@@ -172,10 +172,11 @@ class CompareRunStats(object):
                 ax=ax[0][1])
         self.bar_chart(\
                 "time_to_initialize_population",
-                "MEAN TIME TO INITIALIZE PROBLEM",
+                "MEDIAN TIME TO INITIALIZE PROBLEM",
                 barxlabel,
                 "time (s)",
-                lambda x: statistics.mean(x),
+                lambda x: statistics.median(x),
+                barxlabel,
                 xbarlabellambda,
                 ax[0][2],
                 norotate)
