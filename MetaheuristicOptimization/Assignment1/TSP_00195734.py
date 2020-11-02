@@ -34,50 +34,6 @@ class CompareRunStats(object):
         if label not in self.readings.keys():
             self.readings[label] = []
         self.readings[label].append(stats)
-        #print("---->", label, run_no, stats)
-    """
-        This is what the stats look like, a dictionary, where each value is
-        an array of stats for different runs with the same configuration
-        Keys are the different run descriptions, in this case Mutation changes
-        MutationRate: 0.001000
-        [
-            {
-                "mean_time_per_iteration": 0.004258219999755965,
-                "total_time_for_all_iterations": 0.21291099998779828,
-                "time_to_initialize_population": 0.004350999999587657,
-                "total_time_to_run": 0.21726199998738593,
-                "best_fitness": 3577877.806178273,
-                "iterations_till_best_fitness": 48
-            },
-            {
-                "mean_time_per_iteration": 0.004498179999645799,
-                "total_time_for_all_iterations": 0.22490899998228997,
-                "time_to_initialize_population": 0.003037999998923624,
-                "total_time_to_run": 0.2279469999812136,
-                "best_fitness": 3438362.0756382775,
-                "iterations_till_best_fitness": 45
-            }
-        ]
-        MutationRate: 0.010000
-        [
-            {
-                "mean_time_per_iteration": 0.004666659999711556,
-                "total_time_for_all_iterations": 0.23333299998557777,
-                "time_to_initialize_population": 0.007636000002094079,
-                "total_time_to_run": 0.24096899998767185,
-                "best_fitness": 3656523.752338746,
-                "iterations_till_best_fitness": 7
-            },
-            {
-                "mean_time_per_iteration": 0.0043733799996698505,
-                "total_time_for_all_iterations": 0.21866899998349254,
-                "time_to_initialize_population": 0.004965999996784376,
-                "total_time_to_run": 0.22363499998027692,
-                "best_fitness": 3722253.6889758552,
-                "iterations_till_best_fitness": 18
-            }
-        ]
-    """
 
     def plot_line_graph(self, field:str, title:str, xlabel:str, ylabel:str, y_lim_zero:bool, pmarker, ax):
         for key in self.readings.keys():
