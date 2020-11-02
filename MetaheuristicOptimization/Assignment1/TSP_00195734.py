@@ -108,7 +108,7 @@ class CompareRunStats(object):
 
     # Process and print graph
     def process(self, barxlabel, xbarlabellambda, norotate=False):
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         #for key, val in self.readings.items():
         #    print(key)
         #    print(json.dumps(val, indent=4))
