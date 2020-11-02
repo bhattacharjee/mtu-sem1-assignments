@@ -87,17 +87,27 @@ class CompareRunStats(object):
         if y_lim_zero:
             ax.set_ylim(ymin=0)
 
-    plot bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggr, ax):
-        for key in self.readings.keys()
+    def bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggr, barxlabel, xlabellambda, ax):
+        aggregates = []
+        allkeys = []
+        for key in self.readings.keys():
             yaxis = []
-            for stat in self.readings[key]
+            for stat in self.readings[key]:
                 yaxis.append(stat[field])
             aggregate = laggr(yaxis)
-            ax.bar(aggregate, ylabel=ylabel, xlabel=xlabel)
+            aggregates.append(aggregate)
+            if None == xlabellambda:
+                allkeys.append(key)
+            else:
+                allkeys.append(xlabellambda(key))
+        print(f"({allkeys} --- {aggregates}")
+        ax.bar(allkeys, aggregates)
+        plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
+        ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
 
 
     # Process and print graph
-    def process(self):
+    def process(self, barxlabel, xbarlabellambda):
         fig, ax = plt.subplots(1, 3)
         #for key, val in self.readings.items():
         #    print(key)
@@ -108,13 +118,15 @@ class CompareRunStats(object):
                 xlabel="Run",
                 ylabel="time (s)",
                 y_lim_zero=False, ax=ax[0])
-        self.plot_bar_chart(
-                field="mean_time_per_iteration",
-                title="MEAN TIME PER ITERATION",
-                xlabel="Run",
-                ylabel="time (s)",
-                laggr=lambda x: sum(x) / len(x),
-                ax)
+        self.bar_chart(
+                "mean_time_per_iteration",
+                "MEAN TIME PER ITERATION",
+                barxlabel,
+                "time (s)",
+                lambda x: sum(x) / len(x), # min/max anything else
+                barxlabel,
+                xbarlabellambda, #How to modify xlabels
+                ax[1])
         fig.legend()
 
 class BasicTSP:
@@ -730,7 +742,9 @@ def execute_vary_mutation_rate(\
     print(f"Time taken to run {t}")
 
     print("Calling crs.process")
-    crs.process()
+    crs.process(\
+            "MUTATION RATE",
+            lambda x: "%0.3f" % float(x[len("MutationRate: "):]))
     if not no_graphs:
         fig.legend()
 
