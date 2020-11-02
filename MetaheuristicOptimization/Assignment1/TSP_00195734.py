@@ -98,6 +98,19 @@ class BasicTSP:
         print(f"Time to initialize population   = {self.init_population_perf_time}")
         print("***************************************************************************")
 
+    def get_stats_dict(self):
+        stats = {}
+        stats["mean_time_per_iteration"] = sum(self.run_perf_times) / len(self.run_perf_times)
+        stats["total_time_for_all_iterations"] = sum(self.run_perf_times)
+        stats["time_to_initialize_population"] = self.init_population_perf_time
+        stats["total_time_to_run"] = sum(self.run_perf_times) + self.init_population_perf_time
+        stats["best_fitness"] = self.best.getFitness()
+        try:
+            stats["iterations_till_best_fitness"] = self.best_update_history[-1:][0][0]
+        except:
+            stats["iterations_till_best_fitness"] = 0
+        return stats
+
     def updateStats(self):
         thisrun_fitness = [cand.getFitness() for cand in self.population]
         thisrun_best_fitness = max(thisrun_fitness)
@@ -614,6 +627,8 @@ def execute_vary_mutation_rate(\
                     initPopulationAlgo=g_initial_algo[configuration],
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
+            stats = ga.get_stats_dict()
+            print(stats)
             ga.print_stats()
     print(f"Time taken to run {t}")
 
