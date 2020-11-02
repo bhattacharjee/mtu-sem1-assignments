@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/python3 -OO
 
 """
 Author:
@@ -9,12 +9,13 @@ Rename this file to TSP_x.py where x is your student number
 import random
 myStudentNum = 195734 # Replace 12345 with your student number
 random.seed(myStudentNum)
+import numpy
+numpy.random.seed(myStudentNum)
 
 import collections, time
 from Individual import *
 import sys
 import matplotlib.pyplot as plt
-import numpy
 from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
 #import pprofile
 
