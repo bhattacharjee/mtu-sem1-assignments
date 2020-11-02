@@ -875,6 +875,8 @@ def execute_vary_population_size(\
         print ("Expecting python BasicTSP.py [instance] ")
         sys.exit(0)
 
+    crs = CompareRunStats()
+
     if not no_graphs:
         fig, ax = plt.subplots(1, 3)
         ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
@@ -903,9 +905,15 @@ def execute_vary_population_size(\
                     initPopulationAlgo=g_initial_algo[configuration],
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
+            stats = ga.get_stats_dict()
+            crs.add_results("PopulationSize: %d" % i, j, stats)
             ga.print_stats()
     print(f"Time taken to run {t}")
 
+    crs.process(\
+            "EFFECTS OF VARYING POPULATION SIZE",
+            "POPULATION SIZE",
+            lambda x: "%d" % int(x[len("PopulationSize: "):]))
     if not no_graphs:
         fig.legend()
 
