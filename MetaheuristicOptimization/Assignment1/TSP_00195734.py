@@ -22,6 +22,7 @@ import argparse
 
 import statistics
 import json
+import numpy as np
 #import pprofile
 
 # Class to compare run statistics and print comarative graphs
@@ -109,6 +110,42 @@ class CompareRunStats(object):
             plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
         ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
 
+    def grouped_bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggrfn, laggrfn2, barxlabel, xlabellambda, ax, norotate):
+        aggregates = []
+        aggregates2 = []
+        allkeys = []
+        n_x = len(self.readings.keys())
+        X = np.arange(n_x)
+        width = 0.3
+        if None == laggrfn or None == laggrfn2:
+            raise AssertionError
+        for key in self.readings.keys():
+            yaxis = []
+            for stat in self.readings[key]:
+                yaxis.append(stat[field])
+            aggregate = laggrfn(yaxis)
+            aggregates.append(aggregate)
+            aggregate = laggrfn2(yaxis)
+            aggregates2.append(aggregate)
+            if None == xlabellambda:
+                allkeys.append(key)
+            else:
+                allkeys.append(xlabellambda(key))
+        ax.plot(aggregates, marker='o')
+        rects1 = ax.bar(X, height=aggregates, width=width, color='lightgreen')
+        rects2 = ax.bar(X+width, height=aggregates2, width=width, color='orange')
+        for i, rect in enumerate(rects1):
+            height = rect.get_height()
+            print(height)
+            ax.annotate(allkeys[i],
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, -20),
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+        if not norotate:
+            plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
+        ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
+
     # Process and print graph
     def process(self, barxlabel, xbarlabellambda, norotate=False):
         fig, ax = plt.subplots(3, 3)
@@ -151,28 +188,17 @@ class CompareRunStats(object):
                 xbarlabellambda, #How to modify xlabels
                 ax[1][0],
                 norotate)
-        self.bar_chart(\
+        self.grouped_bar_chart(\
                 "best_fitness",
-                "MEDIAN BEST FITNESS",
+                "MEDIAN AND MEAN BEST FITNESS",
                 barxlabel,
                 "Disatnce",
                 lambda x: statistics.median(x),
-                barxlabel,
-                xbarlabellambda,
-                ax[2][0],
-                norotate)
-        """
-        self.bar_chart(\
-                "best_fitness",
-                "MEAN BEST FITNESS",
-                barxlabel,
-                "Disatnce",
                 lambda x: statistics.mean(x),
                 barxlabel,
                 xbarlabellambda,
                 ax[2][0],
                 norotate)
-        """
         self.plot_line_graph(\
                 field="best_fitness",
                 title="BEST FITNESS",
