@@ -20,6 +20,7 @@ import matplotlib.pyplot as plt
 from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
 import argparse
 
+import statistics
 import json
 #import pprofile
 
@@ -77,12 +78,15 @@ class CompareRunStats(object):
         ]
     """
 
-    def plot_line_graph(self, field:str, title:str, xlabel:str, ylabel:str, y_lim_zero:bool, ax):
+    def plot_line_graph(self, field:str, title:str, xlabel:str, ylabel:str, y_lim_zero:bool, pmarker, ax):
         for key in self.readings.keys():
             yaxis = []
             for stat in self.readings[key]:
                 yaxis.append(stat[field])
-            ax.plot(yaxis, label=key)
+            if None != pmarker:
+                ax.plot(yaxis, label=key, marker=pmarker)
+            else:
+                ax.plot(yaxis, label=key)
         ax.set(title=title, ylabel=ylabel, xlabel=xlabel)
         if y_lim_zero:
             ax.set_ylim(ymin=0)
@@ -105,10 +109,9 @@ class CompareRunStats(object):
             plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
         ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
 
-
     # Process and print graph
     def process(self, barxlabel, xbarlabellambda, norotate=False):
-        fig, ax = plt.subplots(3, 2)
+        fig, ax = plt.subplots(3, 3)
         #for key, val in self.readings.items():
         #    print(key)
         #    print(json.dumps(val, indent=4))
@@ -127,13 +130,17 @@ class CompareRunStats(object):
                 title="TOTAL RUN TIME",
                 xlabel="Run",
                 ylabel="time (s)",
-                y_lim_zero=False, ax=ax[0][1])
+                y_lim_zero=False,
+                pmarker='.',
+                ax=ax[0][1])
         self.plot_line_graph(\
                 field="mean_time_per_iteration",
                 title="TIME TO RUN PER ITERATION",
                 xlabel="Run",
                 ylabel="time (s)",
-                y_lim_zero=False, ax=ax[1][1])
+                y_lim_zero=False,
+                pmarker='.',
+                ax=ax[1][1])
         self.bar_chart(
                 "mean_time_per_iteration",
                 "MEAN TIME PER ITERATION",
@@ -144,6 +151,54 @@ class CompareRunStats(object):
                 xbarlabellambda, #How to modify xlabels
                 ax[1][0],
                 norotate)
+        self.bar_chart(\
+                "best_fitness",
+                "MEDIAN BEST FITNESS",
+                barxlabel,
+                "Disatnce",
+                lambda x: statistics.median(x),
+                barxlabel,
+                xbarlabellambda,
+                ax[2][0],
+                norotate)
+        """
+        self.bar_chart(\
+                "best_fitness",
+                "MEAN BEST FITNESS",
+                barxlabel,
+                "Disatnce",
+                lambda x: statistics.mean(x),
+                barxlabel,
+                xbarlabellambda,
+                ax[2][0],
+                norotate)
+        """
+        self.plot_line_graph(\
+                field="best_fitness",
+                title="BEST FITNESS",
+                xlabel="Run",
+                ylabel="Distance",
+                y_lim_zero=False,
+                pmarker='.',
+                ax=ax[2][1])
+        self.bar_chart(\
+                "iterations_till_best_fitness",
+                "MEDIAN ITERS TO REACH BEST FITNESS\n(convergence speed)",
+                barxlabel,
+                "Runs",
+                lambda x:statistics.median(x),
+                barxlabel,
+                xbarlabellambda,
+                ax[1][2],
+                norotate)
+        self.plot_line_graph(\
+                field="iterations_till_best_fitness",
+                title="ITERS TO REACH BEST FITNESS",
+                ylabel="Iterations",
+                xlabel="Run",
+                y_lim_zero=False,
+                pmarker='.',
+                ax=ax[2][2])
         fig.legend()
 
 class BasicTSP:
