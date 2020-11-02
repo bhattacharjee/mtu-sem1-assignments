@@ -78,7 +78,6 @@ class CompareRunStats(object):
     """
 
     def plot_line_graph(self, field:str, title:str, xlabel:str, ylabel:str, y_lim_zero:bool, ax):
-        print(self.readings.keys())
         for key in self.readings.keys():
             yaxis = []
             for stat in self.readings[key]:
@@ -88,13 +87,34 @@ class CompareRunStats(object):
         if y_lim_zero:
             ax.set_ylim(ymin=0)
 
+    plot bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggr, ax):
+        for key in self.readings.keys()
+            yaxis = []
+            for stat in self.readings[key]
+                yaxis.append(stat[field])
+            aggregate = laggr(yaxis)
+            ax.bar(aggregate, ylabel=ylabel, xlabel=xlabel)
+
+
     # Process and print graph
     def process(self):
         fig, ax = plt.subplots(1, 3)
         #for key, val in self.readings.items():
         #    print(key)
         #    print(json.dumps(val, indent=4))
-        self.plot_line_graph(field="total_time_to_run", title="TOTAL RUN TIME", xlabel="Run", ylabel="time (s)", y_lim_zero=False, ax=ax[0])
+        self.plot_line_graph(\
+                field="total_time_to_run",
+                title="TOTAL RUN TIME",
+                xlabel="Run",
+                ylabel="time (s)",
+                y_lim_zero=False, ax=ax[0])
+        self.plot_bar_chart(
+                field="mean_time_per_iteration",
+                title="MEAN TIME PER ITERATION",
+                xlabel="Run",
+                ylabel="time (s)",
+                laggr=lambda x: sum(x) / len(x),
+                ax)
         fig.legend()
 
 class BasicTSP:
