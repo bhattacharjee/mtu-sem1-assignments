@@ -157,7 +157,7 @@ class CompareRunStats(object):
                 "MEAN RUN TIME",
                 barxlabel,
                 "time (s)",
-                lambda x:sum(x)/len(x),
+                lambda x: statistics.median(x)
                 barxlabel,
                 xbarlabellambda,
                 ax[0][0],
@@ -170,6 +170,15 @@ class CompareRunStats(object):
                 y_lim_zero=False,
                 pmarker='.',
                 ax=ax[0][1])
+        self.bar_chart(\
+                "time_to_initialize_population",
+                "MEAN TIME TO INITIALIZE PROBLEM",
+                barxlabel,
+                "time (s)",
+                lambda x: statistics.mean(x),
+                xbarlabellambda,
+                ax[0][2],
+                norotate)
         self.plot_line_graph(\
                 field="mean_time_per_iteration",
                 title="TIME TO RUN PER ITERATION",
@@ -212,7 +221,7 @@ class CompareRunStats(object):
                 "MEDIAN ITERS TO REACH BEST FITNESS\n(convergence speed)",
                 barxlabel,
                 "Runs",
-                lambda x:statistics.median(x),
+                lambda x: statistics.median(x),
                 barxlabel,
                 xbarlabellambda,
                 ax[1][2],
