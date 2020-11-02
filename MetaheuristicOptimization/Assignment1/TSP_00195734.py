@@ -142,9 +142,8 @@ class CompareRunStats(object):
                     xytext=(0, -20),
                     textcoords="offset points",
                     ha='center', va='bottom')
-        if not norotate:
-            plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
         ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
+        ax.set_xticks([])
 
     # Process and print graph
     def process(self, description, barxlabel, xbarlabellambda, norotate=False):
