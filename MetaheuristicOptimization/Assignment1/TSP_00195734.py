@@ -86,7 +86,13 @@ class BasicTSP:
         print(f"Performance")
         print(f"Iterations                      = {self.iteration}")
         print(f"Best Fitness                    = {self.best.getFitness()}")
-        print(f"Best Fitness Last Update Run    = {self.best_update_history[-1:][0][0]}")
+        try:
+            print(f"Best Fitness Last Update Run    = {self.best_update_history[-1:][0][0]}")
+        except:
+            if [] == self.best_update_history:
+                print(f"Best Fitness Last Update Run    = 0")
+            else:
+                raise AssertionError
         print(f"Mean Time Per Step              = {sum(self.run_perf_times) / len(self.run_perf_times)}")
         print(f"Total time for all steps        = {sum(self.run_perf_times)}")
         print(f"Time to initialize population   = {self.init_population_perf_time}")
@@ -503,6 +509,10 @@ def create_and_run_ga(\
         fig.suptitle(ga.get_description(), horizontalalignment="left")
     return ga, time1
 
+g_initial_algo = {
+        1: "random", 2: "random", 3: "random",
+        4: "random", 5: "insertionheuristic1", 6:"insertionheuristic1"}
+
 def execute(\
         file_name,
         nruns:int=1,
@@ -511,6 +521,7 @@ def execute(\
         configuration=1,
         no_graphs=False,
         n_iterations=150):
+    global g_initial_algo
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -532,7 +543,7 @@ def execute(\
                 mutationType="inversion",
                 selectionType="binaryTournament",
                 crossoverType="uniform",
-                initPopulationAlgo="random",
+                initPopulationAlgo=g_initial_algo[configuration],
                 no_graph=no_graphs,
                 runs=n_iterations, fig=fig, ax=ax)
         ga.print_stats()
@@ -548,7 +559,7 @@ if "__main__" == __name__:
     parser.add_argument("-mr", "--mutation-rate", help="Mutation rate", default=0.05, type=float)
     parser.add_argument("-nr", "--n-runs", help="Number of runs", default=1, type=int)
     parser.add_argument("-ng", "--no-graphs", help="Do not show any graphs", action="store_true")
-    parser.add_argument("-c", "--configuration", help="Configuration", choices=[range(1,7)], default=1, type=int)
+    parser.add_argument("-c", "--configuration", help="Configuration", choices=[1, 2, 3, 4, 5, 6], default=1, type=int)
     parser.add_argument("-i", "--iterations", help="Number of iterations to perform", default=500, type=int)
     args = parser.parse_args()
     filename        = args.file_name
