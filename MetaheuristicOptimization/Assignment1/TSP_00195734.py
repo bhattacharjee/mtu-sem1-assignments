@@ -911,6 +911,7 @@ def execute_vary_mutation_rate(\
         mutation_rate = 0.05
         print("")
 
+    for i in mutation_rates:
         for j in range(nruns):
             ga, t = create_and_run_ga(\
                     title="Run %d - mutation_rate %f" % (j, i,),
@@ -1055,6 +1056,7 @@ def execute_vary_population_size(\
         mutation_rate = 0.05
         print("")
 
+    gensize = 0
     for i in population_sizes:
         for j in range(nruns):
             ga, t = create_and_run_ga(\
@@ -1069,12 +1071,15 @@ def execute_vary_population_size(\
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
             stats = ga.get_stats_dict()
+            gensize = stats["n_genes"]
             crs.add_results("PopulationSize: %d" % i, j, stats)
             ga.print_stats()
     print(f"Time taken to run {t}")
 
+    suptitle = f"EFFECTS OF VARYING POPULATION SIZE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
+            f" mutationrate={mutation_rate} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
     crs.process(\
-            "EFFECTS OF VARYING POPULATION SIZE",
+            suptitle,
             "POPULATION SIZE",
             lambda x: "%d" % int(x[len("PopulationSize: "):]))
     if not no_graphs:
@@ -1120,6 +1125,7 @@ def execute_vary_population_size_multi_threaded(\
 
     t = "N/A"
 
+    gensize = 0
     for i in population_sizes:
         for j in range(nruns):
             thetitle="Run %d - population_size %d" % (j, i,)
@@ -1142,13 +1148,16 @@ def execute_vary_population_size_multi_threaded(\
     for async_result in futures:
         ga, title, i, j = async_result.get()
         stats = ga.get_stats_dict()
+        gensize = stats["n_genes"]
         crs.add_results("PopulationSize: %d" % i, j, stats)
         ga.print_stats()
         plot_ga2(fig, ax, ga, title)
     print(f"Time taken to run {t}")
 
+    suptitle = f"EFFECTS OF VARYING POPULATION SIZE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
+            f" mutationrate={mutation_rate} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
     crs.process(\
-            "EFFECTS OF VARYING POPULATION SIZE",
+            suptitle,
             "POPULATION SIZE",
             lambda x: "%d" % int(x[len("PopulationSize: "):]))
     if not no_graphs:
