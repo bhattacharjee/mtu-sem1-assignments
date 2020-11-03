@@ -1190,6 +1190,7 @@ def execute_vary_configs(\
         ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
+    gensize = 0
     for configuration in configs_list:
         for j in range(nruns):
             ga, t = create_and_run_ga(\
@@ -1205,11 +1206,14 @@ def execute_vary_configs(\
                     runs=n_iterations, fig=fig, ax=ax)
             ga.print_stats()
             stats = ga.get_stats_dict()
+            gensize = stats["n_genes"]
             crs.add_results("Configuration: %d" % configuration, j, stats)
     print(f"Time taken to run {t}")
 
+    suptitle = f"EFFECTS OF CONFIGURATIONS\n{file_name} population={pop_size} " +\
+            f" mutationrate={mutation_rate} iters={n_iterations} genesize={gensize}"
     crs.process(\
-            "EFFECTS OF VARYING CONFIGURATIONS",
+            suptitle,
             "CONFIGURATION",
             lambda x: x[len("Configuration: "):],
             norotate=True)
@@ -1247,6 +1251,7 @@ def execute_vary_configs_multi_threaded(\
     futures = []
     t = 0
 
+    gensize = 0
     for configuration in configs_list:
         for j in range(nruns):
             thetitle = "Run %d - configuration %d" % (j, configuration,)
@@ -1270,12 +1275,15 @@ def execute_vary_configs_multi_threaded(\
         ga, title, configuration, j = async_result.get()
         ga.print_stats()
         stats = ga.get_stats_dict()
+        gensize = stats["n_genes"]
         crs.add_results("Configuration: %d" % configuration, j, stats)
         plot_ga2(fig, ax, ga, title)
     print(f"Time taken to run {t}")
 
+    suptitle = f"EFFECTS OF CONFIGURATIONS\n{file_name} population={pop_size} " +\
+            f" mutationrate={mutation_rate} iters={n_iterations} genesize={gensize}"
     crs.process(\
-            "EFFECTS OF VARYING CONFIGURATIONS",
+            suptitle,
             "CONFIGURATION",
             lambda x: x[len("Configuration: "):],
             norotate=True)
