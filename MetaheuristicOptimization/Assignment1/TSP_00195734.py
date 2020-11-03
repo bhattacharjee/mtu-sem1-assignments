@@ -1288,6 +1288,88 @@ def execute_vary_files(\
     if not no_graphs:
         fig.legend()
 
+def execute_vary_files_multi_threaded(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        files_list=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    crs = CompareRunStats()
+    t = 0
+    futures = []
+    pool = Pool(processes=4)
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    mean_total_time = []
+    mean_time_per_iteration = []
+    median_total_time = []
+    median_time_per_iteration = []
+    gene_sizes = []
+    for files in files_list:
+        total_time_taken = []
+        time_per_iteration_taken = []
+        geneSize = -1
+        for j in range(nruns):
+            thetitle = "Run %d - configuration %d" % (j, configuration,)
+            ga = create_ga(\
+                    title=thetitle,
+                    filename=files,
+                    popsize=pop_size,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            async_result = pool.apply_async(run_ga, (ga, thetitle, files, j))
+            futures.append(async_result)
+    for async_result in futures:
+        async_result.wait()
+    for async_result in futures:
+        ga, title, files, j = async_result.get()
+        ga.print_stats()
+        stats = ga.get_stats_dict()
+        plot_ga2(fig, ax, ga, title)
+        total_time_taken.append(stats["total_time_to_run"])
+        time_per_iteration_taken.append(stats["mean_time_per_iteration"])
+        crs.add_results("geneSize: %d" % stats["n_genes"], j, stats)
+        geneSize = stats["n_genes"]
+        mean_total_time.append(statistics.mean(total_time_taken))
+        median_total_time.append(statistics.median(total_time_taken))
+        mean_time_per_iteration.append(statistics.mean(time_per_iteration_taken))
+        median_time_per_iteration.append(statistics.median(time_per_iteration_taken))
+        gene_sizes.append(geneSize)
+
+    plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list)
+
+    print(f"Time taken to run {t}")
+
+    crs.process(\
+            "EFFECTS OF NUMBER OF GENES",
+            "n GENES",
+            lambda x: x[len("geneSize: "):],
+            norotate=True)
+    if not no_graphs:
+        fig.legend()
+
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file-name", help="File name to parse, str", required=True, type=str)
@@ -1347,7 +1429,7 @@ if "__main__" == __name__:
                 n_iterations=niterations,
                 configs_list=args.vary_configs)
     elif None != args.vary_files and 0 != len(args.vary_files):
-        execute_vary_files(file_name=filename,
+        execute_vary_files_multi_threaded(file_name=filename,
                 nruns=n_runs,
                 pop_size=populationSize,
                 mutation_rate=mutationRate,
