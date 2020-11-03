@@ -1005,10 +1005,11 @@ def execute_vary_mutation_rate(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     # Override population size and mutation rate for BASIC GA (configuration 1
@@ -1073,10 +1074,11 @@ def execute_vary_mutation_rate_multi_threaded(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     # Override population size and mutation rate for BASIC GA (configuration 1
@@ -1154,10 +1156,11 @@ def execute_vary_population_size(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     # Override population size and mutation rate for BASIC GA (configuration 1
@@ -1220,10 +1223,11 @@ def execute_vary_population_size_multi_threaded(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     # Override population size and mutation rate for BASIC GA (configuration 1
@@ -1300,10 +1304,11 @@ def execute_vary_configs(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     gensize = 0
@@ -1358,10 +1363,11 @@ def execute_vary_configs_multi_threaded(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     pool = Pool(g_n_processes)
@@ -1458,10 +1464,11 @@ def execute_vary_files(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     mean_total_time = []
@@ -1536,10 +1543,11 @@ def execute_vary_files_multi_threaded(\
     pool = Pool(g_n_processes)
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     mean_total_time = []
