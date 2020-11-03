@@ -24,6 +24,7 @@ import statistics
 import json
 import numpy as np
 import pickle
+from multiprocessing.pool import ThreadPool, Pool
 #import pprofile
 
 g_run_name = "DEFAULT_RUN"
@@ -711,6 +712,36 @@ def create_and_run_ga(\
         fig.suptitle(ga.get_description(), horizontalalignment="left")
     return ga, time1
 
+def run_ga(ga, title, i, j):
+    ga.search()
+    return ga, title, i, j
+
+def create_ga(\
+        title:str,
+        filename:str,
+        popsize:int,
+        mutationRate:float,
+        mutationType:str,
+        selectionType:str,
+        crossoverType:str,
+        initPopulationAlgo:str,
+        no_graph,
+        runs:int, fig, ax):
+    ga = BasicTSP(\
+            filename,
+            popsize,
+            mutationRate,
+            runs,
+            mutationType,
+            selectionType,
+            crossoverType,
+            initPopulationAlgo)
+    return ga
+
+def plot_ga2(fig, ax, ga, title):
+    plot_ga(fig, ax, ga, title)
+    fig.suptitle(ga.get_description(), horizontalalignment="left")
+
 g_initial_algo = {
         1: "random", 2: "random", 3: "random",
         4: "random", 5: "insertionheuristic1", 6:"insertionheuristic1"}
@@ -881,6 +912,80 @@ def execute_vary_population_size(\
             stats = ga.get_stats_dict()
             crs.add_results("PopulationSize: %d" % i, j, stats)
             ga.print_stats()
+    print(f"Time taken to run {t}")
+
+    crs.process(\
+            "EFFECTS OF VARYING POPULATION SIZE",
+            "POPULATION SIZE",
+            lambda x: "%d" % int(x[len("PopulationSize: "):]))
+    if not no_graphs:
+        fig.legend()
+
+def execute_vary_population_size_multithreaded(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        population_sizes=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    crs = CompareRunStats()
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    # Override population size and mutation rate for BASIC GA (configuration 1
+    # and 2)
+    if 1 == configuration or 2 == configuration:
+        print("BASIC GA: Overriding pop_size = 100 and mutation_rate = 0.05")
+        pop_size = 100
+        mutation_rate = 0.05
+        print("")
+
+    pool = Pool(processes=4)
+    futures = []
+
+    t = "N/A"
+
+    for i in population_sizes:
+        for j in range(nruns):
+            thetitle="Run %d - population_size %d" % (j, i,)
+            ga = create_ga(\
+                    title=thetitle,
+                    filename=file_name,
+                    popsize=i,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            print("Running ga")
+            async_result = pool.apply_async(run_ga, (ga, thetitle, i, j))
+            futures.append(async_result)
+    for async_result in futures:
+        async_result.wait()
+    for async_result in futures:
+        ga, title, i, j = async_result.get()
+        print(type(ga), ga)
+        stats = ga.get_stats_dict()
+        crs.add_results("PopulationSize: %d" % i, j, stats)
+        ga.print_stats()
+        plot_ga2(fig, ax, ga, title)
     print(f"Time taken to run {t}")
 
     crs.process(\
@@ -1085,7 +1190,7 @@ if "__main__" == __name__:
                 n_iterations=niterations,
                 mutation_rates=args.vary_mutation_rate)
     elif 0 != len(args.vary_population_size):
-        execute_vary_population_size(file_name=filename,
+        execute_vary_population_size_multithreaded(file_name=filename,
                 nruns=n_runs,
                 pop_size=populationSize,
                 mutation_rate=mutationRate,
