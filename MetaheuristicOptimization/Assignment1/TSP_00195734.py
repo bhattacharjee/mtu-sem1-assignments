@@ -741,6 +741,7 @@ def create_ga(\
 def plot_ga2(fig, ax, ga, title):
     plot_ga(fig, ax, ga, title)
     fig.suptitle(ga.get_description(), horizontalalignment="left")
+    # TODO: RB: Write code to pickle and save
 
 g_initial_algo = {
         1: "random", 2: "random", 3: "random",
@@ -1121,6 +1122,71 @@ def execute_vary_configs(\
     if not no_graphs:
         fig.legend()
 
+def execute_vary_configs_multi_threaded(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        configs_list=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    crs = CompareRunStats()
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    pool = Pool(processes=4)
+    futures = []
+    t = 0
+
+    for configuration in configs_list:
+        for j in range(nruns):
+            thetitle = "Run %d - configuration %d" % (j, configuration,)
+            ga = create_ga(\
+                    title=thetitle,
+                    filename=file_name,
+                    popsize=pop_size,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            async_result = pool.apply_async(run_ga, (ga, thetitle, configuration, j))
+            futures.append(async_result)
+    for async_result in futures:
+            async_result.wait()
+            print("Wait done")
+    for async_result in futures:
+        ga, title, configuration, j = async_result.get()
+        ga.print_stats()
+        stats = ga.get_stats_dict()
+        crs.add_results("Configuration: %d" % configuration, j, stats)
+        plot_ga2(fig, ax, ga, title)
+    print(f"Time taken to run {t}")
+
+    crs.process(\
+            "EFFECTS OF VARYING CONFIGURATIONS",
+            "CONFIGURATION",
+            lambda x: x[len("Configuration: "):],
+            norotate=True)
+    if not no_graphs:
+        fig.legend()
+
 def plot_vary_files(meanTotal, medianTotal, meanPerIteration, medianPerIteration, gene_sizes, files_list):
     global g_run_name
     fig, ax = plt.subplots(2, 2)
@@ -1272,7 +1338,7 @@ if "__main__" == __name__:
                 n_iterations=niterations,
                 population_sizes=args.vary_population_size)
     elif None != args.vary_configs and 0 != len(args.vary_configs):
-        execute_vary_configs(file_name=filename,
+        execute_vary_configs_multi_threaded(file_name=filename,
                 nruns=n_runs,
                 pop_size=populationSize,
                 mutation_rate=mutationRate,
