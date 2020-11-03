@@ -862,7 +862,7 @@ def execute_vary_mutation_rate(\
     if not no_graphs:
         fig.legend()
 
-def execute_vary_population_size(\
+def execute_vary_mutation_rate_multi_threaded(\
         file_name,
         nruns:int=1,
         pop_size:int=300,
@@ -870,16 +870,16 @@ def execute_vary_population_size(\
         configuration=1,
         no_graphs=False,
         n_iterations=150,
-        population_sizes=[]):
+        mutation_rates=[]):
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+
+    crs = CompareRunStats()
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
         sys.exit(0)
-
-    crs = CompareRunStats()
 
     if not no_graphs:
         fig, ax = plt.subplots(1, 3)
@@ -896,12 +896,17 @@ def execute_vary_population_size(\
         mutation_rate = 0.05
         print("")
 
-    for i in population_sizes:
+    pool = Pool(processes=4)
+    futures = []
+    t = 0
+
+    for i in mutation_rates:
         for j in range(nruns):
-            ga, t = create_and_run_ga(\
-                    title="Run %d - population_size %d" % (j, i,),
+            thetitle = "Run %d - mutation_rate %f" % (j, i,)
+            ga = create_ga(\
+                    title=thetitle,
                     filename=file_name,
-                    popsize=i,
+                    popsize=pop_size,
                     mutationRate=mutation_rate,
                     mutationType=g_mutation_type[configuration],
                     selectionType="binaryTournament",
@@ -909,19 +914,28 @@ def execute_vary_population_size(\
                     initPopulationAlgo=g_initial_algo[configuration],
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
-            stats = ga.get_stats_dict()
-            crs.add_results("PopulationSize: %d" % i, j, stats)
-            ga.print_stats()
+            async_result = pool.apply_async(run_ga, (ga, thetitle, i, j))
+            futures.append(async_result)
+
+    for async_result in futures:
+        async_result.wait()
+    for async_result in futures:
+        ga, title, i, j = async_result.get()
+        stats = ga.get_stats_dict()
+        crs.add_results("MutationRate: %f" % i, j, stats)
+        ga.print_stats()
+        plot_ga2(fig, ax, ga, title)
     print(f"Time taken to run {t}")
 
+    print("Calling crs.process")
     crs.process(\
-            "EFFECTS OF VARYING POPULATION SIZE",
-            "POPULATION SIZE",
-            lambda x: "%d" % int(x[len("PopulationSize: "):]))
+            "EFFECTS OF VARYING MUTATION RATE",
+            "MUTATION RATE",
+            lambda x: "%0.3f" % float(x[len("MutationRate: "):]))
     if not no_graphs:
         fig.legend()
 
-def execute_vary_population_size_multithreaded(\
+def execute_vary_population_size_multi_threaded(\
         file_name,
         nruns:int=1,
         pop_size:int=300,
@@ -981,7 +995,6 @@ def execute_vary_population_size_multithreaded(\
         async_result.wait()
     for async_result in futures:
         ga, title, i, j = async_result.get()
-        print(type(ga), ga)
         stats = ga.get_stats_dict()
         crs.add_results("PopulationSize: %d" % i, j, stats)
         ga.print_stats()
@@ -1181,7 +1194,7 @@ if "__main__" == __name__:
             sys.exit(0)
 
     if 0 != len(args.vary_mutation_rate):
-        execute_vary_mutation_rate(file_name=filename,
+        execute_vary_mutation_rate_multi_threaded(file_name=filename,
                 nruns=n_runs,
                 pop_size=populationSize,
                 mutation_rate=mutationRate,
@@ -1190,7 +1203,7 @@ if "__main__" == __name__:
                 n_iterations=niterations,
                 mutation_rates=args.vary_mutation_rate)
     elif 0 != len(args.vary_population_size):
-        execute_vary_population_size_multithreaded(file_name=filename,
+        execute_vary_population_size_multi_threaded(file_name=filename,
                 nruns=n_runs,
                 pop_size=populationSize,
                 mutation_rate=mutationRate,
