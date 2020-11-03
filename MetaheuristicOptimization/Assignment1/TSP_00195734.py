@@ -86,9 +86,9 @@ class CompareRunStats(object):
                 yaxis.append(stat[field])
             yyaxis.append(lambdafn(yaxis))
         if None != pmarker:
-            ax.plot(xxaxis, yyaxis, label=key, marker=pmarker)
+            ax.plot(xxaxis, yyaxis, marker=pmarker)
         else:
-            ax.plot(xxaxis, yyaxis, label=key)
+            ax.plot(xxaxis, yyaxis)
         ax.set(title=title, ylabel=ylabel, xlabel=xlabel)
         ax.set_ylim(ymin=0)
         #ax.yaxis.set_major_locator(MaxNLocator(integer=True))
@@ -215,16 +215,27 @@ class CompareRunStats(object):
                 y_lim_zero=False,
                 pmarker='.',
                 ax=ax[1][1])
-        self.bar_chart(
-                "mean_time_per_iteration",
-                "MEAN TIME PER ITERATION",
-                barxlabel,
-                "time (s)",
-                lambda x: sum(x) / len(x), # min/max anything else
-                barxlabel,
-                xbarlabellambda, #How to modify xlabels
-                ax[1][0],
-                norotate)
+        if not alternate:
+            self.bar_chart(
+                    "mean_time_per_iteration",
+                    "MEAN TIME PER ITERATION",
+                    barxlabel,
+                    "time (s)",
+                    lambda x: sum(x) / len(x), # min/max anything else
+                    barxlabel,
+                    xbarlabellambda, #How to modify xlabels
+                    ax[1][0],
+                    norotate)
+        else:
+            self.plot_line_graph2(\
+                    field="mean_time_per_iteration",
+                    title="MEAN TIME PER ITERATION",
+                    xlabel="Run",
+                    ylabel="time (s)",
+                    y_lim_zero=False,
+                    pmarker='.',
+                    ax=ax[1][0],
+                    lambdafn=lambda x:statistics.mean(x))
         self.grouped_bar_chart(\
                 "best_fitness",
                 "MEDIAN AND MEAN BEST FITNESS",
