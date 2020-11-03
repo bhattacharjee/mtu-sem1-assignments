@@ -148,9 +148,12 @@ class CompareRunStats(object):
         global g_run_name
         fig, ax = plt.subplots(3, 3)
         fig.suptitle(description)
-        #for key, val in self.readings.items():
-        #    print(key)
-        #    print(json.dumps(val, indent=4))
+        """
+        if __debug__:
+            for key, val in self.readings.items():
+                print(key)
+                print(json.dumps(val, indent=4))
+        """
         if not alternate:
             self.bar_chart(\
                     "total_time_to_run",
