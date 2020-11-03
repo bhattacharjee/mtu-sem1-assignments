@@ -346,6 +346,7 @@ class BasicTSP:
         string += f"Selection Type    : {self.selectionType}\n"
         string += f"Crossover Type   : {self.crossoverType}\n"
         string += f"Population size   : {self.popSize}\n"
+        string += f"Iterations        : {self.iteration}\n"
         return string
 
     def print_stats(self):
