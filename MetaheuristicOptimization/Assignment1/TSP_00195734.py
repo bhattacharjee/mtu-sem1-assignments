@@ -677,7 +677,7 @@ class BasicTSP:
         """
         #inv_fitness = [1 / (x+1) for x in population_fitness]
         # Add 1 in case fitness is zero
-        inv_fitness = [1 / (1 + cand.getFitness()) for cand in self.population]
+        inv_fitness = [1 / (0.00001 + cand.getFitness()) for cand in self.population]
         sum_inv_fitness = sum(inv_fitness)
         probabilities = [x / sum_inv_fitness for x in inv_fitness]
         new_pool = numpy.random.choice(self.population, size=len(self.population), p=probabilities, replace=True)
