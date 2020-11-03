@@ -24,6 +24,7 @@ import collections, time
 from Individual import *
 import sys
 import matplotlib.pyplot as plt
+from matplotlib.ticker import MaxNLocator
 from lab_tsp_insertion import insertion_heuristic1, insertion_heuristic2
 import argparse
 
@@ -46,7 +47,10 @@ def get_run_number():
 def str_to_num(s:str)->int:
     for i, c in enumerate(s):
         if c in list("01234567890"):
-            return int(s[i:])
+            try:
+                return int(s[i:])
+            except:
+                return float(s[i:])
 
 # Class to compare run statistics and print comarative graphs
 class CompareRunStats(object):
@@ -70,6 +74,7 @@ class CompareRunStats(object):
         ax.set(title=title, ylabel=ylabel, xlabel=xlabel)
         if y_lim_zero:
             ax.set_ylim(ymin=0)
+        #ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
     def plot_line_graph2(self, field:str, title:str, xlabel:str, ylabel:str, y_lim_zero:bool, pmarker, ax, lambdafn):
         xxaxis = []
@@ -85,8 +90,8 @@ class CompareRunStats(object):
         else:
             ax.plot(xxaxis, yyaxis, label=key)
         ax.set(title=title, ylabel=ylabel, xlabel=xlabel)
-        if y_lim_zero:
-            ax.set_ylim(ymin=0)
+        ax.set_ylim(ymin=0)
+        #ax.yaxis.set_major_locator(MaxNLocator(integer=True))
 
 
     def bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggr, barxlabel, xlabellambda, ax, norotate):
@@ -102,10 +107,18 @@ class CompareRunStats(object):
                 allkeys.append(key)
             else:
                 allkeys.append(xlabellambda(key))
-        ax.bar(allkeys, aggregates)
+        rects = ax.bar(allkeys, aggregates, color="lightgreen")
         if not norotate:
             plt.setp(ax.xaxis.get_majorticklabels(), rotation=90)
         ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
+        for i, rect in enumerate(rects):
+            height = rect.get_height()
+            ax.annotate(int(aggregates[i]) if aggregates[i] > 1 else "%0.3f" % float(aggregates[i]),
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, -30),
+                    textcoords="offset points",
+                    ha='center', va='bottom', color='black')
+
 
     def grouped_bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggrfn, laggrfn2, barxlabel, xlabellambda, ax, norotate):
         aggregates = []
@@ -129,14 +142,15 @@ class CompareRunStats(object):
             else:
                 allkeys.append(xlabellambda(key))
         ax.plot(aggregates, marker='o')
+        markers = [f"x={x}\n{int(y)}" for x, y in zip(allkeys, aggregates)]
         rects1 = ax.bar(X, height=aggregates, width=width, color='lightgreen')
         rects2 = ax.bar(X+width, height=aggregates2, width=width, color='orange')
         for i, rect in enumerate(rects1):
             height = rect.get_height()
-            print(height)
-            ax.annotate(allkeys[i],
+            #ax.annotate(allkeys[i],
+            ax.annotate(markers[i],
                     xy=(rect.get_x() + rect.get_width() / 2, height),
-                    xytext=(0, -20),
+                    xytext=(0, -30),
                     textcoords="offset points",
                     ha='center', va='bottom')
         ax.set(title=title, ylabel=ylabel, xlabel=barxlabel)
@@ -230,16 +244,27 @@ class CompareRunStats(object):
                 y_lim_zero=False,
                 pmarker='.',
                 ax=ax[2][1])
-        self.bar_chart(\
-                "iterations_till_best_fitness",
-                "MEDIAN ITERS TO REACH BEST FITNESS\n(convergence speed)",
-                barxlabel,
-                "Runs",
-                lambda x: statistics.median(x),
-                barxlabel,
-                xbarlabellambda,
-                ax[1][2],
-                norotate)
+        if not alternate:
+            self.bar_chart(\
+                    "iterations_till_best_fitness",
+                    "MEDIAN ITERS TO REACH BEST FITNESS\n(convergence speed)",
+                    barxlabel,
+                    "Runs",
+                    lambda x: statistics.median(x),
+                    barxlabel,
+                    xbarlabellambda,
+                    ax[1][2],
+                    norotate)
+        else:
+            self.plot_line_graph2(\
+                    field="iterations_till_best_fitness",
+                    title="MEDIAN ITERS TO REACH BEST FITNESS\n(convergence speed)",
+                    xlabel="Run",
+                    ylabel="time (s)",
+                    y_lim_zero=False,
+                    pmarker='.',
+                    ax=ax[1][2],
+                    lambdafn=lambda x: statistics.median(x))
         self.plot_line_graph(\
                 field="iterations_till_best_fitness",
                 title="ITERS TO REACH BEST FITNESS",
@@ -1003,7 +1028,9 @@ def execute_vary_mutation_rate(\
     crs.process(\
             suptitle,
             "MUTATION RATE",
-            lambda x: "%0.3f" % float(x[len("MutationRate: "):]))
+            lambda x: "%0.3f" % float(x[len("MutationRate: "):]),
+            False,
+            True)
     if not no_graphs:
         fig.legend()
 
@@ -1082,7 +1109,9 @@ def execute_vary_mutation_rate_multi_threaded(\
     crs.process(\
             suptitle,
             "MUTATION RATE",
-            lambda x: "%0.3f" % float(x[len("MutationRate: "):]))
+            lambda x: "%0.3f" % float(x[len("MutationRate: "):]),
+            False,
+            True)
     if not no_graphs:
         fig.legend()
 
