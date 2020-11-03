@@ -768,6 +768,26 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[0][1].plot(ga.stat_run_best_fitness_history, label=label)
     ax[1][0].plot(ga.stat_mean_fitness_history, label=label)
     ax[1][1].plot(ga.stat_median_fitness_history, label=label)
+    ax[2][1].set(title="Best Solution", ylabel="Fitness", xlabel="Run")
+    rects = ax[2][1].bar(x=label,height=min(ga.stat_global_best_history))
+    for i, rect in enumerate(rects):
+        height = rect.get_height()
+        ax[2][1].annotate(str(height),
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, -30),
+                textcoords="offset points",
+                ha='center', va='bottom')
+    ax[2][1].tick_params(labelrotation=45)
+    ax[2][0].set(title="Worst Solution", ylabel="Fitness", xlabel="Run")
+    ax[2][0].tick_params(labelrotation=45)
+    rects = ax[2][0].bar(x=label,height=max(ga.stat_global_best_history))
+    for i, rect in enumerate(rects):
+        height = rect.get_height()
+        ax[2][0].annotate(str(height),
+                xy=(rect.get_x() + rect.get_width() / 2, height),
+                xytext=(0, -30),
+                textcoords="offset points",
+                ha='center', va='bottom')
     #ax[3].plot(ga.run_perf_times)
     filename = f"{g_run_name}-2.pickle"
     with open(filename, "wb") as f:
@@ -885,7 +905,7 @@ def execute(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -937,7 +957,7 @@ def execute_multi_threaded(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1005,7 +1025,7 @@ def execute_vary_mutation_rate(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1074,7 +1094,7 @@ def execute_vary_mutation_rate_multi_threaded(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1156,7 +1176,7 @@ def execute_vary_population_size(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1223,7 +1243,7 @@ def execute_vary_population_size_multi_threaded(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1304,7 +1324,7 @@ def execute_vary_configs(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1363,7 +1383,7 @@ def execute_vary_configs_multi_threaded(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1416,7 +1436,7 @@ def execute_vary_configs_multi_threaded(\
 
 def plot_vary_files(meanTotal, medianTotal, meanPerIteration, medianPerIteration, gene_sizes, files_list, suptitle):
     global g_run_name
-    fig, ax = plt.subplots(2, 2)
+    fig, ax = plt.subplots(3, 2)
 
     def plot(ax, yaxis, xaxis, title):
         # n(Genes) is not in order, need to sort the arrays
@@ -1464,7 +1484,7 @@ def execute_vary_files(\
     crs = CompareRunStats()
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
@@ -1543,7 +1563,7 @@ def execute_vary_files_multi_threaded(\
     pool = Pool(g_n_processes)
 
     if not no_graphs:
-        fig, ax = plt.subplots(2, 2)
+        fig, ax = plt.subplots(3, 2)
         ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
         ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
         ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
