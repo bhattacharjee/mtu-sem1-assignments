@@ -935,6 +935,66 @@ def execute_vary_mutation_rate_multi_threaded(\
     if not no_graphs:
         fig.legend()
 
+
+def execute_vary_population_size(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        population_sizes=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    crs = CompareRunStats()
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Run")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Run")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    # Override population size and mutation rate for BASIC GA (configuration 1
+    # and 2)
+    if 1 == configuration or 2 == configuration:
+        print("BASIC GA: Overriding pop_size = 100 and mutation_rate = 0.05")
+        pop_size = 100
+        mutation_rate = 0.05
+        print("")
+
+    for i in population_sizes:
+        for j in range(nruns):
+            ga, t = create_and_run_ga(\
+                    title="Run %d - population_size %d" % (j, i,),
+                    filename=file_name,
+                    popsize=i,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            stats = ga.get_stats_dict()
+            crs.add_results("PopulationSize: %d" % i, j, stats)
+            ga.print_stats()
+    print(f"Time taken to run {t}")
+
+    crs.process(\
+            "EFFECTS OF VARYING POPULATION SIZE",
+            "POPULATION SIZE",
+            lambda x: "%d" % int(x[len("PopulationSize: "):]))
+    if not no_graphs:
+        fig.legend()
+
 def execute_vary_population_size_multi_threaded(\
         file_name,
         nruns:int=1,
