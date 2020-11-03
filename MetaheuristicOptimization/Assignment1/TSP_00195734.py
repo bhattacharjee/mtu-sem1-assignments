@@ -772,7 +772,8 @@ def plot_ga(fig, ax, ga, label="None"):
     rects = ax[2][1].bar(x=label,height=min(ga.stat_global_best_history))
     for i, rect in enumerate(rects):
         height = rect.get_height()
-        ax[2][1].annotate(str(height),
+        text = str(int(height)) if height > 1 else "%0.3d" % float(height)
+        ax[2][1].annotate(text,
                 xy=(rect.get_x() + rect.get_width() / 2, height),
                 xytext=(0, -30),
                 textcoords="offset points",
@@ -783,7 +784,8 @@ def plot_ga(fig, ax, ga, label="None"):
     rects = ax[2][0].bar(x=label,height=max(ga.stat_global_best_history))
     for i, rect in enumerate(rects):
         height = rect.get_height()
-        ax[2][0].annotate(str(height),
+        text = str(int(height)) if height > 1 else "%0.3d" % float(height)
+        ax[2][0].annotate(text,
                 xy=(rect.get_x() + rect.get_width() / 2, height),
                 xytext=(0, -30),
                 textcoords="offset points",
