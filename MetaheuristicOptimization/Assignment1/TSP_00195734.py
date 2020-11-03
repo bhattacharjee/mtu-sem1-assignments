@@ -778,9 +778,9 @@ def plot_ga(fig, ax, ga, label="None"):
                 xytext=(0, -30),
                 textcoords="offset points",
                 ha='center', va='bottom')
-    ax[2][1].tick_params(labelrotation=45)
+    ax[2][1].tick_params(labelrotation=20)
     ax[2][0].set(title="Worst Solution", ylabel="Fitness", xlabel="Run")
-    ax[2][0].tick_params(labelrotation=45)
+    ax[2][0].tick_params(labelrotation=20)
     rects = ax[2][0].bar(x=label,height=max(ga.stat_global_best_history))
     for i, rect in enumerate(rects):
         height = rect.get_height()
