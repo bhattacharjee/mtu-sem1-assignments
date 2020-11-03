@@ -888,6 +888,7 @@ def execute_vary_mutation_rate(\
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+    gensize = 0
 
     crs = CompareRunStats()
     if len(sys.argv) < 2:
@@ -910,7 +911,6 @@ def execute_vary_mutation_rate(\
         mutation_rate = 0.05
         print("")
 
-    for i in mutation_rates:
         for j in range(nruns):
             ga, t = create_and_run_ga(\
                     title="Run %d - mutation_rate %f" % (j, i,),
@@ -925,12 +925,17 @@ def execute_vary_mutation_rate(\
                     runs=n_iterations, fig=fig, ax=ax)
             stats = ga.get_stats_dict()
             crs.add_results("MutationRate: %f" % i, j, stats)
+            gensize = stats["n_genes"]
             ga.print_stats()
     print(f"Time taken to run {t}")
 
+    suptitle = f"EFFECTS OF VARYING MUTATION RATE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
+            f" pop={pop_size} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
+    fig.suptitle(suptitle)
+
     print("Calling crs.process")
     crs.process(\
-            "EFFECTS OF VARYING MUTATION RATE",
+            suptitle,
             "MUTATION RATE",
             lambda x: "%0.3f" % float(x[len("MutationRate: "):]))
     if not no_graphs:
@@ -975,6 +980,7 @@ def execute_vary_mutation_rate_multi_threaded(\
     futures = []
     t = 0
 
+    gensize = 0
     for i in mutation_rates:
         for j in range(nruns):
             thetitle = "Run %d - mutation_rate %f" % (j, i,)
@@ -997,14 +1003,18 @@ def execute_vary_mutation_rate_multi_threaded(\
     for async_result in futures:
         ga, title, i, j = async_result.get()
         stats = ga.get_stats_dict()
+        gensize = stats["n_genes"]
         crs.add_results("MutationRate: %f" % i, j, stats)
         ga.print_stats()
         plot_ga2(fig, ax, ga, title)
     print(f"Time taken to run {t}")
 
+    suptitle = f"EFFECTS OF VARYING MUTATION RATE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
+            f" pop={pop_size} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
+    fig.suptitle(suptitle)
     print("Calling crs.process")
     crs.process(\
-            "EFFECTS OF VARYING MUTATION RATE",
+            suptitle,
             "MUTATION RATE",
             lambda x: "%0.3f" % float(x[len("MutationRate: "):]))
     if not no_graphs:
