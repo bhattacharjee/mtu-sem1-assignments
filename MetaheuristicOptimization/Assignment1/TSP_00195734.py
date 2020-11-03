@@ -85,6 +85,11 @@ class CompareRunStats(object):
             for stat in self.readings[key]:
                 yaxis.append(stat[field])
             yyaxis.append(lambdafn(yaxis))
+        d = {}
+        for x, y in zip(xxaxis, yyaxis):
+            d[x] = y
+        xxaxis = sorted(xxaxis)
+        yyaxis = [d[x] for x in xxaxis]
         if None != pmarker:
             ax.plot(xxaxis, yyaxis, marker=pmarker)
         else:
@@ -1540,7 +1545,8 @@ def execute_vary_files(\
             suptitle,
             "n GENES",
             lambda x: x[len("geneSize: "):],
-            norotate=True)
+            True,
+            True)
     if not no_graphs:
         fig.legend()
 
@@ -1627,7 +1633,8 @@ def execute_vary_files_multi_threaded(\
             suptitle,
             "n GENES",
             lambda x: x[len("geneSize: "):],
-            norotate=True)
+            True,
+            True)
     if not no_graphs:
         fig.legend()
 
