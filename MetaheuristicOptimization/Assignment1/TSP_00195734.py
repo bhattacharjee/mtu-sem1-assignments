@@ -30,6 +30,12 @@ from multiprocessing.pool import ThreadPool, Pool
 g_run_name = "DEFAULT_RUN"
 g_n_processes = 8
 
+g_run_num = 0
+def get_run_number():
+    global g_run_num
+    g_run_num += 1
+    return g_run_num
+
 # Class to compare run statistics and print comarative graphs
 class CompareRunStats(object):
     def __init__(self):
@@ -357,14 +363,16 @@ class BasicTSP:
         self.updateStats()
         time1 = time.perf_counter() - time1
         self.init_population_perf_time = time1
-        print ("Best initial sol: ",self.best.getFitness())
+        if __debug__:
+            print ("Best initial sol: ",self.best.getFitness())
 
 
     def updateBest(self, candidate:Individual):
         if self.best == None or candidate.getFitness() < self.best.getFitness():
             self.best = candidate.copy()
             self.best_update_history.append((self.iteration, self.best.getFitness()))
-            print ("iteration: ",self.iteration, "best: ",self.best.getFitness())
+            if __debug__:
+                print ("iteration: ",self.iteration, "best: ",self.best.getFitness())
 
     def randomSelection(self):
         """
@@ -658,8 +666,9 @@ class BasicTSP:
             self.GAStep()
             self.iteration += 1
 
-        print ("Total iterations: ", self.iteration)
-        print ("Best Solution: ", self.best.getFitness())
+        if __debug__:
+            print ("Total iterations: ", self.iteration)
+            print ("Best Solution: ", self.best.getFitness())
 
 """
 def plot_ga(fig, ax, ga, label="None"):
@@ -717,7 +726,9 @@ def create_and_run_ga(\
         fig.suptitle(ga.get_description(), horizontalalignment="left")
     return ga, time1
 
-def run_ga(ga, title, i, j):
+def run_ga(ga, title, i, j, runnum):
+    random.seed(myStudentNum + 100 * runnum)
+    numpy.random.seed(myStudentNum + 100 * runnum)
     ga.search()
     return ga, title, i, j
 
@@ -863,7 +874,7 @@ def execute_multi_threaded(\
                 initPopulationAlgo=g_initial_algo[configuration],
                 no_graph=no_graphs,
                 runs=n_iterations, fig=fig, ax=ax)
-        async_result = pool.apply_async(run_ga, (ga, thetitle, i, dummy))
+        async_result = pool.apply_async(run_ga, (ga, thetitle, i, dummy, get_run_number()))
         futures.append(async_result)
     for async_result in futures:
         async_result.wait()
@@ -934,7 +945,6 @@ def execute_vary_mutation_rate(\
             f" pop={pop_size} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
     fig.suptitle(suptitle)
 
-    print("Calling crs.process")
     crs.process(\
             suptitle,
             "MUTATION RATE",
@@ -996,7 +1006,7 @@ def execute_vary_mutation_rate_multi_threaded(\
                     initPopulationAlgo=g_initial_algo[configuration],
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
-            async_result = pool.apply_async(run_ga, (ga, thetitle, i, j))
+            async_result = pool.apply_async(run_ga, (ga, thetitle, i, j, get_run_number()))
             futures.append(async_result)
 
     for async_result in futures:
@@ -1013,7 +1023,6 @@ def execute_vary_mutation_rate_multi_threaded(\
     suptitle = f"EFFECTS OF VARYING MUTATION RATE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
             f" pop={pop_size} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
     fig.suptitle(suptitle)
-    print("Calling crs.process")
     crs.process(\
             suptitle,
             "MUTATION RATE",
@@ -1141,7 +1150,7 @@ def execute_vary_population_size_multi_threaded(\
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
             print("Running ga")
-            async_result = pool.apply_async(run_ga, (ga, thetitle, i, j))
+            async_result = pool.apply_async(run_ga, (ga, thetitle, i, j, get_run_number()))
             futures.append(async_result)
     for async_result in futures:
         async_result.wait()
@@ -1266,7 +1275,7 @@ def execute_vary_configs_multi_threaded(\
                     initPopulationAlgo=g_initial_algo[configuration],
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
-            async_result = pool.apply_async(run_ga, (ga, thetitle, configuration, j))
+            async_result = pool.apply_async(run_ga, (ga, thetitle, configuration, j, get_run_number()))
             futures.append(async_result)
     for async_result in futures:
             async_result.wait()
@@ -1445,7 +1454,7 @@ def execute_vary_files_multi_threaded(\
                     initPopulationAlgo=g_initial_algo[configuration],
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
-            async_result = pool.apply_async(run_ga, (ga, thetitle, files, j))
+            async_result = pool.apply_async(run_ga, (ga, thetitle, files, j, get_run_number()))
             futures.append(async_result)
     for async_result in futures:
         async_result.wait()
