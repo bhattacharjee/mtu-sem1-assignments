@@ -803,6 +803,68 @@ def execute(\
     if not no_graphs:
         fig.legend()
 
+def execute_multi_threaded(\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    if not no_graphs:
+        fig, ax = plt.subplots(1, 3)
+        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    pool = Pool(processes=4)
+    futures = []
+    t = 0
+
+    # Override population size and mutation rate for BASIC GA (configuration 1
+    # and 2)
+    if 1 == configuration or 2 == configuration:
+        print("BASIC GA: Overriding pop_size = 100 and mutation_rate = 0.05")
+        pop_size = 100
+        mutation_rate = 0.05
+        print("")
+
+    for i in range(nruns):
+        thetitle="Basic GA - Run %d" % (i,)
+        dummy=0
+        ga = create_ga(\
+                title="Basic GA - Run %d" % (i,),
+                filename=file_name,
+                popsize=pop_size,
+                mutationRate=mutation_rate,
+                mutationType=g_mutation_type[configuration],
+                selectionType="binaryTournament",
+                crossoverType=g_crossover_type[configuration],
+                initPopulationAlgo=g_initial_algo[configuration],
+                no_graph=no_graphs,
+                runs=n_iterations, fig=fig, ax=ax)
+        async_result = pool.apply_async(run_ga, (ga, thetitle, i, dummy))
+        futures.append(async_result)
+    for async_result in futures:
+        async_result.wait()
+    for async_result in futures:
+        ga, title, i, j = async_result.get()
+        ga.print_stats()
+        plot_ga2(fig, ax, ga, title)
+    print(f"Time taken to run {t}")
+
+    if not no_graphs:
+        fig.legend()
+
 def execute_vary_mutation_rate(\
         file_name,
         nruns:int=1,
@@ -1384,6 +1446,7 @@ if "__main__" == __name__:
     parser.add_argument("-vc", "--vary-configs", help="Compare different configurations", nargs="*", default=[], type=int)
     parser.add_argument("-vf", "--vary-files", help="Compare across different files (gene size)", nargs="*", default=[], type=str)
     parser.add_argument("-name", "--run-name", help="Name of run, matplotlib pickles will be saved with this name", default="DEFAULT_RUN", type=str)
+    parser.add_argument("-mt", "--multi-threaded", help="Run multi-threaded versions", action="store_true", default=False)
 
     args = parser.parse_args()
     filename        = args.file_name
@@ -1402,49 +1465,98 @@ if "__main__" == __name__:
             sys.exit(0)
 
     if 0 != len(args.vary_mutation_rate):
-        execute_vary_mutation_rate_multi_threaded(file_name=filename,
-                nruns=n_runs,
-                pop_size=populationSize,
-                mutation_rate=mutationRate,
-                configuration=config,
-                no_graphs=noGraphs,
-                n_iterations=niterations,
-                mutation_rates=args.vary_mutation_rate)
+        if args.multi_threaded:
+            execute_vary_mutation_rate_multi_threaded(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    mutation_rates=args.vary_mutation_rate)
+        else:
+            execute_vary_mutation_rate(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    mutation_rates=args.vary_mutation_rate)
     elif 0 != len(args.vary_population_size):
-        execute_vary_population_size_multi_threaded(file_name=filename,
-                nruns=n_runs,
-                pop_size=populationSize,
-                mutation_rate=mutationRate,
-                configuration=config,
-                no_graphs=noGraphs,
-                n_iterations=niterations,
-                population_sizes=args.vary_population_size)
+        if args.multi_threaded:
+            execute_vary_population_size_multi_threaded(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    population_sizes=args.vary_population_size)
+        else:
+            execute_vary_population_size(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    population_sizes=args.vary_population_size)
     elif None != args.vary_configs and 0 != len(args.vary_configs):
-        execute_vary_configs_multi_threaded(file_name=filename,
-                nruns=n_runs,
-                pop_size=populationSize,
-                mutation_rate=mutationRate,
-                configuration=config,
-                no_graphs=noGraphs,
-                n_iterations=niterations,
-                configs_list=args.vary_configs)
+        if args.multi_threaded:
+            execute_vary_configs_multi_threaded(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    configs_list=args.vary_configs)
+        else:
+            execute_vary_configs(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    configs_list=args.vary_configs)
     elif None != args.vary_files and 0 != len(args.vary_files):
-        execute_vary_files_multi_threaded(file_name=filename,
-                nruns=n_runs,
-                pop_size=populationSize,
-                mutation_rate=mutationRate,
-                configuration=config,
-                no_graphs=noGraphs,
-                n_iterations=niterations,
-                files_list=args.vary_files)
+        if args.multi_threaded:
+            execute_vary_files_multi_threaded(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    files_list=args.vary_files)
+        else:
+            execute_vary_files(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations,
+                    files_list=args.vary_files)
     else:
-        execute(file_name=filename,
-                nruns=n_runs,
-                pop_size=populationSize,
-                mutation_rate=mutationRate,
-                configuration=config,
-                no_graphs=noGraphs,
-                n_iterations=niterations)
+        if args.multi_threaded:
+            execute_multi_threaded(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations)
+        else:
+            execute(file_name=filename,
+                    nruns=n_runs,
+                    pop_size=populationSize,
+                    mutation_rate=mutationRate,
+                    configuration=config,
+                    no_graphs=noGraphs,
+                    n_iterations=niterations)
     try:
         if not noGraphs:
             plt.show()
