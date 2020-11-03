@@ -577,12 +577,13 @@ class BasicTSP:
         """
         Updating the mating pool before creating a new generation
         """
-        population_fitness = [cand.getFitness() for cand in self.population]
+        #population_fitness = [cand.getFitness() for cand in self.population]
         """
         The smaller the distance of an individual, the more weight it should recieve
         Hence the inversion of the fitness is what we'll use to calculate the probability
         """
         #inv_fitness = [1 / (x+1) for x in population_fitness]
+        # Add 1 in case fitness is zero
         inv_fitness = [1 / (1 + cand.getFitness()) for cand in self.population]
         sum_inv_fitness = sum(inv_fitness)
         probabilities = [x / sum_inv_fitness for x in inv_fitness]
