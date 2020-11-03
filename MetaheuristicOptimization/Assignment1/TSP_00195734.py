@@ -23,7 +23,10 @@ import argparse
 import statistics
 import json
 import numpy as np
+import pickle
 #import pprofile
+
+g_run_name = "DEFAULT_RUN"
 
 # Class to compare run statistics and print comarative graphs
 class CompareRunStats(object):
@@ -103,6 +106,7 @@ class CompareRunStats(object):
 
     # Process and print graph
     def process(self, description, barxlabel, xbarlabellambda, norotate=False):
+        global g_run_name
         fig, ax = plt.subplots(3, 3)
         fig.suptitle(description)
         #for key, val in self.readings.items():
@@ -192,6 +196,12 @@ class CompareRunStats(object):
                 pmarker='.',
                 ax=ax[2][2])
         fig.legend()
+        save_filename=f"{g_run_name}-1.pickle"
+        with open(save_filename, "wb") as f:
+            pickle.dump(ax, f, protocol=pickle.HIGHEST_PROTOCOL)
+        save_filename=f"{g_run_name}_fig-1.pickle"
+        with open(save_filename, "wb") as f:
+            pickle.dump(fig, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 class BasicTSP:
     def __init__(self,
@@ -653,10 +663,17 @@ def plot_ga(fig, ax, ga, label="None"):
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 """
 def plot_ga(fig, ax, ga, label="None"):
+    global g_run_name
     ax[0].plot(ga.stat_global_best_history, label=label)
     ax[1].plot(ga.stat_run_best_fitness_history, label=label)
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
     #ax[3].plot(ga.run_perf_times)
+    filename = f"{g_run_name}-2.pickle"
+    with open(filename, "wb") as f:
+        pickle.dump(ax, f, protocol=pickle.HIGHEST_PROTOCOL)
+    filename = f"{g_run_name}_fig-2.pickle"
+    with open(filename, "wb") as f:
+        pickle.dump(fig, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 def create_and_run_ga(\
         title:str,
@@ -991,6 +1008,8 @@ if "__main__" == __name__:
     parser.add_argument("-vps", "--vary-population-size", help="Plot with varying population size, specified as a list", nargs="*", default=[], type=int)
     parser.add_argument("-vc", "--vary-configs", help="Compare different configurations", nargs="*", default=[], type=int)
     parser.add_argument("-vf", "--vary-files", help="Compare across different files (gene size)", nargs="*", default=[], type=str)
+    parser.add_argument("-name", "--run-name", help="Name of run, matplotlib pickles will be saved with this name", default="DEFAULT_RUN", type=str)
+
     args = parser.parse_args()
     filename        = args.file_name
     mutationRate    = args.mutation_rate
@@ -999,6 +1018,8 @@ if "__main__" == __name__:
     n_runs          = args.n_runs
     config          = args.configuration
     niterations     = args.iterations
+
+    g_run_name = args.run_name
 
     if (None != args.vary_configs and 0 != len(args.vary_configs)):
         if min(args.vary_configs) < 1 or max(args.vary_configs) > 6:
