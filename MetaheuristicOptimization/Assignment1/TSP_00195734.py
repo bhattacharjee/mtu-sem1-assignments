@@ -1290,7 +1290,7 @@ def execute_vary_configs_multi_threaded(\
     if not no_graphs:
         fig.legend()
 
-def plot_vary_files(meanTotal, medianTotal, meanPerIteration, medianPerIteration, gene_sizes, files_list):
+def plot_vary_files(meanTotal, medianTotal, meanPerIteration, medianPerIteration, gene_sizes, files_list, suptitle):
     global g_run_name
     fig, ax = plt.subplots(2, 2)
 
@@ -1310,7 +1310,7 @@ def plot_vary_files(meanTotal, medianTotal, meanPerIteration, medianPerIteration
     plot(ax[1][0], meanPerIteration, gene_sizes, "Mean Time Per Iteration")
     plot(ax[1][1], medianPerIteration, gene_sizes, "Median Time Per Iteration")
 
-    fig.suptitle("EFFECT OF VARYING NUMBER OF GENES")
+    fig.suptitle(suptitle)
 
     save_filename=f"{g_run_name}-3.pickle"
     with open(save_filename, "wb") as f:
@@ -1379,12 +1379,14 @@ def execute_vary_files(\
         median_time_per_iteration.append(statistics.median(time_per_iteration_taken))
         gene_sizes.append(geneSize)
 
-    plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list)
+    suptitle = f"EFFECTS OF VARYING POPULATION SIZE\nconfiguration={configuration} {g_mutation_type[configuration]} " +\
+            f" mutationrate={mutation_rate} iters={n_iterations} population={pop_size} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]}"
+    plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list, suptitle)
 
     print(f"Time taken to run {t}")
 
     crs.process(\
-            "EFFECTS OF NUMBER OF GENES",
+            suptitle,
             "n GENES",
             lambda x: x[len("geneSize: "):],
             norotate=True)
@@ -1462,12 +1464,14 @@ def execute_vary_files_multi_threaded(\
         median_time_per_iteration.append(statistics.median(time_per_iteration_taken))
         gene_sizes.append(geneSize)
 
-    plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list)
+    suptitle = f"EFFECTS OF VARYING POPULATION SIZE\nconfiguration={configuration} {g_mutation_type[configuration]} " +\
+            f" mutationrate={mutation_rate} iters={n_iterations} population={pop_size} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]}"
+    plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list, suptitle)
 
     print(f"Time taken to run {t}")
 
     crs.process(\
-            "EFFECTS OF NUMBER OF GENES",
+            suptitle,
             "n GENES",
             lambda x: x[len("geneSize: "):],
             norotate=True)
