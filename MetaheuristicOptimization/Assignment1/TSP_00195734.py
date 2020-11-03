@@ -28,6 +28,7 @@ from multiprocessing.pool import ThreadPool, Pool
 #import pprofile
 
 g_run_name = "DEFAULT_RUN"
+g_n_processes = 8
 
 # Class to compare run statistics and print comarative graphs
 class CompareRunStats(object):
@@ -452,6 +453,8 @@ class BasicTSP:
         assert(len(child) == len(par1))
         return child
 
+    # Alternate version, this produces two children with the same parents
+    # and the same indices, instead of one as with the other version
     def order1Crossover2(self, indA:Individual, indB:Individual):
         x = random.randint(0, self.genSize-1)
         y = random.randint(0, self.genSize-1)
@@ -579,7 +582,8 @@ class BasicTSP:
         The smaller the distance of an individual, the more weight it should recieve
         Hence the inversion of the fitness is what we'll use to calculate the probability
         """
-        inv_fitness = [1 / (x+1) for x in population_fitness]
+        #inv_fitness = [1 / (x+1) for x in population_fitness]
+        inv_fitness = [1 / (1 + cand.getFitness()) for cand in self.population]
         sum_inv_fitness = sum(inv_fitness)
         probabilities = [x / sum_inv_fitness for x in inv_fitness]
         new_pool = numpy.random.choice(self.population, size=len(self.population), p=probabilities, replace=True)
@@ -741,7 +745,12 @@ def create_ga(\
 def plot_ga2(fig, ax, ga, title):
     plot_ga(fig, ax, ga, title)
     fig.suptitle(ga.get_description(), horizontalalignment="left")
-    # TODO: RB: Write code to pickle and save
+    save_filename=f"{g_run_name}-4.pickle"
+    with open(save_filename, "wb") as f:
+        pickle.dump(ax, f, protocol=pickle.HIGHEST_PROTOCOL)
+    save_filename=f"{g_run_name}_fig-4.pickle"
+    with open(save_filename, "wb") as f:
+        pickle.dump(fig, f, protocol=pickle.HIGHEST_PROTOCOL)
 
 g_initial_algo = {
         1: "random", 2: "random", 3: "random",
@@ -814,6 +823,7 @@ def execute_multi_threaded(\
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+    global g_n_processes
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -826,7 +836,7 @@ def execute_multi_threaded(\
         ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
-    pool = Pool(processes=4)
+    pool = Pool(g_n_processes)
     futures = []
     t = 0
 
@@ -937,6 +947,7 @@ def execute_vary_mutation_rate_multi_threaded(\
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+    global g_n_processes
 
     crs = CompareRunStats()
     if len(sys.argv) < 2:
@@ -959,7 +970,7 @@ def execute_vary_mutation_rate_multi_threaded(\
         mutation_rate = 0.05
         print("")
 
-    pool = Pool(processes=4)
+    pool = Pool(g_n_processes)
     futures = []
     t = 0
 
@@ -1070,6 +1081,7 @@ def execute_vary_population_size_multi_threaded(\
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+    global g_n_processes
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -1092,7 +1104,7 @@ def execute_vary_population_size_multi_threaded(\
         mutation_rate = 0.05
         print("")
 
-    pool = Pool(processes=4)
+    pool = Pool(g_n_processes)
     futures = []
 
     t = "N/A"
@@ -1196,6 +1208,7 @@ def execute_vary_configs_multi_threaded(\
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+    global g_n_processes
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -1210,7 +1223,7 @@ def execute_vary_configs_multi_threaded(\
         ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
-    pool = Pool(processes=4)
+    pool = Pool(g_n_processes)
     futures = []
     t = 0
 
@@ -1362,6 +1375,7 @@ def execute_vary_files_multi_threaded(\
     global g_initial_algo
     global g_crossover_type
     global g_mutation_type
+    global g_n_processes
     if len(sys.argv) < 2:
         print ("Error - Incorrect input")
         print ("Expecting python BasicTSP.py [instance] ")
@@ -1370,7 +1384,7 @@ def execute_vary_files_multi_threaded(\
     crs = CompareRunStats()
     t = 0
     futures = []
-    pool = Pool(processes=4)
+    pool = Pool(g_n_processes)
 
     if not no_graphs:
         fig, ax = plt.subplots(1, 3)
