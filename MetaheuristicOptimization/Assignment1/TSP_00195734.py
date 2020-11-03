@@ -943,6 +943,36 @@ def execute_vary_configs(\
     if not no_graphs:
         fig.legend()
 
+def plot_vary_files(meanTotal, medianTotal, meanPerIteration, medianPerIteration, gene_sizes, files_list):
+    global g_run_name
+    fig, ax = plt.subplots(2, 2)
+
+    def plot(ax, yaxis, xaxis, title):
+        # n(Genes) is not in order, need to sort the arrays
+        d = {}
+        for i, j in zip(xaxis, yaxis):
+            d[i] = j
+        xaxis = sorted(xaxis)
+        yaxis = [d[i] for i in xaxis]
+        ax.plot(xaxis, yaxis, marker='.')
+        ax.set(title=title, ylabel="Time (s)", xlabel="n(Genes)")
+
+    print(meanTotal, gene_sizes)
+    plot(ax[0][0], meanTotal, gene_sizes, "Mean Total Time")
+    plot(ax[0][1], medianTotal, gene_sizes, "Median Total Time")
+    plot(ax[1][0], meanPerIteration, gene_sizes, "Mean Time Per Iteration")
+    plot(ax[1][1], medianPerIteration, gene_sizes, "Median Time Per Iteration")
+
+    fig.suptitle("EFFECT OF VARYING NUMBER OF GENES")
+
+    save_filename=f"{g_run_name}-3.pickle"
+    with open(save_filename, "wb") as f:
+        pickle.dump(ax, f, protocol=pickle.HIGHEST_PROTOCOL)
+    save_filename=f"{g_run_name}_fig-3.pickle"
+    with open(save_filename, "wb") as f:
+        pickle.dump(fig, f, protocol=pickle.HIGHEST_PROTOCOL)
+
+
 def execute_vary_files(\
         file_name,
         nruns:int=1,
@@ -969,7 +999,15 @@ def execute_vary_files(\
         ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Run")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
+    mean_total_time = []
+    mean_time_per_iteration = []
+    median_total_time = []
+    median_time_per_iteration = []
+    gene_sizes = []
     for files in files_list:
+        total_time_taken = []
+        time_per_iteration_taken = []
+        geneSize = -1
         for j in range(nruns):
             ga, t = create_and_run_ga(\
                     title="Run %d - configuration %d" % (j, configuration,),
@@ -984,7 +1022,18 @@ def execute_vary_files(\
                     runs=n_iterations, fig=fig, ax=ax)
             ga.print_stats()
             stats = ga.get_stats_dict()
+            total_time_taken.append(stats["total_time_to_run"])
+            time_per_iteration_taken.append(stats["mean_time_per_iteration"])
             crs.add_results("geneSize: %d" % stats["n_genes"], j, stats)
+            geneSize = stats["n_genes"]
+        mean_total_time.append(statistics.mean(total_time_taken))
+        median_total_time.append(statistics.median(total_time_taken))
+        mean_time_per_iteration.append(statistics.mean(time_per_iteration_taken))
+        median_time_per_iteration.append(statistics.median(time_per_iteration_taken))
+        gene_sizes.append(geneSize)
+
+    plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list)
+
     print(f"Time taken to run {t}")
 
     crs.process(\
