@@ -1,6 +1,13 @@
 #!/usr/bin/python3 -OO
 
 """
+* Important to set -OO. There are a lot of expensive asserts in the code that
+* increase runtime anywhere between 2X and 10X.
+* Setting -OO means that those asserts won't be called, as this is the release
+* configuration
+"""
+
+"""
 Author:
 file:
 Rename this file to TSP_x.py where x is your student number 
@@ -36,6 +43,11 @@ def get_run_number():
     g_run_num += 1
     return g_run_num
 
+def str_to_num(s:str)->int:
+    for i, c in enumerate(s):
+        if c in list("01234567890"):
+            return int(s[i:])
+
 # Class to compare run statistics and print comarative graphs
 class CompareRunStats(object):
     def __init__(self):
@@ -58,6 +70,24 @@ class CompareRunStats(object):
         ax.set(title=title, ylabel=ylabel, xlabel=xlabel)
         if y_lim_zero:
             ax.set_ylim(ymin=0)
+
+    def plot_line_graph2(self, field:str, title:str, xlabel:str, ylabel:str, y_lim_zero:bool, pmarker, ax, lambdafn):
+        xxaxis = []
+        yyaxis = []
+        for key in self.readings.keys():
+            yaxis = []
+            xxaxis.append(str_to_num(key))
+            for stat in self.readings[key]:
+                yaxis.append(stat[field])
+            yyaxis.append(lambdafn(yaxis))
+        if None != pmarker:
+            ax.plot(xxaxis, yyaxis, label=key, marker=pmarker)
+        else:
+            ax.plot(xxaxis, yyaxis, label=key)
+        ax.set(title=title, ylabel=ylabel, xlabel=xlabel)
+        if y_lim_zero:
+            ax.set_ylim(ymin=0)
+
 
     def bar_chart(self, field:str, title:str, xlabel:str, ylabel:str, laggr, barxlabel, xlabellambda, ax, norotate):
         aggregates = []
@@ -113,23 +143,35 @@ class CompareRunStats(object):
         ax.set_xticks([])
 
     # Process and print graph
-    def process(self, description, barxlabel, xbarlabellambda, norotate=False):
+    def process(self, description, barxlabel, xbarlabellambda, norotate=False, alternate=False):
+        print(f"in process {norotate} {alternate}")
         global g_run_name
         fig, ax = plt.subplots(3, 3)
         fig.suptitle(description)
         #for key, val in self.readings.items():
         #    print(key)
         #    print(json.dumps(val, indent=4))
-        self.bar_chart(\
-                "total_time_to_run",
-                "MEAN RUN TIME",
-                barxlabel,
-                "time (s)",
-                lambda x: statistics.median(x),
-                barxlabel,
-                xbarlabellambda,
-                ax[0][0],
-                norotate)
+        if not alternate:
+            self.bar_chart(\
+                    "total_time_to_run",
+                    "MEAN RUN TIME",
+                    barxlabel,
+                    "time (s)",
+                    lambda x: statistics.median(x),
+                    barxlabel,
+                    xbarlabellambda,
+                    ax[0][0],
+                    norotate)
+        else:
+            self.plot_line_graph2(\
+                    field="total_time_to_run",
+                    title="MEAN TOTAL RUN TIME",
+                    xlabel="Run",
+                    ylabel="time (s)",
+                    y_lim_zero=False,
+                    pmarker='.',
+                    ax=ax[0][0],
+                    lambdafn=lambda x:statistics.mean(x))
         self.plot_line_graph(\
                 field="total_time_to_run",
                 title="TOTAL RUN TIME",
@@ -727,6 +769,13 @@ def create_and_run_ga(\
     return ga, time1
 
 def run_ga(ga, title, i, j, runnum):
+    """
+    # Since we are running in a multi-process environment, the random
+    # seed will be reset when the worker process is forked, and the results
+    # are not replicated.
+    # I followed Diarmuid's suggestion here to set it to a random number
+    # in an AP. With this the results can now be replicated.
+    """
     random.seed(myStudentNum + 100 * runnum)
     numpy.random.seed(myStudentNum + 100 * runnum)
     ga.search()
@@ -819,7 +868,8 @@ def execute(\
                 no_graph=no_graphs,
                 runs=n_iterations, fig=fig, ax=ax)
         ga.print_stats()
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     if not no_graphs:
         fig.legend()
@@ -882,7 +932,8 @@ def execute_multi_threaded(\
         ga, title, i, j = async_result.get()
         ga.print_stats()
         plot_ga2(fig, ax, ga, title)
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     if not no_graphs:
         fig.legend()
@@ -939,7 +990,8 @@ def execute_vary_mutation_rate(\
             crs.add_results("MutationRate: %f" % i, j, stats)
             gensize = stats["n_genes"]
             ga.print_stats()
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     suptitle = f"EFFECTS OF VARYING MUTATION RATE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
             f" pop={pop_size} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
@@ -1018,7 +1070,8 @@ def execute_vary_mutation_rate_multi_threaded(\
         crs.add_results("MutationRate: %f" % i, j, stats)
         ga.print_stats()
         plot_ga2(fig, ax, ga, title)
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     suptitle = f"EFFECTS OF VARYING MUTATION RATE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
             f" pop={pop_size} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
@@ -1090,7 +1143,9 @@ def execute_vary_population_size(\
     crs.process(\
             suptitle,
             "POPULATION SIZE",
-            lambda x: "%d" % int(x[len("PopulationSize: "):]))
+            lambda x: "%d" % int(x[len("PopulationSize: "):]),
+            False,
+            True)
     if not no_graphs:
         fig.legend()
 
@@ -1149,7 +1204,6 @@ def execute_vary_population_size_multi_threaded(\
                     initPopulationAlgo=g_initial_algo[configuration],
                     no_graph=no_graphs,
                     runs=n_iterations, fig=fig, ax=ax)
-            print("Running ga")
             async_result = pool.apply_async(run_ga, (ga, thetitle, i, j, get_run_number()))
             futures.append(async_result)
     for async_result in futures:
@@ -1161,14 +1215,17 @@ def execute_vary_population_size_multi_threaded(\
         crs.add_results("PopulationSize: %d" % i, j, stats)
         ga.print_stats()
         plot_ga2(fig, ax, ga, title)
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     suptitle = f"EFFECTS OF VARYING POPULATION SIZE\n{file_name} configuration={configuration} {g_mutation_type[configuration]} " +\
             f" mutationrate={mutation_rate} iters={n_iterations} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]} genesize={gensize}"
     crs.process(\
             suptitle,
             "POPULATION SIZE",
-            lambda x: "%d" % int(x[len("PopulationSize: "):]))
+            lambda x: "%d" % int(x[len("PopulationSize: "):]),
+            False,
+            True)
     if not no_graphs:
         fig.legend()
 
@@ -1217,7 +1274,8 @@ def execute_vary_configs(\
             stats = ga.get_stats_dict()
             gensize = stats["n_genes"]
             crs.add_results("Configuration: %d" % configuration, j, stats)
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     suptitle = f"EFFECTS OF CONFIGURATIONS\n{file_name} population={pop_size} " +\
             f" mutationrate={mutation_rate} iters={n_iterations} genesize={gensize}"
@@ -1287,7 +1345,8 @@ def execute_vary_configs_multi_threaded(\
         gensize = stats["n_genes"]
         crs.add_results("Configuration: %d" % configuration, j, stats)
         plot_ga2(fig, ax, ga, title)
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     suptitle = f"EFFECTS OF CONFIGURATIONS\n{file_name} population={pop_size} " +\
             f" mutationrate={mutation_rate} iters={n_iterations} genesize={gensize}"
@@ -1392,7 +1451,8 @@ def execute_vary_files(\
             f" mutationrate={mutation_rate} iters={n_iterations} population={pop_size} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]}"
     plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list, suptitle)
 
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     crs.process(\
             suptitle,
@@ -1477,7 +1537,8 @@ def execute_vary_files_multi_threaded(\
             f" mutationrate={mutation_rate} iters={n_iterations} population={pop_size} {g_crossover_type[configuration]} initialization={g_initial_algo[configuration]}"
     plot_vary_files(mean_total_time, median_total_time, mean_time_per_iteration, median_time_per_iteration, gene_sizes, files_list, suptitle)
 
-    print(f"Time taken to run {t}")
+    if __debug__:
+        print(f"Time taken to run {t}")
 
     crs.process(\
             suptitle,
