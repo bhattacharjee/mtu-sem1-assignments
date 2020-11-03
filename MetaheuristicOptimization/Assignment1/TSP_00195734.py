@@ -310,6 +310,8 @@ class BasicTSP:
         self.stat_global_best_history        = []
         # History of mean fitness and how it changes with every run
         self.stat_mean_fitness_history       = []
+        # Median
+        self.stat_median_fitness_history     = []
         # History of best fitness in every run and how it changes
         self.stat_run_best_fitness_history   = []
         self.population     = []
@@ -387,8 +389,10 @@ class BasicTSP:
         thisrun_best_fitness = max(thisrun_fitness)
         self.stat_run_best_fitness_history.append(thisrun_best_fitness)
         thisrun_mean_fitness = sum(thisrun_fitness) / len(thisrun_fitness)
+        thisrun_median_fitness = statistics.median(thisrun_fitness)
         self.stat_mean_fitness_history.append(thisrun_mean_fitness)
         self.stat_global_best_history.append(self.best.getFitness())
+        self.stat_median_fitness_history.append(thisrun_median_fitness)
 
     def readInstance(self):
         """
@@ -760,9 +764,10 @@ def plot_ga(fig, ax, ga, label="None"):
 """
 def plot_ga(fig, ax, ga, label="None"):
     global g_run_name
-    ax[0].plot(ga.stat_global_best_history, label=label)
-    ax[1].plot(ga.stat_run_best_fitness_history, label=label)
-    ax[2].plot(ga.stat_mean_fitness_history, label=label)
+    ax[0][0].plot(ga.stat_global_best_history, label=label)
+    ax[0][1].plot(ga.stat_run_best_fitness_history, label=label)
+    ax[1][0].plot(ga.stat_mean_fitness_history, label=label)
+    ax[1][1].plot(ga.stat_median_fitness_history, label=label)
     #ax[3].plot(ga.run_perf_times)
     filename = f"{g_run_name}-2.pickle"
     with open(filename, "wb") as f:
@@ -880,10 +885,11 @@ def execute(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     # Override population size and mutation rate for BASIC GA (configuration 1
@@ -931,10 +937,11 @@ def execute_multi_threaded(\
         sys.exit(0)
 
     if not no_graphs:
-        fig, ax = plt.subplots(1, 3)
-        ax[0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
-        ax[1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
-        ax[2].set(title="Average fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        fig, ax = plt.subplots(2, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
         #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
 
     pool = Pool(g_n_processes)
@@ -1718,6 +1725,7 @@ if "__main__" == __name__:
                     n_iterations=niterations)
     try:
         if not noGraphs:
+            #pass
             plt.show()
     except:
         print("Could not show performance graphs")
