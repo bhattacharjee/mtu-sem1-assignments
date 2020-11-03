@@ -762,8 +762,11 @@ def plot_ga(fig, ax, ga, label="None"):
     #ax[2].scatter(list(range(len(ga.stat_mean_fitness_history))), ga.stat_mean_fitness_history)
     ax[2].plot(ga.stat_mean_fitness_history, label=label)
 """
+g_plot_ga_counter = 1
 def plot_ga(fig, ax, ga, label="None"):
-    global g_run_name
+    global g_run_name, g_plot_ga_counter
+    g_plot_ga_counter = g_plot_ga_counter if g_plot_ga_counter != -3 else 1
+    g_plot_ga_counter -= 1
     ax[0][0].plot(ga.stat_global_best_history, label=label)
     ax[0][1].plot(ga.stat_run_best_fitness_history, label=label)
     ax[1][0].plot(ga.stat_mean_fitness_history, label=label)
@@ -775,7 +778,7 @@ def plot_ga(fig, ax, ga, label="None"):
         text = str(int(height)) if height > 1 else "%0.3d" % float(height)
         ax[2][1].annotate(text,
                 xy=(rect.get_x() + rect.get_width() / 2, height),
-                xytext=(0, -30),
+                xytext=(0, -30 + g_plot_ga_counter * 15),
                 textcoords="offset points",
                 ha='center', va='bottom')
     ax[2][1].tick_params(labelrotation=20)
@@ -787,7 +790,7 @@ def plot_ga(fig, ax, ga, label="None"):
         text = str(int(height)) if height > 1 else "%0.3d" % float(height)
         ax[2][0].annotate(text,
                 xy=(rect.get_x() + rect.get_width() / 2, height),
-                xytext=(0, -30),
+                xytext=(0, -30 + g_plot_ga_counter * 15),
                 textcoords="offset points",
                 ha='center', va='bottom')
     #ax[3].plot(ga.run_perf_times)
