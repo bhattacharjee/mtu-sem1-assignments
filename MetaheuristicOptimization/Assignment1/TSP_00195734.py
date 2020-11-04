@@ -36,7 +36,7 @@ from multiprocessing.pool import ThreadPool, Pool
 #import pprofile
 
 g_run_name = "DEFAULT_RUN"
-g_n_processes = 8
+g_n_processes = 7
 
 g_run_num = 0
 def get_run_number():
@@ -341,12 +341,13 @@ class BasicTSP:
 
     def get_description(self)->str:
         string = ""
-        string += f"Population Init    : {self.initPopulationAlgo}\n"
-        string += f"Mutation Type     : {self.mutationType}\n"
-        string += f"Selection Type    : {self.selectionType}\n"
-        string += f"Crossover Type   : {self.crossoverType}\n"
-        string += f"Population size   : {self.popSize}\n"
-        string += f"Iterations        : {self.iteration}\n"
+        string += f"Population Init : {self.initPopulationAlgo} "
+        string += f"Mutation Type : {self.mutationType}\n"
+        string += f"Mutation Rate : {self.mutationRate} "
+        string += f"Selection Type : {self.selectionType}\n"
+        string += f"Crossover Type : {self.crossoverType} "
+        string += f"Population size : {self.popSize}\n"
+        string += f"Iterations : {self.iteration}\n"
         return string
 
     def print_stats(self):
@@ -806,6 +807,7 @@ def plot_ga(fig, ax, ga, label="None"):
     filename = f"{g_run_name}_fig-2.pickle"
     with open(filename, "wb") as f:
         pickle.dump(fig, f, protocol=pickle.HIGHEST_PROTOCOL)
+    fig.legend()
 
 def create_and_run_ga(\
         title:str,
@@ -1766,7 +1768,7 @@ if "__main__" == __name__:
                     n_iterations=niterations)
     try:
         if not noGraphs:
-            #pass
-            plt.show()
+            pass
+            #plt.show()
     except:
         print("Could not show performance graphs")
