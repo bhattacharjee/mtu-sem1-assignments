@@ -38,6 +38,10 @@ from multiprocessing.pool import ThreadPool, Pool
 g_run_name = "DEFAULT_RUN"
 g_n_processes = 7
 
+# If this is set to True, then the mating pool selection will be probabilistic
+# based on the fitness of each individual in the pool.
+g_weighted_mating_pool = False
+
 g_run_num = 0
 def get_run_number():
     global g_run_num
@@ -674,26 +678,33 @@ class BasicTSP:
         self.updateBest(ind)
 
     def updateMatingPool(self):
-        """
-        Updating the mating pool before creating a new generation
-        """
-        #population_fitness = [cand.getFitness() for cand in self.population]
-        """
-        The smaller the distance of an individual, the more weight it should recieve
-        Hence the inversion of the fitness is what we'll use to calculate the probability
-        """
-        #inv_fitness = [1 / (x+1) for x in population_fitness]
-        # Add 1 in case fitness is zero
-        inv_fitness = [1 / (0.00001 + cand.getFitness()) for cand in self.population]
-        sum_inv_fitness = sum(inv_fitness)
-        probabilities = [x / sum_inv_fitness for x in inv_fitness]
-        new_pool = numpy.random.choice(self.population, size=len(self.population), p=probabilities, replace=True)
+        global g_weighted_mating_pool
 
-        self.matingPool = []
-        for ind_i in new_pool:
-            self.matingPool.append( ind_i.copy() )
-        #duplicates = [item for item, count in collections.Counter(self.matingPool).items() if count > 1]
-        #print(f"{len(duplicates)} mating_pool={len(self.matingPool)}")
+        if g_weighted_mating_pool:
+            """
+            Updating the mating pool before creating a new generation
+            """
+            #population_fitness = [cand.getFitness() for cand in self.population]
+            """
+            The smaller the distance of an individual, the more weight it should recieve
+            Hence the inversion of the fitness is what we'll use to calculate the probability
+            """
+            #inv_fitness = [1 / (x+1) for x in population_fitness]
+            # Add 1 in case fitness is zero
+            inv_fitness = [1 / (0.00001 + cand.getFitness()) for cand in self.population]
+            sum_inv_fitness = sum(inv_fitness)
+            probabilities = [x / sum_inv_fitness for x in inv_fitness]
+            new_pool = numpy.random.choice(self.population, size=len(self.population), p=probabilities, replace=True)
+
+            self.matingPool = []
+            for ind_i in new_pool:
+                self.matingPool.append( ind_i.copy() )
+            #duplicates = [item for item, count in collections.Counter(self.matingPool).items() if count > 1]
+            #print(f"{len(duplicates)} mating_pool={len(self.matingPool)}")
+        else:
+            self.matingPool = []
+            for ind_i in self.population:
+                self.matingPool.append( ind_i.copy() )
 
 
     def newGeneration(self):
