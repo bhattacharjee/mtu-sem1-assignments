@@ -57,9 +57,9 @@ do
 		mkdir -p $DIRNAME
 		rm -f *.pickle
 		rm -f out.txt
-		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 200 1000 1000
-		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 200 1000 1000 > command.txt
-		./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 200 1000 1000 > out.txt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 500 1000 1500
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 500 1000 1500 > command.txt
+		./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 500 1000 1500 > out.txt
 		mv command.txt out.txt *.pickle $DIRNAME
 	done
 
