@@ -1780,6 +1780,6 @@ if "__main__" == __name__:
     try:
         if not noGraphs:
             pass
-            #plt.show()
+            plt.show()
     except:
         print("Could not show performance graphs")
