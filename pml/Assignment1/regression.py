@@ -61,10 +61,10 @@ def main(filename:str, testfilename=str):
     test_labels = test[:,-1]
 
 
-    for k in range(1, 20, 1):
-        predicted = predict(train_features, train_labels, test_features, k, 1)
+    for n in range(1, 20, 1):
+        predicted = predict(train_features, train_labels, test_features, 3, n)
         r2 = calculate_r2(predicted, test_labels)
-        print(k, r2)
+        print(n, r2)
 
 
 
