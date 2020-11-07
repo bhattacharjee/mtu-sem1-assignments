@@ -1728,7 +1728,7 @@ if "__main__" == __name__:
     parser.add_argument("-mt", "--multi-threaded", help="Run multi-threaded versions", action="store_true", default=False)
     parser.add_argument("-ucl", "--uniform_crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
     parser.add_argument("-ocl", "--order-one-crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
-    parser.add_argument("-epr", "--elitist-parents-ratio", help="ratio of parents to choose for elitism, between 0 and 1.0, negative specifies no elitism", type=float, default=-1.0)
+    parser.add_argument("-epr", "--elitist-parents-ratio", help="ratio of parents to choose for elitism, between 0 and 0.99, negative specifies no elitism", type=float, default=-1.0)
     #parser.add_argument("-vepr", "--vary-elitist-parents-ratio", help="Veary elitist parents ratio from 0.05 0.10 0.25 0.30 0.35 0.40", type=bool, action="store_true", defualt=False)
 
     args = parser.parse_args()
@@ -1755,6 +1755,11 @@ if "__main__" == __name__:
         g_elitist = True
     else:
         g_elitist = False
+
+    if g_elitist_parents_ratio > 0.99:
+        print("\nElitist parents ratio should be betwen 0 and 0.99\n\n")
+        parser.print_help()
+        sys.exit(1)
 
     if 0 != len(args.vary_mutation_rate):
         if args.multi_threaded:
@@ -1852,6 +1857,6 @@ if "__main__" == __name__:
     try:
         if not noGraphs:
             pass
-            #plt.show()
+            plt.show()
     except:
         print("Could not show performance graphs")
