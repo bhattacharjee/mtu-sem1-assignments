@@ -33,14 +33,20 @@ import json
 import numpy as np
 import pickle
 from multiprocessing.pool import ThreadPool, Pool
+from heapq import *
 #import pprofile
 
 g_run_name = "DEFAULT_RUN"
 g_n_processes = 7
+g_elitist = True
+g_subtract_from_max = True
+g_uniform_crossover_large = True
+g_order1_crossover_large = True
 
 # If this is set to True, then the mating pool selection will be probabilistic
 # based on the fitness of each individual in the pool.
 g_weighted_mating_pool = False
+g_alternate_mating_pool = True
 
 g_run_num = 0
 def get_run_number():
@@ -516,7 +522,13 @@ class BasicTSP:
         """
         Your Uniform Crossover Implementation
         """
-        n_fixed_bits = random.randint(5, self.genSize // 2) if 5 < (self.genSize // 2) else 5
+        global g_uniform_crossover_large
+        if not g_uniform_crossover_large:
+            n_fixed_bits = random.randint(5, self.genSize // 2) if 5 < (self.genSize // 2) else 5
+        else:
+            low = int(self.genSize * 0.5)
+            high = int(self.genSize * 0.75)
+            n_fixed_bits = random.choice(range(low, high+1))
         n_fixed_bits = n_fixed_bits if n_fixed_bits <= len(indA.genes) else len(indA.genes)
         # Use set() because lookup is O(1) and we're going to lookup quite a bit
         fixed_gene_indices = frozenset(random.sample(list(range(self.genSize)), n_fixed_bits))
@@ -684,30 +696,50 @@ class BasicTSP:
             """
             Updating the mating pool before creating a new generation
             """
-            #population_fitness = [cand.getFitness() for cand in self.population]
-            """
-            The smaller the distance of an individual, the more weight it should recieve
-            Hence the inversion of the fitness is what we'll use to calculate the probability
-            """
-            #inv_fitness = [1 / (x+1) for x in population_fitness]
-            # Add 1 in case fitness is zero
             inv_fitness = [1 / (0.00001 + cand.getFitness()) for cand in self.population]
             sum_inv_fitness = sum(inv_fitness)
             probabilities = [x / sum_inv_fitness for x in inv_fitness]
             new_pool = numpy.random.choice(self.population, size=len(self.population), p=probabilities, replace=True)
-
             self.matingPool = []
             for ind_i in new_pool:
                 self.matingPool.append( ind_i.copy() )
-            #duplicates = [item for item, count in collections.Counter(self.matingPool).items() if count > 1]
-            #print(f"{len(duplicates)} mating_pool={len(self.matingPool)}")
         else:
             self.matingPool = []
             for ind_i in self.population:
                 self.matingPool.append( ind_i.copy() )
 
+    def elitist_replace(self, children):
+        if g_elitist:
+            temp_mating_pool = []
+            inv_fitness = [cand.getFitness() for cand in self.population]
+            heapify(inv_fitness)
+            n_parents = self.popSize // 10 # Keep 10% best parents
+            fitness_cutoff = 0
+            for i in range(n_parents + 1):
+                fitness_cutoff = heappop(inv_fitness)
+            for i in self.population:
+                if n_parents > 0:
+                    if i.getFitness() < fitness_cutoff:
+                        temp_mating_pool.append(i)
+                        n_parents -= 1
+                else:
+                    break
+            n_children = self.popSize - len(temp_mating_pool)
+            if g_subtract_from_max:
+                maxfit = max([cand.getFitness() for cand in children])
+                inv_fitness = [(maxfit + 1 - cand.getFitness()) for cand in children]
+            else:
+                inv_fitness = ([1/(0.0001 + cand.getFitness()) for cand in children])
+            s = sum(inv_fitness)
+            probabilities = [i/s for i in inv_fitness]
+            new_pool = numpy.random.choice(children, size=n_children, p=probabilities, replace=False)
+            [temp_mating_pool.append(i) for i in new_pool]
+            self.population = temp_mating_pool
+        else:
+            raise AssertionError
 
     def newGeneration(self):
+        global g_alternate_mating_pool, g_elitist, g_subtract_from_max
         """
         Creating a new generation
         1. Selection
@@ -744,7 +776,10 @@ class BasicTSP:
                 self.mutation(child2)
                 children.append(child1)
                 children.append(child2)
-        self.population = children
+        if g_elitist:
+            self.elitist_replace(children)
+        else:
+            self.population = children
 
     def GAStep(self):
         """
@@ -1780,6 +1815,6 @@ if "__main__" == __name__:
     try:
         if not noGraphs:
             pass
-            #plt.show()
+            plt.show()
     except:
         print("Could not show performance graphs")
