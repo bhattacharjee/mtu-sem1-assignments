@@ -1,1 +1,0 @@
-./work.py --file-name TSPData/inst-0.tsp --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name inst-0_conf_1 -mt
