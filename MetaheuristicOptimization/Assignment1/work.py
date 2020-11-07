@@ -38,10 +38,11 @@ from heapq import *
 
 g_run_name = "DEFAULT_RUN"
 g_n_processes = 7
-g_elitist = True
+g_elitist = False
 g_subtract_from_max = True
-g_uniform_crossover_large = True
-g_order1_crossover_large = True
+g_uniform_crossover_large = False
+g_order1_crossover_large = False
+g_elitist_parents_ratio = 0.1
 
 # If this is set to True, then the mating pool selection will be probabilistic
 # based on the fitness of each individual in the pool.
@@ -709,12 +710,15 @@ class BasicTSP:
                 self.matingPool.append( ind_i.copy() )
 
     def elitist_replace(self, children):
+        global g_elitist_parents_ratio
         if g_elitist:
             temp_mating_pool = []
             inv_fitness = [cand.getFitness() for cand in self.population]
+            # heapify is O(n)
             heapify(inv_fitness)
-            n_parents = self.popSize // 10 # Keep 10% best parents
+            n_parents = int(self.popSize * g_elitist_parents_ratio) # Keep best parents
             fitness_cutoff = 0
+            # This Each iteration runs in O(log(n))
             for i in range(n_parents + 1):
                 fitness_cutoff = heappop(inv_fitness)
             for i in self.population:
@@ -1702,6 +1706,9 @@ if "__main__" == __name__:
     parser.add_argument("-vf", "--vary-files", help="Compare across different files (gene size)", nargs="*", default=[], type=str)
     parser.add_argument("-name", "--run-name", help="Name of run, matplotlib pickles will be saved with this name", default="DEFAULT_RUN", type=str)
     parser.add_argument("-mt", "--multi-threaded", help="Run multi-threaded versions", action="store_true", default=False)
+    parser.add_argument("-ucl", "--uniform_crossover-large", help="Choose between50 and 75% of genes for uniform crossover", action="store_true", default=False)
+    parser.add_argument("-epr", "--elitist-parents-ratio", help="ratio of parents to choose for elitism, between 0 and 1.0, negative specifies no elitism", type=float, default=-1.0)
+    #parser.add_argument("-vepr", "--vary-elitist-parents-ratio", help="Veary elitist parents ratio from 0.05 0.10 0.25 0.30 0.35 0.40", type=bool, action="store_true", defualt=False)
 
     args = parser.parse_args()
     filename        = args.file_name
@@ -1718,6 +1725,14 @@ if "__main__" == __name__:
         if min(args.vary_configs) < 1 or max(args.vary_configs) > 6:
             print("Varying configs, all configs should be between 1 and 6")
             sys.exit(0)
+
+    g_uniform_crossover_large = True if args.uniform_crossover_large else False
+
+    if args.elitist_parents_ratio > 0.0:
+        g_elitist_parents_ratio = args.elitist_parents_ratio
+        g_elitist = True
+    else:
+        g_elitist = False
 
     if 0 != len(args.vary_mutation_rate):
         if args.multi_threaded:
@@ -1815,6 +1830,6 @@ if "__main__" == __name__:
     try:
         if not noGraphs:
             pass
-            plt.show()
+            #plt.show()
     except:
         print("Could not show performance graphs")
