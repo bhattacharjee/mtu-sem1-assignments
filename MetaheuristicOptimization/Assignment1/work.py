@@ -525,8 +525,10 @@ class BasicTSP:
         """
         global g_uniform_crossover_large
         if not g_uniform_crossover_large:
+            # Select random number of genes to crossover, minimum of 5
             n_fixed_bits = random.randint(5, self.genSize // 2) if 5 < (self.genSize // 2) else 5
         else:
+            # Select randomly between 50% and 75% of genes to crossover
             low = int(self.genSize * 0.5)
             high = int(self.genSize * 0.75)
             n_fixed_bits = random.choice(range(low, high+1))
@@ -584,6 +586,25 @@ class BasicTSP:
         assert(c2.validate())
         return c1, c2
 
+    def getOrder1CrossoverIndices(self):
+        """
+        Get the indices for order 1 crossover
+        """
+        global g_order1_crossover_large
+        if not g_order1_crossover_large:
+            x = random.randint(0, self.genSize-1)
+            y = random.randint(0, self.genSize-1)
+            return x, y
+        else:
+            # Select between 50% and 75% of genes
+            minToCrossover = int(self.genSize * 0.5)
+            maxToCrossover = int(self.genSize * 0.75)
+            x = random.randint(0, self.genSize - minToCrossover - 1)
+            if x + maxToCrossover > self.genSize - 1:
+                maxToCrossover = self.genSize - x - 1
+            y = random.randint(x + minToCrossover, x + maxToCrossover)
+            return x, y
+
 
     """
     # A somewhat inelegant version, better version below is used
@@ -606,8 +627,7 @@ class BasicTSP:
         """
         Your Order-1 Crossover Implementation
         """
-        x = random.randint(0, self.genSize-1)
-        y = random.randint(0, self.genSize-1)
+        x, y = self.getOrder1CrossoverIndices()
         x, y = min(x,y), max(x,y)
         unchanged = indA.genes[x:(y+1)]
         child_genes = [g for g in indB.genes if g not in unchanged]
@@ -1706,7 +1726,8 @@ if "__main__" == __name__:
     parser.add_argument("-vf", "--vary-files", help="Compare across different files (gene size)", nargs="*", default=[], type=str)
     parser.add_argument("-name", "--run-name", help="Name of run, matplotlib pickles will be saved with this name", default="DEFAULT_RUN", type=str)
     parser.add_argument("-mt", "--multi-threaded", help="Run multi-threaded versions", action="store_true", default=False)
-    parser.add_argument("-ucl", "--uniform_crossover-large", help="Choose between50 and 75% of genes for uniform crossover", action="store_true", default=False)
+    parser.add_argument("-ucl", "--uniform_crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
+    parser.add_argument("-ocl", "--order-one-crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
     parser.add_argument("-epr", "--elitist-parents-ratio", help="ratio of parents to choose for elitism, between 0 and 1.0, negative specifies no elitism", type=float, default=-1.0)
     #parser.add_argument("-vepr", "--vary-elitist-parents-ratio", help="Veary elitist parents ratio from 0.05 0.10 0.25 0.30 0.35 0.40", type=bool, action="store_true", defualt=False)
 
@@ -1727,6 +1748,7 @@ if "__main__" == __name__:
             sys.exit(0)
 
     g_uniform_crossover_large = True if args.uniform_crossover_large else False
+    g_order1_crossover_large = True if args.order_one_crossover_large else False
 
     if args.elitist_parents_ratio > 0.0:
         g_elitist_parents_ratio = args.elitist_parents_ratio
