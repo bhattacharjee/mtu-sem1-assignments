@@ -1,1 +1,0 @@
-./work.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 5 --run-name VARY_MR_inst-0_conf_5 -mt -vmr 0.001 0.01 0.05 0.1 0.5
