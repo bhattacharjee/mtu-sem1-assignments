@@ -1,0 +1,1 @@
+./work.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 5 --run-name VARY_POPSIZE_inst-13_conf_5 -mt -vps 50 100 250 500 1000
