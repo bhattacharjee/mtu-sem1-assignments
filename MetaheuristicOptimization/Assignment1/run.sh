@@ -80,3 +80,5 @@ do
 done
 
 ./work.py -f TSPdata/inst-0.tsp -vepr -mt -c 6 -i 4000 -nr 5 -ucl -ocl > run.txt
+
+./work.py -f TSPdata/inst-0.tsp -mr 0.05 -i 1000 -c 1 -vf TSPdata/inst-0.tsp TSPdata/inst-5.tsp TSPdata/inst-13.tsp -mt
