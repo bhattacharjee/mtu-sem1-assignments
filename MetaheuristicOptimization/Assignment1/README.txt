@@ -30,6 +30,12 @@ These asserts slow down the code by a factor between 2X and 10X.
 It is recommended to turn these asserts off by invoking python with the "-OO"
 option.
 
+FURTHER WORK ON PERFORMANCE
+---------------------------
+
+When profiled, the most expensive function was calculation of Euclidan distance.
+There is some opportunity to avoid calculation and use a table lookup instead.
+
 _______________________________________________________________________________
 
 ENVIRONMENT
