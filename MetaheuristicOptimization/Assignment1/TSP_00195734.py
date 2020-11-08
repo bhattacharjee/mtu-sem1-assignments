@@ -1517,6 +1517,81 @@ def execute_vary_configs_multi_threaded(\
     if not no_graphs:
         fig.legend()
 
+def execute_vary_parent_ratio (\
+        file_name,
+        nruns:int=1,
+        pop_size:int=300,
+        mutation_rate:float=0.05,
+        configuration=1,
+        no_graphs=False,
+        n_iterations=150,
+        configs_list=[]):
+    global g_initial_algo
+    global g_crossover_type
+    global g_mutation_type
+    global g_n_processes
+    global g_elitist_parents_ratio, g_elitist
+    if len(sys.argv) < 2:
+        print ("Error - Incorrect input")
+        print ("Expecting python BasicTSP.py [instance] ")
+        sys.exit(0)
+
+    crs = CompareRunStats()
+
+    if not no_graphs:
+        fig, ax = plt.subplots(3, 2)
+        ax[0][0].set(title="Global Best", ylabel="Fitness", xlabel="Iteration")
+        ax[0][1].set(title="Best in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][0].set(title="Mean fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        ax[1][1].set(title="Median fitness in this run", ylabel="Fitness", xlabel="Iteration")
+        #ax[3].set(title="Time per step", ylabel="Time", xlabel="Run")
+
+    pool = Pool(g_n_processes)
+    futures = []
+    t = 0
+
+    gensize = 0
+    for j in range(nruns):
+        for epr in (0.05, 0.1, 0.20, 0.50, 0.65, 0.80, 0.95):
+            g_elitist_parents_ratio = epr
+            g_elitist = True if g_elitist_parents_ratio > 0.0001 else False
+            thetitle = "Parents Perc %f - configuration %d" % (epr, configuration,)
+            ga = create_ga(\
+                    title=thetitle,
+                    filename=file_name,
+                    popsize=pop_size,
+                    mutationRate=mutation_rate,
+                    mutationType=g_mutation_type[configuration],
+                    selectionType="binaryTournament",
+                    crossoverType=g_crossover_type[configuration],
+                    initPopulationAlgo=g_initial_algo[configuration],
+                    no_graph=no_graphs,
+                    runs=n_iterations, fig=fig, ax=ax)
+            async_result = pool.apply_async(run_ga, (ga, thetitle, epr, j, get_run_number()))
+            futures.append(async_result)
+    for async_result in futures:
+            async_result.wait()
+            print("Wait done")
+    for async_result in futures:
+        ga, title, configuration, j = async_result.get()
+        ga.print_stats()
+        stats = ga.get_stats_dict()
+        gensize = stats["n_genes"]
+        crs.add_results("Percentage Parents: %f" % configuration, j, stats)
+        plot_ga2(fig, ax, ga, title)
+    if __debug__:
+        print(f"Time taken to run {t}")
+
+    suptitle = f"EFFECTS OF VARYING PERCENTAGE OF PARENTS IN NEW POPULATION\n{file_name} population={pop_size} " +\
+            f" mutationrate={mutation_rate} iters={n_iterations} genesize={gensize}"
+    crs.process(\
+            suptitle,
+            "VARY POPULATION SIZE",
+            lambda x: x[len("Percentage Parents: "):],
+            norotate=True)
+    if not no_graphs:
+        fig.legend()
+
 def plot_vary_files(meanTotal, medianTotal, meanPerIteration, medianPerIteration, gene_sizes, files_list, suptitle):
     global g_run_name
     fig, ax = plt.subplots(3, 2)
@@ -1729,7 +1804,7 @@ if "__main__" == __name__:
     parser.add_argument("-ucl", "--uniform_crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
     parser.add_argument("-ocl", "--order-one-crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
     parser.add_argument("-epr", "--elitist-parents-ratio", help="ratio of parents to choose for elitism, between 0 and 0.99, negative specifies no elitism", type=float, default=-1.0)
-    #parser.add_argument("-vepr", "--vary-elitist-parents-ratio", help="Veary elitist parents ratio from 0.05 0.10 0.25 0.30 0.35 0.40", type=bool, action="store_true", defualt=False)
+    parser.add_argument("-vepr", "--vary-elitist-parents-ratio", help="Veary elitist parents ratio from 0.05 0.10 0.25 0.30 0.35 0.40", action="store_true", default=False)
 
     args = parser.parse_args()
     filename        = args.file_name
@@ -1837,6 +1912,16 @@ if "__main__" == __name__:
                     no_graphs=noGraphs,
                     n_iterations=niterations,
                     files_list=args.vary_files)
+    elif args.vary_elitist_parents_ratio:
+        g_elitist = True
+        execute_vary_parent_ratio(file_name=filename,
+                nruns=n_runs,
+                pop_size=populationSize,
+                mutation_rate=mutationRate,
+                configuration=config,
+                no_graphs=noGraphs,
+                n_iterations=niterations,
+                configs_list=args.vary_configs)
     else:
         if args.multi_threaded:
             execute_multi_threaded(file_name=filename,
