@@ -32,6 +32,44 @@ option.
 
 _______________________________________________________________________________
 
+ENVIRONMENT
+-----------
+
+This was created in python 3.6.9 and was tested in Windows Subsystem for Linux
+(Ubuntu 18.0.4). Additionally, it was verified that the code works on OSX
+Catalina 10.15.5.
+
+There are single and multi-processing versions within the same script.
+The multi-processing version can be invoked by using -mt option. By default,
+it uses 7 CPUs in parallel. That can be changed by changing the global variable
+g_n_processes.
+
+There is no single-threaded version of the -vepr option.
+
+When spawning multiple processes, after spawning each process, the code sets
+the random seed to student_id + 100 * N. This was a suggestion from
+Dr. Grimes and works well with predictable results.
+
+
+_______________________________________________________________________________
+
+IMPORTED MODULES
+----------------
+
+random
+collections
+time
+numpy
+matplotlib
+statistics
+json
+pickle
+heapq
+multiprocessing
+math
+uuid
+_______________________________________________________________________________
+
 USAGE
 -----
 
