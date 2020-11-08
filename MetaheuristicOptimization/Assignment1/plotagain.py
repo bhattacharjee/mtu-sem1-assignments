@@ -1,4 +1,8 @@
 #!/usr/bin/env python3
+    """
+    matplotlib plots that are saved as a pickle are re-rendered
+    by this script.
+    """
 
 import matplotlib.pyplot as plt
 import pickle
