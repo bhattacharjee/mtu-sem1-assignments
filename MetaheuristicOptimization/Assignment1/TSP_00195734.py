@@ -489,6 +489,14 @@ class BasicTSP:
         """
         Your stochastic universal sampling Selection Implementation
         """
+        """
+        Repeat twice:
+            Choose two individuals at random
+            The one with the lesser distance makes it in
+
+        Returns:
+            [list]: [two individuals from the population that have both been selected by binary tournament]
+        """
         x = random.choice(self.matingPool)
         y = random.choice(self.matingPool)
         indA = x if x.getFitness() < y.getFitness() else y
@@ -498,6 +506,10 @@ class BasicTSP:
         return [indA, indB]
 
     def selection(self):
+        """
+        return two individuals after selection. Depending on the configuration
+        use binary tournament selection or random selection.
+        """
         if self.selectionType == "random":
             return self.randomSelection()
         elif self.selectionType == "binarytournament":
@@ -523,7 +535,7 @@ class BasicTSP:
         """
         Your Uniform Crossover Implementation
         """
-        global g_uniform_crossover_large
+        global g_uniform_crossover_large # if this is set, then the crossover involves between 50 and 75% of genes
         if not g_uniform_crossover_large:
             # Select random number of genes to crossover, minimum of 5
             n_fixed_bits = random.randint(5, self.genSize // 2) if 5 < (self.genSize // 2) else 5
@@ -536,6 +548,7 @@ class BasicTSP:
         # Use set() because lookup is O(1) and we're going to lookup quite a bit
         fixed_gene_indices = frozenset(random.sample(list(range(self.genSize)), n_fixed_bits))
         fixed_genes = frozenset([indA.genes[i] for i in fixed_gene_indices])
+        # Use of set() in the previous step means that this is O(n)
         genes_from_par2 = [g for g in indB.genes if g not in fixed_genes]
         child_genes = [g for g in indA.genes]
         # Now overwrite the positions from the other index
@@ -676,6 +689,17 @@ class BasicTSP:
         return child
 
     def crossover(self, indA:Individual, indB:Individual):
+        """Crossover two individuals
+        Depending on the configuration, it will perform either
+        uniform or order-1 crossover.
+
+        Args:
+            indA (Individual): First individual
+            indB (Individual): Second individual
+
+        Returns:
+            Individual: child resulting from the crossover
+        """
         child = None
         if self.crossoverType == "order1":
             child = self.order1Crossover(indA, indB)
@@ -698,6 +722,14 @@ class BasicTSP:
         assert(ind.validate())
 
     def mutation(self, ind:Individual):
+        """Performs mutation of an individual
+        The type of mutation is determined by the configuration
+        Mutation is only done in some cases based on the mutation rate
+        This function is always called after crossover
+
+        Args:
+            ind (Individual): the individual to be mutated
+        """
         if random.random() > self.mutationRate:
             if self.mutationType == "reciprocal":
                 self.reciprocal_index_mutation(ind)
@@ -707,6 +739,9 @@ class BasicTSP:
                 self.scrambleMutation(ind)
             else:
                 assert(False)
+        """
+        The fitness is computed and the best is updated if required
+        """
         ind.computeFitness()
         self.updateBest(ind)
 
@@ -716,6 +751,7 @@ class BasicTSP:
         if g_weighted_mating_pool:
             """
             Updating the mating pool before creating a new generation
+            This version selects parents based on a weight, not all parents make it
             """
             inv_fitness = [1 / (0.00001 + cand.getFitness()) for cand in self.population]
             sum_inv_fitness = sum(inv_fitness)
@@ -725,11 +761,26 @@ class BasicTSP:
             for ind_i in new_pool:
                 self.matingPool.append( ind_i.copy() )
         else:
+            """
+            This version copies all parents to the mating pool
+            """
             self.matingPool = []
             for ind_i in self.population:
                 self.matingPool.append( ind_i.copy() )
 
     def elitist_replace(self, children):
+        """If elitism is turned on, this function updates the current population
+        with the new generation.
+        It adds a specified percentage of parents, and a specified percentage of children.
+        The best parents are chosen.
+        Children are chosen randomly with a probability density that varies with their fitness
+
+        Args:
+            children ([type]): [description]
+
+        Raises:
+            AssertionError: [description]
+        """
         global g_elitist_parents_ratio
         if g_elitist:
             temp_mating_pool = []
@@ -1804,7 +1855,7 @@ if "__main__" == __name__:
     parser.add_argument("-ucl", "--uniform_crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
     parser.add_argument("-ocl", "--order-one-crossover-large", help="Choose between50 and 75pc of genes for uniform crossover", action="store_true", default=False)
     parser.add_argument("-epr", "--elitist-parents-ratio", help="ratio of parents to choose for elitism, between 0 and 0.99, negative specifies no elitism", type=float, default=-1.0)
-    parser.add_argument("-vepr", "--vary-elitist-parents-ratio", help="Veary elitist parents ratio from 0.05 0.10 0.25 0.30 0.35 0.40", action="store_true", default=False)
+    parser.add_argument("-vepr", "--vary-elitist-parents-ratio", help="Vary elitist parents ratio from, doesn't take any arguments but tries a fixed list of ratios", action="store_true", default=False)
 
     args = parser.parse_args()
     filename        = args.file_name
