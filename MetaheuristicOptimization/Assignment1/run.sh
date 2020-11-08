@@ -12,9 +12,9 @@ do
 		mkdir -p $DIRNAME
 		rm -f *.pickle
 		rm -f out.txt
-		echo ./work.py --file-name $FILENAME --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt
-		echo ./work.py --file-name $FILENAME --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > command.txt
-		./work.py --file-name $FILENAME --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > out.txt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > command.txt
+		./TSP_00195734.py --file-name $FILENAME --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > out.txt
 		mv command.txt out.txt *.pickle $DIRNAME
 	done
 #
@@ -27,9 +27,9 @@ do
 		mkdir -p $DIRNAME
 		rm -f *.pickle
 		rm -f out.txt
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > command.txt
-		./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > out.txt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > command.txt
+		./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt > out.txt
 		mv command.txt out.txt *.pickle $DIRNAME
 	done
 #
@@ -42,9 +42,9 @@ do
 		mkdir -p $DIRNAME
 		rm -f *.pickle
 		rm -f out.txt
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vmr 0.001 0.01 0.05 0.1 0.5
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vmr 0.001 0.01 0.05 0.1 0.5 > command.txt
-		./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vmr 0.001 0.01 0.05 0.1 0.5 > out.txt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vmr 0.001 0.01 0.05 0.1 0.5
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vmr 0.001 0.01 0.05 0.1 0.5 > command.txt
+		./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vmr 0.001 0.01 0.05 0.1 0.5 > out.txt
 		mv command.txt out.txt *.pickle $DIRNAME
 	done
 
@@ -57,9 +57,9 @@ do
 		mkdir -p $DIRNAME
 		rm -f *.pickle
 		rm -f out.txt
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 250 500 1000
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 250 500 1000 > command.txt
-		./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 500 250 1000 > out.txt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 250 500 1000
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 250 500 1000 > command.txt
+		./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration ${CONF} --run-name $RUN_NAME -mt -vps 50 100 500 250 1000 > out.txt
 		mv command.txt out.txt *.pickle $DIRNAME
 	done
 
@@ -72,13 +72,13 @@ do
 		mkdir -p $DIRNAME
 		rm -f *.pickle
 		rm -f out.txt
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vc 1 2 3 4 5 6
-		echo ./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vc 1 2 3 4 5 6 > command.txt
-		./work.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vc 1 2 3 4 5 6 > out.txt
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vc 1 2 3 4 5 6
+		echo ./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vc 1 2 3 4 5 6 > command.txt
+		./TSP_00195734.py --file-name $FILENAME --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration ${CONF} --run-name $RUN_NAME -mt -vc 1 2 3 4 5 6 > out.txt
 		mv command.txt out.txt *.pickle $DIRNAME
 	done
 done
 
-./work.py -f TSPdata/inst-0.tsp -vepr -mt -c 6 -i 4000 -nr 5 -ucl -ocl > run.txt
+./TSP_00195734.py -f TSPdata/inst-0.tsp -vepr -mt -c 6 -i 4000 -nr 5 -ucl -ocl > run.txt
 
-./work.py -f TSPdata/inst-0.tsp -mr 0.05 -i 1000 -c 1 -vf TSPdata/inst-0.tsp TSPdata/inst-5.tsp TSPdata/inst-13.tsp -mt
+./TSP_00195734.py -f TSPdata/inst-0.tsp -mr 0.05 -i 1000 -c 1 -vf TSPdata/inst-0.tsp TSPdata/inst-5.tsp TSPdata/inst-13.tsp -mt
