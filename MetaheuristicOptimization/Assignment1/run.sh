@@ -78,3 +78,5 @@ do
 		mv command.txt out.txt *.pickle $DIRNAME
 	done
 done
+
+./work.py -f TSPdata/inst-0.tsp -vepr -mt -c 6 -i 4000 -nr 5 -ucl -ocl > run.txt
