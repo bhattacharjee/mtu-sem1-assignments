@@ -1,0 +1,90 @@
+BASIC GA
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name inst-0_conf_1 -mt
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 2 --run-name inst-0_conf_2 -mt
+
+OTHER CONFIGURATIONS
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 3 --run-name inst-0_conf_3 -mt
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 4 --run-name inst-0_conf_4 -mt
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 5 --run-name inst-0_conf_5 -mt
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 6 --run-name inst-0_conf_6 -mt
+
+VARY MUTATION RATE
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name VARY_MR_inst-0_conf_1 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 2 --run-name VARY_MR_inst-0_conf_2 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 3 --run-name VARY_MR_inst-0_conf_3 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 4 --run-name VARY_MR_inst-0_conf_4 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 5 --run-name VARY_MR_inst-0_conf_5 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 6 --run-name VARY_MR_inst-0_conf_6 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+
+VARY POPULATION SIZE
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 1 --run-name VARY_POPSIZE_inst-0_conf_1 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 2 --run-name VARY_POPSIZE_inst-0_conf_2 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 3 --run-name VARY_POPSIZE_inst-0_conf_3 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 4 --run-name VARY_POPSIZE_inst-0_conf_4 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 5 --run-name VARY_POPSIZE_inst-0_conf_5 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 6 --run-name VARY_POPSIZE_inst-0_conf_6 -mt -vps 50 100 250 500 1000
+
+VARY VARY CONFIGURATIONS
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name VARY_CONFIG_inst-0_conf_1 -mt -vc 1 2 3 4 5 6
+BASIC GA
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name inst-13_conf_1 -mt
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 2 --run-name inst-13_conf_2 -mt
+OTHER CONFIGURATIONS
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 3 --run-name inst-13_conf_3 -mt
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 4 --run-name inst-13_conf_4 -mt
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 5 --run-name inst-13_conf_5 -mt
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 6 --run-name inst-13_conf_6 -mt
+
+VARY MUTATION RATE
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name VARY_MR_inst-13_conf_1 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 2 --run-name VARY_MR_inst-13_conf_2 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 3 --run-name VARY_MR_inst-13_conf_3 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 4 --run-name VARY_MR_inst-13_conf_4 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 5 --run-name VARY_MR_inst-13_conf_5 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 6 --run-name VARY_MR_inst-13_conf_6 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+
+VARY POPULATION SIZE
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 1 --run-name VARY_POPSIZE_inst-13_conf_1 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 2 --run-name VARY_POPSIZE_inst-13_conf_2 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 3 --run-name VARY_POPSIZE_inst-13_conf_3 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 4 --run-name VARY_POPSIZE_inst-13_conf_4 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 5 --run-name VARY_POPSIZE_inst-13_conf_5 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 6 --run-name VARY_POPSIZE_inst-13_conf_6 -mt -vps 50 100 250 500 1000
+
+VARY VARY CONFIGURATIONS
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name VARY_CONFIG_inst-13_conf_1 -mt -vc 1 2 3 4 5 6
+
+BASIC GA
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name inst-5_conf_1 -mt
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 100 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 2 --run-name inst-5_conf_2 -mt
+
+OTHER CONFIGURATIONS
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 3 --run-name inst-5_conf_3 -mt
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 4 --run-name inst-5_conf_4 -mt
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 5 --run-name inst-5_conf_5 -mt
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 6 --run-name inst-5_conf_6 -mt
+
+VARY MUTATION RATE
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name VARY_MR_inst-5_conf_1 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 2 --run-name VARY_MR_inst-5_conf_2 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 3 --run-name VARY_MR_inst-5_conf_3 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 4 --run-name VARY_MR_inst-5_conf_4 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 5 --run-name VARY_MR_inst-5_conf_5 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 6 --run-name VARY_MR_inst-5_conf_6 -mt -vmr 0.001 0.01 0.05 0.1 0.5
+
+VARY POPULATION SIZE
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 1 --run-name VARY_POPSIZE_inst-5_conf_1 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 2 --run-name VARY_POPSIZE_inst-5_conf_2 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 3 --run-name VARY_POPSIZE_inst-5_conf_3 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 4 --run-name VARY_POPSIZE_inst-5_conf_4 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 5 --run-name VARY_POPSIZE_inst-5_conf_5 -mt -vps 50 100 250 500 1000
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 500 --configuration 6 --run-name VARY_POPSIZE_inst-5_conf_6 -mt -vps 50 100 250 500 1000
+
+VARY VARY CONFIGURATIONS
+./TSP_00195734.py --file-name TSPData/inst-5.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name VARY_CONFIG_inst-5_conf_1 -mt -vc 1 2 3 4 5 6
+
+USE ALTERNATE CROSSOVER WITH 50-75% OF GENES BEING CROSSED OVER
+./TSP_00195734.py -f TSPdata/inst-0.tsp -vepr -mt -c 6 -i 4000 -nr 5 -ucl -ocl > run.txt
+
+COMPARE GENE SIZES
+./TSP_00195734.py -f TSPdata/inst-0.tsp -mr 0.05 -i 1000 -c 1 -vf TSPdata/inst-0.tsp TSPdata/inst-5.tsp TSPdata/inst-13.tsp -mt
