@@ -118,7 +118,7 @@ def move_centroids(data:np.ndarray, closest_centroids:np.ndarray, num_centroids:
 
 
 
-def calculate_clusters(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
+def iterate_knn(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
     centroids = generate_centroids(data, num_centroids)
     for kk in range(iterations):
         closest_centroids = assign_centroids(data, centroids)
@@ -135,7 +135,7 @@ def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int
     best_error = None
     best_assignment = None
     for i in range(restarts):
-        error, assignments = calculate_clusters(np.copy(data), num_centroids, iterations)
+        error, assignments = iterate_knn(np.copy(data), num_centroids, iterations)
         if None == best_error or error < best_error:
             best_error = error
             best_assignment = assignments
