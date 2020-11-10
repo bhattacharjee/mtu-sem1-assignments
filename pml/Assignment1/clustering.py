@@ -30,8 +30,14 @@ def calculate_distances(allvalues:np.ndarray, row:np.ndarray)->np.ndarray:
     """
     return np.sqrt(np.sum(diff2, axis=1))
 
+
+
+
 def read_file(filename:str) -> np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
+
+
+
 
 def generate_centroids(data:np.ndarray, k:int) -> np.ndarray:
     """
@@ -39,6 +45,9 @@ def generate_centroids(data:np.ndarray, k:int) -> np.ndarray:
     """
     indices = np.random.choice(data.shape[0], k, replace=False)
     return data[indices,:]
+
+
+
 
 def assign_centroids(data:np.ndarray, centroids:np.ndarray)->list:
     arr = []
@@ -71,11 +80,33 @@ def assign_centroids(data:np.ndarray, centroids:np.ndarray)->list:
     """
     return indices.T
 
+
+
 def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarray)->float:
-    distance = 0
+    """
+    Assignments are the indices of the centroids that are closest to each point
+    It is an array 1000x1
+    We need to convert this to an array containing the actual centroids.
+    If there are m features, then this would be a 1000xm array
+    This is easily done by indexing
+    """
     closest_centroids = centroids[assignments, :]
+
+    """
+    Subtract each axis of the closest centroid from each point
+    """
     square_distances = np.square(np.subtract(data, closest_centroids))
+    """
+    return the mean of the square of the distances
+    We can do some optimization here
+    Distance of each point = SQRT(SUM_OVER_i((xi - yi)^2)), i = number of features
+    Mean distance = [(Distance of each point) ^ 2] / m
+    We can get rid of the square root and just add all the individual differences,
+    for all the axes for all the points, and return it
+    """
     return np.sum(square_distances) / data.shape[0]
+
+
 
 def move_centroids(data:np.ndarray, closest_centroids:np.ndarray, num_centroids:int)->np.ndarray:
     new_centroids = []
@@ -83,6 +114,9 @@ def move_centroids(data:np.ndarray, closest_centroids:np.ndarray, num_centroids:
         pts_for_centroid = data[closest_centroids == i]
         new_centroids.append(np.mean(pts_for_centroid, axis=0))
     return np.array(new_centroids)
+
+
+
 
 def calculate_clusters(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
     centroids = generate_centroids(data, num_centroids)
@@ -92,6 +126,9 @@ def calculate_clusters(data:np.ndarray, num_centroids:int, iterations:int)->tupl
         centroids = move_centroids(data, closest_centroids, num_centroids)
     error = calculate_error(data, centroids, closest_centroids)
     return error, closest_centroids
+
+
+
 
 def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int):
     data = read_file(filename)
@@ -104,6 +141,9 @@ def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int
             best_assignment = assignments
     return best_error, best_assignment
 
+
+
+
 def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int):
     x = []
     y = []
@@ -114,6 +154,9 @@ def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int
         y.append(error)
     plt.plot(x, y)
     plt.show()
+
+
+
 
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
