@@ -4,6 +4,7 @@ import math
 import numpy as np
 import argparse
 import sys
+import matplotlib.pyplot as plt
 
 def calculate_distances(allvalues:np.ndarray, row:np.ndarray)->np.ndarray:
     diff2 = np.square(allvalues - row)
@@ -38,17 +39,39 @@ def move_centroids(data:np.ndarray, closest_centroids:np.ndarray, num_centroids:
         new_centroids.append(np.mean(pts_for_centroid, axis=0))
     return np.array(new_centroids)
 
-def main(filename:str, num_centroids:int, iterations:int):
-    data = read_file(filename)
+def calculate_clusters(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
     centroids = generate_centroids(data, num_centroids)
     for kk in range(iterations):
         closest_centroids = assign_centroids(data, centroids)
         error = calculate_error(data, centroids, closest_centroids)
-        print(error)
         centroids = move_centroids(data, closest_centroids, num_centroids)
+    error = calculate_error(data, centroids, closest_centroids)
+    return error, closest_centroids
+
+def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int):
+    data = read_file(filename)
+    best_error = None
+    best_assignment = None
+    for i in range(restarts):
+        error, closest_centroid_indices = calculate_clusters(np.copy(data), num_centroids, iterations)
+        if None == best_error or error < best_error:
+            best_error = error
+            best_assignment = closest_centroid_indices
+    return best_error, best_assignment
+
+def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int):
+    x = []
+    y = []
+    for i in range(1, max_N+1):
+        error, assignment = restart_KMeans(filename, i, iterations, restarts)
+        #print(i, error)
+        x.append(i)
+        y.append(error)
+    plt.plot(x, y)
+    plt.show()
 
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="File name", type=str, required=True)
     args = parser.parse_args()
-    main(args.file, num_centroids=3, iterations=100)
+    restart_and_elbow_plot(args.file, 50, 5, 10)
