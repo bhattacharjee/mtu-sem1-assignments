@@ -72,6 +72,8 @@ def assign_centroids(data:np.ndarray, centroids:np.ndarray)->list:
     For each 1000 columns, find the row i that has the lowest value
     and that is the index of the smallest centroid, and that is what we assign
     to this point
+
+    if there are k centroids, then all elements in this array lie between [0, k01]
     """
     indices = np.argmin(arr, axis=0)
 
@@ -108,24 +110,65 @@ def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarra
 
 
 
-def move_centroids(data:np.ndarray, closest_centroids:np.ndarray, num_centroids:int)->np.ndarray:
+def move_centroids(data:np.ndarray, assignments:np.ndarray, num_centroids:int)->np.ndarray:
+    """
+    If there are m features, and 1000 instances
+    data = 1000 x m
+    assignments = 1000x1
+
+    where assignment is an array where each element a the index i
+    is the number of the centroid that is closest to the element
+    It takes a value between [0, k-1] if there are k centroids
+    """
     new_centroids = []
+    """
+    For each centroid
+    """
     for i in range(num_centroids):
-        pts_for_centroid = data[closest_centroids == i]
+        """
+        Find the data points that are assigned to this centroid
+        """
+        pts_for_centroid = data[assignments == i]
+        """
+        Find the new centroid for all those data points
+        by taking mean on each axis, this is 1xm if there are m axes, and
+        append it to a list
+        """
         new_centroids.append(np.mean(pts_for_centroid, axis=0))
+    """
+    Return all the new centroids, this is k x m
+    """
     return np.array(new_centroids)
 
 
 
 
 def iterate_knn(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
+    """
+    Generate Random centroids
+    """
     centroids = generate_centroids(data, num_centroids)
     for kk in range(iterations):
-        closest_centroids = assign_centroids(data, centroids)
-        error = calculate_error(data, centroids, closest_centroids)
-        centroids = move_centroids(data, closest_centroids, num_centroids)
-    error = calculate_error(data, centroids, closest_centroids)
-    return error, closest_centroids
+        """
+        Get the centroid each data point is assigned to, this is an integer
+        """
+        assignments = assign_centroids(data, centroids)
+        """
+        Calculate the error, we're not stopping early yet, but we can
+        use this to stop early if the error is not changing anymore
+        """
+        error = calculate_error(data, centroids, assignments)
+        """
+        Move Centroids, this will give us the new set of centroids
+        if there are k centroids, and m features, this is k x m
+        """
+        centroids = move_centroids(data, assignments, num_centroids)
+    """
+    Calculate the final error, return this and along with the assigned
+    centroids
+    """
+    error = calculate_error(data, centroids, assignments)
+    return error, assignments
 
 
 
@@ -134,6 +177,9 @@ def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int
     data = read_file(filename)
     best_error = None
     best_assignment = None
+    """
+    Run for N restarts
+    """
     for i in range(restarts):
         error, assignments = iterate_knn(np.copy(data), num_centroids, iterations)
         if None == best_error or error < best_error:
