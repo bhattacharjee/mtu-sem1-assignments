@@ -3,6 +3,9 @@
 import numpy as np
 import argparse
 
+g_normalize_to_zero_mean_and_unit_variance = False
+g_scale_between_zero_and_one = True
+
 def read_csv(filename:str)->np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
 
@@ -16,15 +19,34 @@ def get_min_max(allvalues:np.ndarray)->tuple:
     amax = np.amax(allvalues, axis=0)
     return amin, amax
 
-def normalize(array:np.ndarray, amin:np.ndarray, amax:np.ndarray)->np.ndarray:
-    x = array - amin
-    scale = amax - amin
-    return x / scale
+def normalize(array:np.ndarray, stdarray:np.ndarray, meanarray:np.ndarray):
+    global g_normalize_to_zero_mean_and_unit_variance
+    if g_normalize_to_zero_mean_and_unit_variance:
+        x = (array - meanarray) / stdarray
+        return x
+    else:
+        return array
+
+def scale(array:np.ndarray, amin:np.ndarray, amax:np.ndarray)->np.ndarray:
+    global g_scale_between_zero_and_one
+    if g_scale_between_zero_and_one:
+        x = array - amin
+        scale = amax - amin
+        return x / scale
+    else:
+        return array
 
 def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np.ndarray, k:int, n:int)->np.ndarray:
-    amin, amax = get_min_max(train_features)
-    train_norm = normalize(train_features, amin, amax)
-    test_norm = normalize(test_features, amin, amax)
+    stddvarr = np.std(train_features, axis=0)
+    meanarr = np.mean(train_features, axis=0)
+    train_norm = normalize(train_features, stddvarr, meanarr) # Normalize
+    amin, amax = get_min_max(train_norm)
+    train_norm = scale(train_norm, amin, amax)                # Scale
+    stddev = np.std(train_norm, axis=0)
+    test_norm = normalize(test_features, stddvarr, meanarr)
+    test_norm = scale(test_norm, amin, amax)        # Normalize
+    test_norm = scale(test_features, amin, amax)    # Scale
+
 
     all_predictions = []
 
@@ -71,9 +93,10 @@ def main(filename:str, testfilename=str):
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="File name", type=str, required=True)
+    parser.add_argument("-tf", "--test-file", help="Test file name", type=str, required=True)
     args = parser.parse_args()
-    
+
     file_name = args.file
-    test_file_name = "./data/regression/testData.csv"
+    test_file_name = args.test_file
 
     main(file_name, test_file_name)
