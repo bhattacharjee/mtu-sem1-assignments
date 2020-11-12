@@ -66,17 +66,19 @@ def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarra
     return np.sum(square_distances) / data.shape[0]
 
 def plot_scatter(data:np.ndarray, assignments:np.ndarray):
-    newdata = PCA(n_components=3).fit_transform(data)
+    newdata = PCA(n_components=2).fit_transform(data)
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111)
+    #ax = fig.add_subplot(111, projection='3d')
     for i in np.unique(assignments):
         points = newdata[i == assignments]
-        ax.scatter(points[:,0], points[:,1], points[:,2])
+        #ax.scatter(points[:,0], points[:,1], points[:,2])
+        ax.scatter(points[:,0], points[:,1])
 
 
 g_best_error = 999999999
 g_best_assignment = None
-def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, max_N:int, pca_value:int):
+def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, max_N:int, pca_value:int, fig):
     global g_best_error
     global g_best_assignment
 
@@ -109,7 +111,7 @@ def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, 
         if 4 == i and best_error < g_best_error:
             g_best_error = best_error
             g_best_assignment = best_assignment.copy()
-    plt.plot(x, y, label=f'pca = {pca_value}')
+    fig.plot(x, y, label=f'pca = {pca_value}')
 
 
 
@@ -118,9 +120,11 @@ if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="File name", type=str, required=True)
     args = parser.parse_args()
+    fig , ax = plt.subplots(1, 1)
     for i in range(6):
-        restart_and_elbow_plot_with_pca(args.file, 200, 10, 10, i)
+        restart_and_elbow_plot_with_pca(args.file, 200, 10, 10, i, ax)
     data = read_file(args.file)
     plot_scatter(data, g_best_assignment)
+    fig.legend()
     plt.legend()
     plt.show()
