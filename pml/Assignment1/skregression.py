@@ -2,6 +2,7 @@
 
 import numpy as np
 import argparse
+from sklearn.cluster import KMeans
 
 g_normalize_to_zero_mean_and_unit_variance = True
 g_scale_between_zero_and_one = True
@@ -61,6 +62,10 @@ def main(filename:str, testfilename=str):
     train_labels = array[:,-1]
     test_features = test[:,:-1]
     test_labels = test[:,-1]
+
+    trmin, trmax = get_min_max(train_features)
+    standardized_train = scale(train_features, trmin, trmax)
+    standardized_est = scale(test_features, trmin, trmax)
 
     #for n in range(1, 20, 1):
         # Best values are k=10, n=5
