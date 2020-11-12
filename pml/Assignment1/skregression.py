@@ -2,10 +2,11 @@
 
 import numpy as np
 import argparse
-from sklearn.cluster import KMeans
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.metrics import r2_score
 
 g_normalize_to_zero_mean_and_unit_variance = True
-g_scale_between_zero_and_one = True
+g_scale_between_zero_and_one = False
 
 def read_csv(filename:str)->np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
@@ -65,7 +66,14 @@ def main(filename:str, testfilename=str):
 
     trmin, trmax = get_min_max(train_features)
     standardized_train = scale(train_features, trmin, trmax)
-    standardized_est = scale(test_features, trmin, trmax)
+    standardized_test = scale(test_features, trmin, trmax)
+
+    for i in range(1, 20):
+        neigh = KNeighborsRegressor(n_neighbors=i)
+        neigh.fit(standardized_train, train_labels)
+        predicted = neigh.predict(test_features)
+        r2 = r2_score(test_labels, predicted)
+        print(r2)
 
     #for n in range(1, 20, 1):
         # Best values are k=10, n=5
