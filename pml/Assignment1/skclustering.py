@@ -11,6 +11,7 @@ g_apply_normalization = False
 from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
 
 def read_file(filename:str) -> np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
@@ -63,13 +64,17 @@ def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarra
     """
     return np.sum(square_distances) / data.shape[0]
 
-def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int):
+def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, max_N:int, pca_value:int):
     x = []
     y = []
     data = read_file(filename)
     scaler = StandardScaler().fit(data.copy())
     scaled_data = scaler.transform(data.copy())
     scaled_save = scaled_data.copy()
+
+    if 0 != pca_value:
+        pca = PCA(n_components=pca_value)
+        scaled_data = pca.fit_transform(scaled_data)
 
     for i in range(3, max_N+1):
         best_error = 99999999999
@@ -78,16 +83,15 @@ def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int
             clf = KMeans(n_clusters=i, random_state=0).fit(scaled_data)
             assignments = clf.predict(scaled_data).copy()
             centroids = clf.cluster_centers_
-            scaled_centroids = get_centroids(data, assignments)
-            error = calculate_error(data, scaled_centroids, assignments)
+            scaled_centroids = get_centroids(scaled_save, assignments)
+            error = calculate_error(scaled_save, scaled_centroids, assignments)
             if best_error > error:
                 best_error = error
                 best_assignment = assignments
         x.append(i)
         y.append(best_error)
         print(i, best_error)
-    plt.plot(x, y)
-    plt.show()
+    plt.plot(x, y, label=f'pca = {pca_value}')
 
 
 
@@ -96,4 +100,7 @@ if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="File name", type=str, required=True)
     args = parser.parse_args()
-    restart_and_elbow_plot(args.file, 200, 10, 10)
+    for i in range(6):
+        restart_and_elbow_plot_with_pca(args.file, 200, 10, 10, i)
+    plt.legend()
+    plt.show()
