@@ -12,6 +12,7 @@ from sklearn.ensemble import IsolationForest
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
+from mpl_toolkits.mplot3d import Axes3D
 
 def read_file(filename:str) -> np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
@@ -64,7 +65,21 @@ def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarra
     """
     return np.sum(square_distances) / data.shape[0]
 
+def plot_scatter(data:np.ndarray, assignments:np.ndarray):
+    newdata = PCA(n_components=3).fit_transform(data)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    for i in np.unique(assignments):
+        points = newdata[i == assignments]
+        ax.scatter(points[:,0], points[:,1], points[:,2])
+
+
+g_best_error = 999999999
+g_best_assignment = None
 def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, max_N:int, pca_value:int):
+    global g_best_error
+    global g_best_assignment
+
     x = []
     y = []
     data = read_file(filename)
@@ -91,6 +106,9 @@ def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, 
         x.append(i)
         y.append(best_error)
         print(i, best_error)
+        if 4 == i and best_error < g_best_error:
+            g_best_error = best_error
+            g_best_assignment = best_assignment.copy()
     plt.plot(x, y, label=f'pca = {pca_value}')
 
 
@@ -102,5 +120,7 @@ if "__main__" == __name__:
     args = parser.parse_args()
     for i in range(6):
         restart_and_elbow_plot_with_pca(args.file, 200, 10, 10, i)
+    data = read_file(args.file)
+    plot_scatter(data, g_best_assignment)
     plt.legend()
     plt.show()
