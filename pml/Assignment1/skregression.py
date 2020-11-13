@@ -8,6 +8,8 @@ from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
 from sklearn.decomposition import PCA
 import pickle
+import seaborn as sns
+import pandas as pd
 
 g_normalize_to_zero_mean_and_unit_variance = True
 g_scale_between_zero_and_one = False
@@ -100,9 +102,10 @@ def main(filename:str, testfilename:str, mahalanobis:bool, pca:bool, correlation
     x_test = test[:,:-1]
     y_test = test[:,-1]
 
-    scaler = StandardScaler()
-    x_train = scaler.fit_transform(x_train)
-    x_test = scaler.fit_transform(x_test)
+    scaler = StandardScaler().fit(x_train)
+    x_train = scaler.transform(x_train)
+    x_test = scaler.transform(x_test)
+
 
     fig, ax = plt.subplots(1, 1)
 
@@ -117,6 +120,7 @@ def main(filename:str, testfilename:str, mahalanobis:bool, pca:bool, correlation
     # For some reason, knn_seuclidean doesn't work and python itself dumps core.
     #knn_seuclidean(x_train, y_train, x_test, y_test, fig, ax, description="SEuclidean")
     fig.legend()
+    #sns.pairplot(pd.DataFrame(x_train))
 
     plt.show()
 
