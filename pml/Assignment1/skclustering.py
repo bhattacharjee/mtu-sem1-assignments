@@ -13,6 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D
+from sklearn.metrics import silhouette_score
 
 def read_file(filename:str) -> np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
@@ -105,6 +106,7 @@ def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, 
             if best_error > error:
                 best_error = error
                 best_assignment = assignments
+            #print(f"For {i} clusters and pca={pca_value}, silhouette = {silhouette_score(scaled_data, assignments)}")
         x.append(i)
         y.append(best_error)
         print(i, best_error)
