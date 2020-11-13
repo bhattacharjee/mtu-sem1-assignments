@@ -15,6 +15,9 @@ from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D
 from sklearn.metrics import silhouette_score
 
+from metric_learn import SCML
+from metric_learn import Covariance
+
 def read_file(filename:str) -> np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
 
@@ -89,6 +92,9 @@ def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, 
     scaler = StandardScaler().fit(data.copy())
     scaled_data = scaler.transform(data.copy())
     scaled_save = scaled_data.copy()
+
+    cov = Covariance().fit_transform(scaled_data)
+    print(cov, dir(cov), cov.shape)
 
     if 0 != pca_value:
         pca = PCA(n_components=pca_value)
