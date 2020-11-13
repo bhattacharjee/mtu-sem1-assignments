@@ -6,6 +6,7 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import r2_score
 from sklearn.preprocessing import StandardScaler
 import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
 
 g_normalize_to_zero_mean_and_unit_variance = True
 g_scale_between_zero_and_one = False
@@ -61,6 +62,25 @@ def knn_correlation(x_train, y_train, x_test, y_test, fig, ax, description):
         indices.append(i)
     ax.plot(indices, r2scores, label=description)
 
+
+def knn_pca(x_train, y_train, x_test, y_test, fig, ax, description):
+    for j in range(2, x_train.shape[1] - 1):
+        pca = PCA(n_components=j)
+        pca.fit(x_train)
+        x_train_pca = pca.transform(x_train)
+        x_test_pca = pca.transform(x_test)
+        r2scores = []
+        indices = []
+        for i in range(1, 20):
+            neigh = KNeighborsRegressor(n_neighbors=i, metric='correlation')
+            neigh.fit(x_train_pca, y_train_)
+            predicted = neigh.predict(x_test_pca)
+            r2 = r2_score(y_test, predicted)
+            r2scores.append(r2)
+            indices.append(i)
+        the_description = f"{description}={j}"
+        ax.plot(indices, r2scores, label=the_description)
+
 def main(filename:str, testfilename=str):
     array = read_csv(filename)
     test = read_csv(testfilename)
@@ -78,6 +98,7 @@ def main(filename:str, testfilename=str):
 
     knn_regular(x_train, y_train, x_test, y_test, fig, ax, description="Regular KNN")
     knn_mahalanobis(x_train, y_train, x_test, y_test, fig, ax, description="Mahalanobis Distance")
+    knn_pca(x_train, y_train, x_test, y_test, fig, ax, description="pca")
 
     #knn_correlation(x_train, y_train, x_test, y_test, fig, ax, description="correlation")
 
