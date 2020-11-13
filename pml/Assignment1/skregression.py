@@ -25,6 +25,41 @@ def knn_regular(x_train, y_train, x_test, y_test, fig, ax, description):
         indices.append(i)
     ax.plot(indices, r2scores, label=description)
 
+def knn_mahalanobis(x_train, y_train, x_test, y_test, fig, ax, description):
+    r2scores = []
+    indices = []
+    for i in range(1, 20):
+        neigh = KNeighborsRegressor(n_neighbors=i, metric='mahalanobis', metric_params={'V': np.cov(x_train.T)})
+        neigh.fit(x_train, y_train)
+        predicted = neigh.predict(x_test)
+        r2 = r2_score(y_test, predicted)
+        r2scores.append(r2)
+        indices.append(i)
+    ax.plot(indices, r2scores, label=description)
+
+def knn_seuclidean(x_train, y_train, x_test, y_test, fig, ax, description):
+    r2scores = []
+    indices = []
+    for i in range(1, 20):
+        neigh = KNeighborsRegressor(n_neighbors=i, metric='seuclidean', metric_params={'V': np.cov(x_train.T)})
+        neigh.fit(x_train, y_train)
+        predicted = neigh.predict(x_test)
+        r2 = r2_score(y_test, predicted)
+        r2scores.append(r2)
+        indices.append(i)
+    ax.plot(indices, r2scores, label=description)
+
+def knn_correlation(x_train, y_train, x_test, y_test, fig, ax, description):
+    r2scores = []
+    indices = []
+    for i in range(1, 20):
+        neigh = KNeighborsRegressor(n_neighbors=i, metric='correlation')
+        neigh.fit(x_train, y_train)
+        predicted = neigh.predict(x_test)
+        r2 = r2_score(y_test, predicted)
+        r2scores.append(r2)
+        indices.append(i)
+    ax.plot(indices, r2scores, label=description)
 
 def main(filename:str, testfilename=str):
     array = read_csv(filename)
@@ -42,6 +77,12 @@ def main(filename:str, testfilename=str):
     fig, ax = plt.subplots(1, 1)
 
     knn_regular(x_train, y_train, x_test, y_test, fig, ax, description="Regular KNN")
+    knn_mahalanobis(x_train, y_train, x_test, y_test, fig, ax, description="Mahalanobis Distance")
+
+    #knn_correlation(x_train, y_train, x_test, y_test, fig, ax, description="correlation")
+
+    # For some reason, knn_seuclidean doesn't work and python itself dumps core.
+    #knn_seuclidean(x_train, y_train, x_test, y_test, fig, ax, description="SEuclidean")
     fig.legend()
 
     plt.show()
