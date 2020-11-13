@@ -122,6 +122,9 @@ def main(filename:str, testfilename:str, mahalanobis:bool, pca:bool, correlation
     fig.legend()
     #sns.pairplot(pd.DataFrame(x_train))
 
+    with open("save.plot.pickle", "w") as f:
+        pickle.dump(fig, f, protocol=pickle.HIGHEST_PROTOCOL)
+
     plt.show()
 
 
