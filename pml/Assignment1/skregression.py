@@ -4,6 +4,8 @@ import numpy as np
 import argparse
 from sklearn.neighbors import KNeighborsRegressor
 from sklearn.metrics import r2_score
+from sklearn.preprocessing import StandardScaler
+import matplotlib.pyplot as plt
 
 g_normalize_to_zero_mean_and_unit_variance = True
 g_scale_between_zero_and_one = False
@@ -11,75 +13,39 @@ g_scale_between_zero_and_one = False
 def read_csv(filename:str)->np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
 
-# ----------------------------------------------------------------------
+def knn_regular(x_train, y_train, x_test, y_test, fig, ax, description):
+    r2scores = []
+    indices = []
+    for i in range(1, 20):
+        neigh = KNeighborsRegressor(n_neighbors=i)
+        neigh.fit(x_train, y_train)
+        predicted = neigh.predict(x_test)
+        r2 = r2_score(y_test, predicted)
+        r2scores.append(r2)
+        indices.append(i)
+    ax.plot(indices, r2scores, label=description)
 
-def calculate_distances(allvalues:np.ndarray, row:np.ndarray)->np.ndarray:
-    diff2 = np.square(allvalues - row)
-    return np.sqrt(np.sum(diff2, axis=1))
-
-# ----------------------------------------------------------------------
-
-def get_min_max(allvalues:np.ndarray)->tuple:
-    amin = np.amin(allvalues, axis=0)
-    amax = np.amax(allvalues, axis=0)
-    return amin, amax
-
-# ----------------------------------------------------------------------
-
-def normalize(array:np.ndarray, stdarray:np.ndarray, meanarray:np.ndarray):
-    global g_normalize_to_zero_mean_and_unit_variance
-    if g_normalize_to_zero_mean_and_unit_variance:
-        x = (array - meanarray) / stdarray
-        return x
-    else:
-        return array
-
-# ----------------------------------------------------------------------
-
-def scale(array:np.ndarray, amin:np.ndarray, amax:np.ndarray)->np.ndarray:
-    global g_scale_between_zero_and_one
-    if g_scale_between_zero_and_one:
-        x = array - amin
-        scale = amax - amin
-        return x / scale
-    else:
-        return array
-
-# ----------------------------------------------------------------------
-
-def calculate_r2(predicted:np.ndarray, actual:np.ndarray)->float:
-    sum_square_residuals = np.sum(np.square(actual - predicted))
-    mean_actual = np.mean(actual)
-    sum_squares = np.sum(np.square(actual - mean_actual))
-    return 1 - (sum_square_residuals / sum_squares)
-
-# ----------------------------------------------------------------------
 
 def main(filename:str, testfilename=str):
     array = read_csv(filename)
     test = read_csv(testfilename)
 
-    train_features = array[:,:-1]
-    train_labels = array[:,-1]
-    test_features = test[:,:-1]
-    test_labels = test[:,-1]
+    x_train = array[:,:-1]
+    y_train = array[:,-1]
+    x_test = test[:,:-1]
+    y_test = test[:,-1]
 
-    trmin, trmax = get_min_max(train_features)
-    standardized_train = scale(train_features, trmin, trmax)
-    standardized_test = scale(test_features, trmin, trmax)
+    scaler = StandardScaler()
+    x_train = scaler.fit_transform(x_train)
+    x_test = scaler.fit_transform(x_test)
 
-    for i in range(1, 20):
-        neigh = KNeighborsRegressor(n_neighbors=i)
-        neigh.fit(standardized_train, train_labels)
-        predicted = neigh.predict(test_features)
-        r2 = r2_score(test_labels, predicted)
-        print(r2)
+    fig, ax = plt.subplots(1, 1)
 
-    #for n in range(1, 20, 1):
-        # Best values are k=10, n=5
-        #predicted = predict(train_features, train_labels, test_features, 3, n)
-        #r2 = calculate_r2(predicted, test_labels)
-        #print(n, r2)
+    knn_regular(x_train, y_train, x_test, y_test, fig, ax, description="Regular KNN")
+    fig.legend()
+
+    plt.show()
+
 
 # ----------------------------------------------------------------------
 
