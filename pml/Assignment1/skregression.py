@@ -127,7 +127,7 @@ def backward_selection(x_train, y_train, x_test, y_test, fig, ax, description, w
                 forward=False,
                 floating=True,
                 scoring='r2',
-                verbose=2,
+                verbose=0,
                 n_jobs=6)
         kk = sfs.fit(x_train, y_train)
         selected = [int(i) for i in sfs.k_feature_names_]
