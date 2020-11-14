@@ -5,9 +5,14 @@ import numpy as np
 import argparse
 import sys
 import matplotlib.pyplot as plt
+import random
+import pickle
 
 g_apply_scaling = False
 g_apply_normalization = False
+
+random.seed(12345)
+np.random.seed(12345)
 
 def calculate_distances(allvalues:np.ndarray, row:np.ndarray)->np.ndarray:
     """
@@ -109,6 +114,18 @@ def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarra
     return np.sum(square_distances) / data.shape[0]
 
 
+def calculate_error2(data:np.ndarray, assignments:np.ndarray)->float:
+    """
+    This version of calculate_error calculates the centroids in case they are
+    not already calculated
+    """
+    centroid_nums = np.unique(assignments)
+    centroids = []
+    for i in centroid_nums:
+        pts_for_centroid = data[assignments == i]
+        thecentroid = np.mean(pts_for_centroid, axis=0)
+        centroids.append(thecentroid)
+    return calculate_error(data, np.array(centroids), assignments)
 
 def move_centroids(data:np.ndarray, assignments:np.ndarray, num_centroids:int)->np.ndarray:
     """
@@ -173,15 +190,33 @@ def iterate_knn(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
 
 
 
-def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int):
+def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int, no_normalize:bool):
     data = read_file(filename)
+
+    """
+    Normalize the data
+    """
+    if not no_normalize:
+        themean = np.mean(data, axis=0)
+        stddev = np.std(data, axis=0)
+        norm_data = (data - themean) / stddev
+
     best_error = None
     best_assignment = None
     """
     Run for N restarts
     """
     for i in range(restarts):
-        error, assignments = iterate_knn(np.copy(data), num_centroids, iterations)
+        if not no_normalize:
+            error, assignments = iterate_knn(np.copy(norm_data), num_centroids, iterations)
+            """
+            The error is calculated based on the normalized data, so we must recalculate
+            it based on the non-normalized data, otherwise the scale of the error
+            will not match up with the non-normalized version
+            """
+            error = calculate_error2(data, assignments)
+        else:
+            error, assignments = iterate_knn(np.copy(data), num_centroids, iterations)
         if None == best_error or error < best_error:
             best_error = error
             best_assignment = assignments
@@ -190,15 +225,18 @@ def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int
 
 
 
-def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int):
+def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int, no_normalize:bool):
     x = []
     y = []
     for i in range(3, max_N+1):
-        error, assignment = restart_KMeans(filename, i, iterations, restarts)
+        error, assignment = restart_KMeans(filename, i, iterations, restarts, no_normalize)
         print(i, error)
         x.append(i)
         y.append(error)
-    plt.plot(x, y)
+    fig, ax = plt.subplots(1, 1)
+    ax.plot(x, y)
+    with open("plot_save.pickle", "wb") as f:
+        pickle.dump(fig, f, pickle.HIGHEST_PROTOCOL)
     plt.show()
 
 
@@ -207,5 +245,6 @@ def restart_and_elbow_plot(filename:str, iterations:int, restarts:int, max_N:int
 if "__main__" == __name__:
     parser = argparse.ArgumentParser()
     parser.add_argument("-f", "--file", help="File name", type=str, required=True)
+    parser.add_argument("-nn", "--no-normalize", help="Do not normalize data", action="store_true", default=False)
     args = parser.parse_args()
-    restart_and_elbow_plot(args.file, 200, 10, 10)
+    restart_and_elbow_plot(args.file, 200, 10, 10, args.no_normalize)
