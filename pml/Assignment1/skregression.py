@@ -23,7 +23,7 @@ def knn_regular(x_train, y_train, x_test, y_test, fig, ax, description, wt='dist
     r2scores = []
     indices = []
     for i in range(1, 20):
-        neigh = KNeighborsRegressor(n_neighbors=i, weights=wt)
+        neigh = KNeighborsRegressor(n_neighbors=i, weights=wt, n_jobs=6)
         neigh.fit(x_train, y_train)
         predicted = neigh.predict(x_test)
         r2 = r2_score(y_test, predicted)
@@ -49,7 +49,7 @@ def knn_seuclidean(x_train, y_train, x_test, y_test, fig, ax, description, wt='d
     r2scores = []
     indices = []
     for i in range(1, 20):
-        neigh = KNeighborsRegressor(n_neighbors=i, metric='seuclidean', metric_params={'V': np.cov(x_train.T)}, weights=wt)
+        neigh = KNeighborsRegressor(n_neighbors=i, metric='seuclidean', metric_params={'V': np.cov(x_train.T)}, weights=wt, n_jobs=6)
         neigh.fit(x_train, y_train)
         predicted = neigh.predict(x_test)
         r2 = r2_score(y_test, predicted)
@@ -62,7 +62,7 @@ def knn_correlation(x_train, y_train, x_test, y_test, fig, ax, description, wt='
     r2scores = []
     indices = []
     for i in range(1, 20):
-        neigh = KNeighborsRegressor(n_neighbors=i, metric='correlation', weights=wt)
+        neigh = KNeighborsRegressor(n_neighbors=i, metric='correlation', weights=wt, n_jobs=6)
         neigh.fit(x_train, y_train)
         predicted = neigh.predict(x_test)
         r2 = r2_score(y_test, predicted)
@@ -85,7 +85,7 @@ def knn_pca(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance
         r2scores = []
         indices = []
         for i in range(1, 20):
-            neigh = KNeighborsRegressor(n_neighbors=i, metric="mahalanobis", metric_params={'V': np.cov(x_train_pca.T)}, weights=wt)
+            neigh = KNeighborsRegressor(n_neighbors=i, metric="mahalanobis", metric_params={'V': np.cov(x_train_pca.T)}, weights=wt, n_jobs=6)
             neigh.fit(x_train_pca, y_train)
             predicted = neigh.predict(x_test_pca)
             r2 = r2_score(y_test, predicted)
@@ -99,14 +99,36 @@ def knn_pca(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance
 
 def forward_selection(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
     for j in range(3, x_train.shape[1]):
-        knn = KNeighborsRegressor(n_neighbors=10, weights='distance')
+        knn = KNeighborsRegressor(n_neighbors=10, weights='distance', n_jobs=6)
         sfs = SequentialFeatureSelector(
                 knn,
                 k_features=j,
                 forward=True,
                 floating=False,
                 scoring='r2',
-                verbose=2)
+                verbose=0,
+                n_jobs=6)
+        kk = sfs.fit(x_train, y_train)
+        selected = [int(i) for i in sfs.k_feature_names_]
+        print(selected)
+        new_train_x = x_train[:,selected]
+        new_test_x = x_test[:,selected]
+        print(new_train_x.shape, new_test_x.shape)
+        knn_regular(new_train_x, y_train, new_test_x, y_test, fig, ax, f"FS={','.join(sfs.k_feature_names_)}", wt)
+        print('-' * 80)
+
+
+def backward_selection(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
+    for j in range(3, x_train.shape[1]):
+        knn = KNeighborsRegressor(n_neighbors=10, weights='distance', n_jobs=6)
+        sfs = SequentialFeatureSelector(
+                knn,
+                k_features=j,
+                forward=False,
+                floating=True,
+                scoring='r2',
+                verbose=2,
+                n_jobs=6)
         kk = sfs.fit(x_train, y_train)
         selected = [int(i) for i in sfs.k_feature_names_]
         print(selected)
@@ -117,7 +139,7 @@ def forward_selection(x_train, y_train, x_test, y_test, fig, ax, description, wt
 
 
 
-def main(filename:str, testfilename:str, mahalanobis:bool, pca:bool, correlation:bool):
+def main(filename:str, testfilename:str, mahalanobis:bool, pca:bool, correlation:bool, use_backward_selection:bool, use_forward_selection:bool):
     array = read_csv(filename)
     test = read_csv(testfilename)
 
@@ -133,11 +155,14 @@ def main(filename:str, testfilename:str, mahalanobis:bool, pca:bool, correlation
 
     fig, ax = plt.subplots(1, 1)
 
-    forward_selection(x_train, y_train, x_test, y_test, fig, ax, "FeatureSelect")
+    if use_backward_selection:
+        backward_selection(x_train, y_train, x_test, y_test, fig, ax, "Backward")
+
+    if use_forward_selection:
+        forward_selection(x_train, y_train, x_test, y_test, fig, ax, "Forward")
 
     knn_regular(x_train, y_train, x_test, y_test, fig, ax, description="Regular KNN distance weighted")
-    """
-    #knn_regular(x_train, y_train, x_test, y_test, fig, ax, description="Regular KNN uniform weighted", wt='uniform')
+    knn_regular(x_train, y_train, x_test, y_test, fig, ax, description="Regular KNN uniform weighted", wt='uniform')
     if mahalanobis:
         knn_mahalanobis(x_train, y_train, x_test, y_test, fig, ax, description="Mahalanobis Distance distance weighted")
         knn_mahalanobis(x_train, y_train, x_test, y_test, fig, ax, description="Mahalanobis Distance uniform weighted", wt='uniform')
@@ -149,7 +174,6 @@ def main(filename:str, testfilename:str, mahalanobis:bool, pca:bool, correlation
 
     # For some reason, knn_seuclidean doesn't work and python itself dumps core.
     #knn_seuclidean(x_train, y_train, x_test, y_test, fig, ax, description="SEuclidean")
-    """
     fig.legend()
     #sns.pairplot(pd.DataFrame(x_train))
 
@@ -168,9 +192,11 @@ if "__main__" == __name__:
     parser.add_argument("-m", "--mahalanobis", help="Use Mahalanobis Distance", action="store_true")
     parser.add_argument("-pca", "--use-pca", help="Use PCA with Mahalanobis Distance", action="store_true")
     parser.add_argument("-c", "--use-correlation-metric", help="Use PCA with correlation metric", action="store_true")
+    parser.add_argument("-bs", "--use-backward-selection", help="Select features with backward selection", action="store_true")
+    parser.add_argument("-fs", "--use-forward-selection", help="Select features with forward selection", action="store_true")
     args = parser.parse_args()
 
     file_name = args.file
     test_file_name = args.test_file
 
-    main(file_name, test_file_name, args.mahalanobis, args.use_pca, args.use_correlation_metric)
+    main(file_name, test_file_name, args.mahalanobis, args.use_pca, args.use_correlation_metric, args.use_backward_selection, args.use_forward_selection)
