@@ -88,23 +88,45 @@ def scale(array:np.ndarray, amin:np.ndarray, amax:np.ndarray)->np.ndarray:
 
 def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np.ndarray, k:int, n:int)->np.ndarray:
     global g_normalize_to_zero_mean_and_unit_variance, g_scale_between_zero_and_one
+
     if g_normalize_to_zero_mean_and_unit_variance:
+        """
+        If normalization is required, normalize to zero mean and unit
+        standard deviation.
+        """
         stddvarr = np.std(train_features, axis=0)
         meanarr = np.mean(train_features, axis=0)
         train_norm = normalize(train_features, stddvarr, meanarr) # Normalize
     else:
+        """
+        If normalization is not required do nothing
+        """
         train_norm = train_features
 
     if g_scale_between_zero_and_one:
+        """
+        If scaling is required scale to a range in [0, 1]
+        """
         amin, amax = get_min_max(train_norm)
         train_norm = scale(train_norm, amin, amax)                # Scale
 
     if g_normalize_to_zero_mean_and_unit_variance:
+        """
+        Normalize the test values by the same amount we had normalized the
+        training features.
+        It is important to use the values of stddvarr and meanarr exactly
+        as we had used in the training normalization
+        """
         test_norm = normalize(test_features, stddvarr, meanarr)
     else:
         test_norm = test_features
 
     if g_scale_between_zero_and_one:
+        """
+        Scale the test features exactly as we had scaled the train features
+        Again, it is important to use the same values of amin and amax that we
+        had used in the training scaling
+        """
         test_norm = scale(test_norm, amin, amax)        # Normalize
 
 
@@ -129,14 +151,47 @@ def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np
     For larger data sets, this might be more efficient.
     """
     for i in test_norm:
+        """
+        For each data point in the test data, categorize it
+        """
+
+        """
+        Calculate the idstance between this point, and all other points
+        """
         distances = calculate_distances(train_norm, i)
+
+        """
+        Sort based on the distance, and get the k smallest indices
+        """
         sorted_indices = np.argsort(distances)[0:k]
+
+        """
+        Get the nearest distances, this will be used in the weighted average
+        """
         nearest_distances = distances[sorted_indices]
+
+        """
+        Get the y for the nearest k points
+        """
         nearest_values = train_values[sorted_indices]
 
+        """
+        Weight is inverse of distance
+        """
         nearest_weights = 1 /  nearest_distances
+
+        """
+        The power used in calculating the weight is a parameter
+        weight = (1/distance) ^ n
+        """
         nearest_weights = nearest_weights ** n
+
+        """
+        Multiply each of the nearest weights with the nearest y values
+        """
         prediction = np.sum(np.multiply(nearest_weights, nearest_values))
+        print(prediction.shape)
+
         prediction = prediction / np.sum(nearest_weights)
 
         all_predictions.append(prediction)
