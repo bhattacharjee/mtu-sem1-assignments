@@ -17,6 +17,7 @@ from sklearn.metrics import silhouette_score
 
 from metric_learn import SCML
 from metric_learn import Covariance
+import pickle
 
 def read_file(filename:str) -> np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
@@ -70,14 +71,16 @@ def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarra
     return np.sum(square_distances) / data.shape[0]
 
 def plot_scatter(data:np.ndarray, assignments:np.ndarray):
-    newdata = PCA(n_components=2).fit_transform(data)
+    newdata = PCA(n_components=3).fit_transform(data)
     fig = plt.figure()
-    ax = fig.add_subplot(111)
-    #ax = fig.add_subplot(111, projection='3d')
+    #ax = fig.add_subplot(111)
+    ax = fig.add_subplot(111, projection='3d')
     for i in np.unique(assignments):
         points = newdata[i == assignments]
-        #ax.scatter(points[:,0], points[:,1], points[:,2])
-        ax.scatter(points[:,0], points[:,1])
+        ax.scatter(points[:,0], points[:,1], points[:,2])
+        #ax.scatter(points[:,0], points[:,1])
+    with open("plot_scatter.pickle", "wb") as f:
+        pickle.dump(fig, f, pickle.HIGHEST_PROTOCOL)
 
 
 g_best_error = 999999999
@@ -120,6 +123,8 @@ def restart_and_elbow_plot_with_pca(filename:str, iterations:int, restarts:int, 
             g_best_error = best_error
             g_best_assignment = best_assignment.copy()
     fig.plot(x, y, label=f'pca = {pca_value}')
+    with open("pca_plot.pickle", "wb") as f:
+        pickle.dump(fig, f, pickle.HIGHEST_PROTOCOL)
 
 
 
