@@ -12,12 +12,31 @@ def read_csv(filename:str)->np.ndarray:
 
 
 def calculate_distances(allvalues:np.ndarray, row:np.ndarray)->np.ndarray:
+    """
+    Calculate the distance between all the training samples, and one
+    point.
+
+    If there are m training examples, and N features, then the shapes are as follows
+    allvalues       m x N
+    row             N x 1
+    diff2           m x N
+    np.sum(diff2)   m x 1
+    Return          m x 1
+    """
     diff2 = np.square(allvalues - row)
     return np.sqrt(np.sum(diff2, axis=1))
 
 
 
 def get_min_max(allvalues:np.ndarray)->tuple:
+    """
+    If there are N features and m examples, then allvalues is
+    m x N
+
+    returns amin, amax, which are the min and max values feature wise.
+    amin and amax are both
+    Nx1
+    """
     amin = np.amin(allvalues, axis=0)
     amax = np.amax(allvalues, axis=0)
     return amin, amax
@@ -126,7 +145,7 @@ def main(filename:str, testfilename=str):
     test_labels = test[:,-1]
 
 
-    for n in range(1, 20, 1):
+    for n in range(1, 3, 1):
         # Best values are k=10, n=5
         predicted = predict(train_features, train_labels, test_features, 3, n)
         r2 = calculate_r2(predicted, test_labels)
