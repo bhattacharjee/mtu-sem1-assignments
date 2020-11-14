@@ -86,7 +86,7 @@ def scale(array:np.ndarray, amin:np.ndarray, amax:np.ndarray)->np.ndarray:
 
 
 
-def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np.ndarray, k:int, n:int)->np.ndarray:
+def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np.ndarray, k:int, p:int)->np.ndarray:
     global g_normalize_to_zero_mean_and_unit_variance, g_scale_between_zero_and_one
 
     if g_normalize_to_zero_mean_and_unit_variance:
@@ -171,6 +171,11 @@ def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np
         nearest_distances = distances[sorted_indices]
 
         """
+        Avoid division by zero
+        """
+        nearest_distances = nearest_distances + 0.0000000001
+
+        """
         Get the y for the nearest k points
         """
         nearest_values = train_values[sorted_indices]
@@ -182,23 +187,29 @@ def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np
 
         """
         The power used in calculating the weight is a parameter
-        weight = (1/distance) ^ n
+        weight = (1/distance) ^ p
         """
-        nearest_weights = nearest_weights ** n
+        nearest_weights = nearest_weights ** p
 
         """
         Multiply each of the nearest weights with the nearest y values
+        and sum it up
         """
         prediction = np.sum(np.multiply(nearest_weights, nearest_values))
-        print(prediction.shape)
 
+        """
+        Divide by the sum of the weights so that everything adds up and the
+        weighted average is proper
+        """
         prediction = prediction / np.sum(nearest_weights)
 
+        """
+        Add this prediction to an array, so that we can get all the predictions
+        for all the points in one place and return it
+        """
         all_predictions.append(prediction)
 
     return all_predictions
-
-
 
 
 def calculate_r2(predicted:np.ndarray, actual:np.ndarray)->float:
@@ -219,11 +230,21 @@ def main(filename:str, testfilename=str):
     test_labels = test[:,-1]
 
 
-    for n in range(1, 3, 1):
+    print("\n")
+    print("Iterate through different powers for k=3")
+    print("POWER                    ERROR")
+    for power in range(0, 20, 1):
         # Best values are k=10, n=5
-        predicted = predict(train_features, train_labels, test_features, 3, n)
+        predicted = predict(train_features, train_labels, test_features, 3, power)
         r2 = calculate_r2(predicted, test_labels)
-        print(n, r2)
+        print("%0.2d                     " % (power,), r2)
+
+    print("\n")
+    print("Best value is calculated for k=10 and n=5")
+    predicted = predict(train_features, train_labels, test_features, 10, 5)
+    r2 = calculate_r2(predicted, test_labels)
+    print("POWER                    ERROR")
+    print("%0.2d                     " % (power,), r2)
 
 
 
