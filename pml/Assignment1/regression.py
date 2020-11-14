@@ -72,6 +72,24 @@ def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np
 
     all_predictions = []
 
+    """
+    This version uses np.argsort(), and then chooses k values out of it
+    The best case complexity of np.argsort() is O(n log(n))
+
+    A better complexity can be achieved by using heapify.
+    Heapify operation can run in O(n), and removing something from a heap is
+    O(log(n))
+
+    The algorithm can be as follows:
+    1. Create a heap using the distances as the sort index in O(n) complexity
+    2. Remove k elements from the heap, each in log(n) complexity
+    The total complexity of the above is O(n + k*log(n))
+
+    However, this scheme has not been implemented. For this size of data,
+    the overheads might actually be higher than the speedup achieved.
+
+    For larger data sets, this might be more efficient.
+    """
     for i in test_norm:
         distances = calculate_distances(train_norm, i)
         sorted_indices = np.argsort(distances)[0:k]
