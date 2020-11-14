@@ -135,7 +135,8 @@ def backward_selection(x_train, y_train, x_test, y_test, fig, ax, description, w
         new_train_x = x_train[:,selected]
         new_test_x = x_test[:,selected]
         print(new_train_x.shape, new_test_x.shape)
-        knn_regular(new_train_x, y_train, new_test_x, y_test, fig, ax, f"FS={sfs.k_feature_names_}", wt)
+        knn_regular(new_train_x, y_train, new_test_x, y_test, fig, ax, f"FS={','.join(sfs.k_feature_names_)}", wt)
+        print('-' * 80)
 
 
 
