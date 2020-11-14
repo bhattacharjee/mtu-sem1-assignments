@@ -244,7 +244,7 @@ def main(filename:str, testfilename=str):
     predicted = predict(train_features, train_labels, test_features, 10, 5)
     r2 = calculate_r2(predicted, test_labels)
     print("POWER                    ERROR")
-    print("%0.2d                     " % (power,), r2)
+    print("%0.2d                     " % (5,), r2)
 
 
 
