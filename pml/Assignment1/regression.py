@@ -24,6 +24,9 @@ def calculate_distances(allvalues:np.ndarray, row:np.ndarray)->np.ndarray:
     Return          m x 1
     """
     diff2 = np.square(allvalues - row)
+    """
+    diff2 is m x N, summing it along axis 1 will give an m x 1 array
+    """
     return np.sqrt(np.sum(diff2, axis=1))
 
 
@@ -45,6 +48,14 @@ def get_min_max(allvalues:np.ndarray)->tuple:
 
 
 def normalize(array:np.ndarray, stdarray:np.ndarray, meanarray:np.ndarray):
+    """
+    Normalize to zero mean and unit standard deviation
+
+    If there are m training examples and N features
+    array       m x N
+    sdarray     N x 1
+    meanarray   N x 1
+    """
     global g_normalize_to_zero_mean_and_unit_variance
     if g_normalize_to_zero_mean_and_unit_variance:
         x = (array - meanarray) / stdarray
@@ -56,6 +67,14 @@ def normalize(array:np.ndarray, stdarray:np.ndarray, meanarray:np.ndarray):
 
 
 def scale(array:np.ndarray, amin:np.ndarray, amax:np.ndarray)->np.ndarray:
+    """
+    Scale so that all values are between 0 and 1
+
+    If there are m training examples and N features
+    array       m x N
+    amin        N x 1
+    amax        N x 1
+    """
     global g_scale_between_zero_and_one
     if g_scale_between_zero_and_one:
         x = array - amin
