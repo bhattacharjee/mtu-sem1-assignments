@@ -213,9 +213,33 @@ def predict(train_features:np.ndarray, train_values:np.ndarray, test_features:np
 
 
 def calculate_r2(predicted:np.ndarray, actual:np.ndarray)->float:
+    """
+    Calculate the r2 error and return a float
+    If there are m examples
+    predicted       mx1
+    actual          mx1
+    """
+
+    """
+    Find the square residuals. This is mx1
+    SUM((predicted_i - y_i) ^ 2)
+    """
     sum_square_residuals = np.sum(np.square(actual - predicted))
+
+    """
+    Find the mean of the actual values
+    """
     mean_actual = np.mean(actual)
+
+    """
+    Find the sum of squares, this is mx1:
+    SUM((y_mean - y_i) ^ 2)
+    """
     sum_squares = np.sum(np.square(actual - mean_actual))
+
+    """
+    Return the r2 value
+    """
     return 1 - (sum_square_residuals / sum_squares)
 
 
