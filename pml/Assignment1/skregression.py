@@ -20,32 +20,63 @@ def read_csv(filename:str)->np.ndarray:
     return np.genfromtxt(filename, dtype=float, delimiter=',')
 
 def knn_regular(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
+    """
+    Regular KNN implementation
+    """
     r2scores = []
     indices = []
+    """
+    Iterate over different values of k
+    """
     for i in range(1, 20):
         neigh = KNeighborsRegressor(n_neighbors=i, weights=wt, n_jobs=6)
         neigh.fit(x_train, y_train)
         predicted = neigh.predict(x_test)
+        """
+        Find the r2 score
+        """
         r2 = r2_score(y_test, predicted)
         r2scores.append(r2)
         indices.append(i)
         print(f"{description} - n={i} - r2 = {r2}")
+    """
+    Plot the r2 scores over all values of k
+    """
     ax.plot(indices, r2scores, label=description)
 
 def knn_mahalanobis(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
+    """
+    KNN with Mahalanobis distance
+    """
     r2scores = []
     indices = []
+    """
+    Iterate over different values of k
+    """
     for i in range(1, 20):
+        """
+        Use Mahalanobis distance, pass the covariance matrix as a parameter
+        """
         neigh = KNeighborsRegressor(n_neighbors=i, metric='mahalanobis', metric_params={'V': np.cov(x_train.T)}, weights=wt)
         neigh.fit(x_train, y_train)
         predicted = neigh.predict(x_test)
         r2 = r2_score(y_test, predicted)
+        """
+        Store the error for each k
+        """
         r2scores.append(r2)
         indices.append(i)
         print(f"{description} - n={i} - r2 = {r2}")
+    """
+    Plot the error
+    """
     ax.plot(indices, r2scores, label=description)
 
 def knn_seuclidean(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
+    """
+    KNN with S-Euclidean distance. For some reason this crashes the python interpreter itself with a NULL
+    pointer dereference
+    """
     r2scores = []
     indices = []
     for i in range(1, 20):
@@ -59,9 +90,15 @@ def knn_seuclidean(x_train, y_train, x_test, y_test, fig, ax, description, wt='d
     ax.plot(indices, r2scores, label=description)
 
 def knn_correlation(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
+    """
+    KNN with correlation measure as the metric
+    """
     r2scores = []
     indices = []
     for i in range(1, 20):
+        """
+        KNN with correlation
+        """
         neigh = KNeighborsRegressor(n_neighbors=i, metric='correlation', weights=wt, n_jobs=6)
         neigh.fit(x_train, y_train)
         predicted = neigh.predict(x_test)
@@ -69,14 +106,27 @@ def knn_correlation(x_train, y_train, x_test, y_test, fig, ax, description, wt='
         r2scores.append(r2)
         indices.append(i)
         print(f"{description} - n={i} - r2 = {r2}")
+    """
+    plot the error with each k
+    """
     ax.plot(indices, r2scores, label=description)
 
 
 def knn_pca(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
+    """
+    PCA followed by KNN
+    """
+
+    """
+    Loop over the number of axes, first do PCA2, then PCA3 ...
+    """
     for j in range(2, x_train.shape[1]):
         if j != (x_train.shape[1] -1):
             pca = PCA(n_components=j)
             pca.fit(x_train)
+            """
+            fit the train and test x to the PCA with the same number of axes
+            """
             x_train_pca = pca.transform(x_train)
             x_test_pca = pca.transform(x_test)
         else:
@@ -84,7 +134,13 @@ def knn_pca(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance
             x_test_pca = x_test
         r2scores = []
         indices = []
+        """
+        Iterate over all values of k
+        """
         for i in range(1, 20):
+            """
+            Perform KNN over the PCA-d data
+            """
             neigh = KNeighborsRegressor(n_neighbors=i, metric="mahalanobis", metric_params={'V': np.cov(x_train_pca.T)}, weights=wt, n_jobs=6)
             neigh.fit(x_train_pca, y_train)
             predicted = neigh.predict(x_test_pca)
@@ -93,12 +149,19 @@ def knn_pca(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance
             indices.append(i)
             print(f"{description} - pca={j} - n={i} - r2 = {r2}")
         the_description = f"{description}={j}"
+        """
+        Plot
+        """
         ax.plot(indices, r2scores, label=the_description)
 
 
 
 def forward_selection(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
     for j in range(3, x_train.shape[1]):
+        """
+        use forward selection to find out the best features
+        This will run KNN as an evaluation metric, and is slow
+        """
         knn = KNeighborsRegressor(n_neighbors=10, weights='distance', n_jobs=6)
         sfs = SequentialFeatureSelector(
                 knn,
@@ -110,16 +173,23 @@ def forward_selection(x_train, y_train, x_test, y_test, fig, ax, description, wt
                 n_jobs=6)
         kk = sfs.fit(x_train, y_train)
         selected = [int(i) for i in sfs.k_feature_names_]
-        print(selected)
+        #print(selected)
         new_train_x = x_train[:,selected]
         new_test_x = x_test[:,selected]
-        print(new_train_x.shape, new_test_x.shape)
+        #print(new_train_x.shape, new_test_x.shape)
+        """
+        With the new set of features, run the KNN
+        """
         knn_regular(new_train_x, y_train, new_test_x, y_test, fig, ax, f"FS={','.join(sfs.k_feature_names_)}", wt)
         print('-' * 80)
 
 
 def backward_selection(x_train, y_train, x_test, y_test, fig, ax, description, wt='distance'):
     for j in range(3, x_train.shape[1]):
+        """
+        use backward selection to find out the best features
+        This will run KNN as an evaluation metric, and is slow
+        """
         knn = KNeighborsRegressor(n_neighbors=10, weights='distance', n_jobs=6)
         sfs = SequentialFeatureSelector(
                 knn,
@@ -131,10 +201,13 @@ def backward_selection(x_train, y_train, x_test, y_test, fig, ax, description, w
                 n_jobs=6)
         kk = sfs.fit(x_train, y_train)
         selected = [int(i) for i in sfs.k_feature_names_]
-        print(selected)
+        #print(selected)
         new_train_x = x_train[:,selected]
         new_test_x = x_test[:,selected]
-        print(new_train_x.shape, new_test_x.shape)
+        #print(new_train_x.shape, new_test_x.shape)
+        """
+        With the new set of features, run the KNN
+        """
         knn_regular(new_train_x, y_train, new_test_x, y_test, fig, ax, f"FS={','.join(sfs.k_feature_names_)}", wt)
         print('-' * 80)
 
