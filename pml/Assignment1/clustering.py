@@ -90,7 +90,7 @@ def assign_centroids(data:np.ndarray, centroids:np.ndarray)->list:
 
 
 
-def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarray)->float:
+def calculate_cost(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarray)->float:
     """
     Assignments are the indices of the centroids that are closest to each point
     It is an array 1000x1
@@ -115,9 +115,9 @@ def calculate_error(data:np.ndarray, centroids:np.ndarray, assignments:np.ndarra
     return np.sum(square_distances) / data.shape[0]
 
 
-def calculate_error2(data:np.ndarray, assignments:np.ndarray)->float:
+def calculate_cost2(data:np.ndarray, assignments:np.ndarray)->float:
     """
-    This version of calculate_error calculates the centroids in case they are
+    This version of calculate_cost calculates the centroids in case they are
     not already calculated
     """
     centroid_nums = np.unique(assignments)
@@ -126,7 +126,7 @@ def calculate_error2(data:np.ndarray, assignments:np.ndarray)->float:
         pts_for_centroid = data[assignments == i]
         thecentroid = np.mean(pts_for_centroid, axis=0)
         centroids.append(thecentroid)
-    return calculate_error(data, np.array(centroids), assignments)
+    return calculate_cost(data, np.array(centroids), assignments)
 
 def move_centroids(data:np.ndarray, assignments:np.ndarray, num_centroids:int)->np.ndarray:
     """
@@ -189,7 +189,7 @@ def iterate_knn(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
         Calculate the error, we can
         use this to stop early if the error is not changing anymore
         """
-        error = calculate_error(data, centroids, assignments)
+        error = calculate_cost(data, centroids, assignments)
         error_history.append(error)
         """
         Move Centroids, this will give us the new set of centroids
@@ -206,7 +206,7 @@ def iterate_knn(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
     Calculate the final error, return this and along with the assigned
     centroids
     """
-    error = calculate_error(data, centroids, assignments)
+    error = calculate_cost(data, centroids, assignments)
     return error, assignments
 
 
@@ -236,7 +236,7 @@ def restart_KMeans(filename:str, num_centroids:int, iterations:int, restarts:int
             it based on the non-normalized data, otherwise the scale of the error
             will not match up with the non-normalized version
             """
-            error = calculate_error2(data, assignments)
+            error = calculate_cost2(data, assignments)
         else:
             error, assignments = iterate_knn(np.copy(data), num_centroids, iterations)
         if None == best_error or error < best_error:
