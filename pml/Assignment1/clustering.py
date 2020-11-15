@@ -10,6 +10,7 @@ import pickle
 
 g_apply_scaling = False
 g_apply_normalization = False
+g_stop_early = True
 
 random.seed(12345)
 np.random.seed(12345)
@@ -159,11 +160,25 @@ def move_centroids(data:np.ndarray, assignments:np.ndarray, num_centroids:int)->
 
 
 
+def should_stop(error_history:list)->bool:
+    global g_stop_early
+    if not g_stop_early or len(error_history) < 6:
+        return False
+    retVal = True
+    last_errors = error_history[-5:]
+    error = last_errors[0]
+    for err in last_errors:
+        if err != error:
+            retVal = False
+    return retVal
+
+
 
 def iterate_knn(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
     """
     Generate Random centroids
     """
+    error_history = []
     centroids = generate_centroids(data, num_centroids)
     for kk in range(iterations):
         """
@@ -171,15 +186,22 @@ def iterate_knn(data:np.ndarray, num_centroids:int, iterations:int)->tuple:
         """
         assignments = assign_centroids(data, centroids)
         """
-        Calculate the error, we're not stopping early yet, but we can
+        Calculate the error, we can
         use this to stop early if the error is not changing anymore
         """
         error = calculate_error(data, centroids, assignments)
+        error_history.append(error)
         """
         Move Centroids, this will give us the new set of centroids
         if there are k centroids, and m features, this is k x m
         """
         centroids = move_centroids(data, assignments, num_centroids)
+
+        """
+        If the value hasn't changed in the last n iterations, stop early
+        """
+        if should_stop(error_history):
+            break
     """
     Calculate the final error, return this and along with the assigned
     centroids
