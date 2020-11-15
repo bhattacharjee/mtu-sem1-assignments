@@ -259,7 +259,7 @@ def main(filename:str, testfilename=str):
     print("POWER                    ERROR")
     for power in range(0, 20, 1):
         # Best values are k=10, n=5
-        predicted = predict(train_features, train_labels, test_features, 10, power)
+        predicted = predict(train_features, train_labels, test_features, 3, power)
         r2 = calculate_r2(predicted, test_labels)
         print("%0.2d                     " % (power,), r2)
 
