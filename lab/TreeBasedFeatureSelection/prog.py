@@ -45,7 +45,7 @@ def main(filename:str):
     indices = []
     f1_scores = []
     accuracy_scores = []
-    for i in range(1, len(feature_importances)):
+    for i in range(len(feature_importances)):
         features = feature_importances[i:]
         new_X_train = X_train[:, features]
         new_X_test = X_test[:, features]
