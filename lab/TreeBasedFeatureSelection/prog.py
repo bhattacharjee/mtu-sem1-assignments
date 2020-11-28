@@ -45,6 +45,9 @@ def main(filename:str):
     indices = []
     f1_scores = []
     accuracy_scores = []
+
+    # Keep dropping the least important features and run the KNN classifier
+    # for each set of selected features
     for i in range(len(feature_importances)):
         features = feature_importances[i:]
         new_X_train = X_train[:, features]

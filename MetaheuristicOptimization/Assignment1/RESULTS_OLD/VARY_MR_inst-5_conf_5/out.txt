@@ -1,0 +1,476 @@
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12965791.753533082
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.5115550640000583
+Total time for all steps        = 1511.5550640000583
+Time to initialize population   = 100.16838199998892
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12965791.753533082
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.568100816999664
+Total time for all steps        = 1568.100816999664
+Time to initialize population   = 111.76889099999971
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12983868.624873297
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.5740671200000798
+Total time for all steps        = 1574.0671200000797
+Time to initialize population   = 124.83539900000324
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12939176.843377007
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.608336784999774
+Total time for all steps        = 1608.336784999774
+Time to initialize population   = 135.41548400001193
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12965791.753533082
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.628920258000304
+Total time for all steps        = 1628.9202580003039
+Time to initialize population   = 138.58892800001195
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12983868.624873297
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.662716504000331
+Total time for all steps        = 1662.716504000331
+Time to initialize population   = 150.28511799999978
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12965791.753533082
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.6183085250001459
+Total time for all steps        = 1618.308525000146
+Time to initialize population   = 166.14188999999897
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12999354.42116148
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.618111123999668
+Total time for all steps        = 1618.111123999668
+Time to initialize population   = 177.57773600000655
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12939176.843377007
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.6045545960002345
+Total time for all steps        = 1604.5545960002346
+Time to initialize population   = 195.211765
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12939176.843377007
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.555002294000078
+Total time for all steps        = 1555.002294000078
+Time to initialize population   = 188.01574899999832
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12995945.232143892
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.5483080669998308
+Total time for all steps        = 1548.3080669998308
+Time to initialize population   = 180.92802000000665
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12998967.073320173
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.5737666010002722
+Total time for all steps        = 1573.7666010002722
+Time to initialize population   = 177.35117400001036
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12939176.843377007
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.5563707690002921
+Total time for all steps        = 1556.370769000292
+Time to initialize population   = 181.55648699999438
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12965791.753533082
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.5192129879998828
+Total time for all steps        = 1519.212987999883
+Time to initialize population   = 174.61618499999167
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12939176.843377007
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.466798285000099
+Total time for all steps        = 1466.798285000099
+Time to initialize population   = 181.38420100000803
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 13054326.69972157
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.4605395949998639
+Total time for all steps        = 1460.5395949998638
+Time to initialize population   = 176.16224799999327
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12983868.624873297
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.4421277120001614
+Total time for all steps        = 1442.1277120001614
+Time to initialize population   = 178.68790199999057
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12995945.232143892
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.4303694619997114
+Total time for all steps        = 1430.3694619997113
+Time to initialize population   = 169.6467890000058
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12998967.073320173
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.417190716000172
+Total time for all steps        = 1417.190716000172
+Time to initialize population   = 166.858367000008
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12998967.073320173
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.40023910899974
+Total time for all steps        = 1400.23910899974
+Time to initialize population   = 165.3586329999962
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12999354.42116148
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.383652890000143
+Total time for all steps        = 1383.652890000143
+Time to initialize population   = 163.2097550000035
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12939176.843377007
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.2801858450001018
+Total time for all steps        = 1280.1858450001018
+Time to initialize population   = 164.58974299998954
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12983868.624873297
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.2494829149998696
+Total time for all steps        = 1249.4829149998695
+Time to initialize population   = 167.78258699999424
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12965791.753533082
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.2371137810002255
+Total time for all steps        = 1237.1137810002256
+Time to initialize population   = 162.21443500000169
+***************************************************************************
+********************************** STATS **********************************
+Genes                           = 819
+
+Run Specifications
+      Mutation Type             = scramble
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = order1
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1000
+Best Fitness                    = 12983868.624873297
+Best Fitness Last Update Run    = 0
+Mean Time Per Step              = 1.197399794999932
+Total time for all steps        = 1197.399794999932
+Time to initialize population   = 163.02796900000249
+***************************************************************************
+in process False True

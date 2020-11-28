@@ -1,0 +1,19 @@
+********************************** STATS **********************************
+Genes                           = 184
+
+Run Specifications
+      Mutation Type             = inversion
+      MutationRate              = 0.05
+      Selection Type            = binarytournament
+      Crossover Type            = uniform
+      Init Populatin Algo       = insertionheuristic1
+      Population Size           = 300
+-----
+Performance
+Iterations                      = 1500
+Best Fitness                    = 3929438.7705353284
+Best Fitness Last Update Run    = 1482
+Mean Time Per Step              = 0.09971701600012603
+Total time for all steps        = 149.57552400018903
+Time to initialize population   = 5.0564219999942
+***************************************************************************

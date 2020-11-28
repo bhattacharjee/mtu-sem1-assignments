@@ -1,0 +1,1 @@
+./TSP_00195734.py --file-name TSPData/inst-13.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 3 --run-name inst-13_conf_3 -mt

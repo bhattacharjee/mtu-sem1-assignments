@@ -1,0 +1,1 @@
+./TSP_00195734.py --file-name TSPData/inst-0.tsp --population-size 300 --mutation-rate 0.05 --n-runs 5 --iterations 1000 --configuration 1 --run-name VARY_CONFIG_inst-0_conf_1 -mt -vc 1 2 3 4 5 6
