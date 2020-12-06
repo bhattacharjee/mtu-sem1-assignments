@@ -46,15 +46,20 @@ class HillClimbing:
                     # Ties
                     max_candidate.append(cand_i)
 
+            # max_candidate is the list of columns which are candidates
+            # row in which the queen is is not stored in this list
             if max_cost == -1:
                 break
+            # candidate contains the column in which the queen is
             candidate = max_candidate[ random.randint(0, len(max_candidate)-1) ]
+            # old_val now contains the row in which the queen was before we started moving it around
             old_val = candidate_sol[candidate]
 
             ##best move for the selected queen
             min_cost = max_cost
             best_pos = []
 
+            # Loop through all the rows loooking for a new place for the candidate queen
             for pos_i in range(0, self.size):
                 if pos_i == old_val:
                     # Neighbor must be different to current
@@ -92,7 +97,8 @@ class HillClimbing:
         print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration, self.gIteration)
         return res
 
-n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+#n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
+n, iters, restarts = 5, 100, 2
 for i in range(1):
     hc = HillClimbing(n,iters,restarts)
     sol = hc.solveWithRestarts(hc.solveMaxMin, hc.maxRestarts)
