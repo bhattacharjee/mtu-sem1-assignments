@@ -40,8 +40,6 @@ class Queens:
 
     def getHeuristicCost(self, candidate):
         # Returns the total number of conflicts
-        # Optimized version, 3x faster than original because math.fabs is
-        # avoided
         conflicts = 0
         for index1 in range(0, len(candidate)):
             for index2 in range(index1+1, len(candidate)):
@@ -67,8 +65,6 @@ class Queens:
     """
     def getHeuristicCostQueen(self, candidate, queenId):
         # Return the number of conflicts for a given queen
-        # Optimized version, 3x faster than original because math.fabs is
-        # avoided
         conflicts = 0
         for index in range(0, len(candidate)):
             if queenId == index:
