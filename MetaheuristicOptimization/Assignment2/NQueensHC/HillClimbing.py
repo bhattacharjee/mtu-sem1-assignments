@@ -69,8 +69,10 @@ class HillClimbing:
                 if min_cost > cost_i:
                     min_cost = cost_i
                     best_pos = [pos_i]
-                elif min_cost == cost_i:
+                elif min_cost == cost_i and min_cost != self.bCost:
                     # Note this will allow sideways moves
+                    # EDIT: Preventing sideways moves with the added condition
+                    # min_cost != self.bCost
                     best_pos.append(pos_i)
             if best_pos:
                 # Some non-worsening move found
@@ -82,10 +84,7 @@ class HillClimbing:
             if self.bCost > cost_i:
                 self.bCost = cost_i
         return (candidate_sol, self.bCost)
-    
 
-
-    
     def solveWithRestarts(self, solve, maxR):
         res = solve()
         self.nRestart = 0
@@ -98,7 +97,7 @@ class HillClimbing:
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-n, iters, restarts = 5, 100, 2
+n, iters, restarts = 134, 1000, 1
 for i in range(1):
     hc = HillClimbing(n,iters,restarts)
     sol = hc.solveWithRestarts(hc.solveMaxMin, hc.maxRestarts)
