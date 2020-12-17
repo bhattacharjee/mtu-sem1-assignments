@@ -1,9 +1,10 @@
-
+#!/usr/bin/env python3
 import random
 from Queens import *
 import matplotlib.pyplot as plt
 import sys
 import time
+import argparse
 
 studentNum = 195734
 random.seed(studentNum)
@@ -137,7 +138,7 @@ class HillClimbing:
         print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration)
         while self.nRestart < maxR and res[1] > 0:
             g_random_seed_counter += 1
-            random.seed(studentNum + 100 * g_random_seed_counter)
+            #random.seed(studentNum + 100 * g_random_seed_counter)
             self.nRestart +=1
             res = solve()
             if not self.no_verbose_print:
@@ -146,7 +147,7 @@ class HillClimbing:
                 print("random_seed_counter = ", g_random_seed_counter)
         print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration, self.gIteration)
         print("Time Taken = ", (time.process_time() - self.gStartTime) / (1 if 0 == self.nRestart else self.nRestart))
-        print("Random seed = ", g_random_seed_counter)
+        #print("Random seed = ", g_random_seed_counter)
         return res
 
     def solveWithRestartsAndTimeIt(self, solve, maxR):
@@ -158,25 +159,47 @@ class HillClimbing:
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
 def main(nruns:int, n:int, iters:int, restarts:int, allowSideways:bool, useCaching:bool, verbosePrinting:bool)->None:
-    n, iters, restarts = 54, 50000, 1000
+    global studentNum
+    #n, iters, restarts = 54, 50000, 1000
     run_times = []
     wall_times = []
-    for i in range(100):
+    for j in range(nruns):
+        random.seed(studentNum + 100 * j)
         t1 = time.perf_counter()
         hc = HillClimbing(n,iters,restarts)
-        hc.allow_sideways = False
-        hc.no_verbose_print = True
-        hc.use_caching = False
+        hc.allow_sideways = allowSideways
+        hc.no_verbose_print = (not verbosePrinting)
+        hc.use_caching = useCaching
         sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
         average_stuck_iteration = 0
         if len(hc.stuckHistory) > 0:
             average_stuck_iteration = sum(hc.stuckHistory) / len(hc.stuckHistory)
         print("==RunNo,Restart,Cost,Time,InitialSolutionGenerationTime,Iterations,HeuristicCalls,HeuristicQueenCalls,AvgNumIterationsBeforeLocalMinima")
-        print(f"=={i},{hc.nRestart},{sol[1]},{hc.gRunTime},{hc.solution_generation_time},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount},{average_stuck_iteration}")
+        print(f"=={j},{hc.nRestart},{sol[1]},{hc.gRunTime},{hc.solution_generation_time},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount},{average_stuck_iteration}")
         print(hc.stuckHistory)
         run_times.append(hc.gRunTime)
         t1 = time.perf_counter() - t1
         wall_times.append(t1)
-        print(f"Average Run Time so far in iteration {i}: {sum(run_times) / len(run_times)} {sum(wall_times) / len(wall_times)}")
+        print(f"Average Run Time so far in iteration {j}: {sum(run_times) / len(run_times)} {sum(wall_times) / len(wall_times)}")
 
-main(0, 0, 0, 0, False, False, False)
+
+if "__main__" == __name__:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-q", "--n-queens", help="Number of queens", type=int, default=-1, required=True)
+    parser.add_argument("-n", "--n-runs", help="Number of runs", type=int, default=-1, required=True)
+    parser.add_argument("-i", "--iters", help="Number of iterations", type=int, default=-1, required=True)
+    parser.add_argument("-r", "--restarts", help="Number of restarts", type=int, default=-1, required=True)
+    parser.add_argument("-s", "--allow-sideways", help="Allow Sideways moves", action="store_true")
+    parser.add_argument("-c", "--use-caching", help="Use caching for speed-up", action="store_true")
+    parser.add_argument("-v", "--verbose_printing", help="Verbose printing", action="store_true")
+    args = parser.parse_args()
+
+    n = args.n_queens
+    nruns = args.n_runs
+    iters = args.iters
+    restarts = args.restarts
+    allow_sideways = args.allow_sideways
+    use_caching = args.use_caching
+    verbose_printing = args.verbose_printing
+
+    main(nruns, n, iters, restarts, allow_sideways, use_caching, verbose_printing)
