@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import sys
 import time
 
+A
 studentNum = 12345
 random.seed(studentNum)
 
@@ -28,6 +29,7 @@ class HillClimbing:
         self.gEndTime = -1
         self.gRunTime = 0
         self.allow_sideways = True
+        self.early_stop = True
 
     def solveMaxMin(self):
         candidate_sol = self.q.generateRandomState(self.size)
@@ -35,6 +37,7 @@ class HillClimbing:
         self.iteration = -1
         print(f"Initial cost = {self.bCost}")
 
+        queens_tried_set = set()
         while self.iteration < self.maxIterations and self.bCost > 0:
             self.gIteration += 1
             self.iteration += 1
@@ -62,6 +65,8 @@ class HillClimbing:
                 break
             # candidate contains the column in which the queen is
             candidate = max_candidate[ random.randint(0, len(max_candidate)-1) ]
+            if self.early_stop and not self.allow_sideways:
+                queens_tried_set.add(candidate)
             # old_val now contains the row in which the queen was before we started moving it around
             old_val = candidate_sol[candidate]
 
@@ -88,9 +93,15 @@ class HillClimbing:
                 candidate_sol[candidate] = best_pos[ random.randint(0, len(best_pos)-1) ]
                 cost_i = self.q.getHeuristicCost(candidate_sol)
                 self.gHeuristicCostCount += 1
+                if self.early_stop and not self.allow_sideways:
+                    queens_tried_set.clear()
             else:
                 # Put back previous sol if no improving solution
                 candidate_sol[candidate]=old_val
+                #print(queens_tried_set, candidate, old_val)
+                if self.early_stop and not self.allow_sideways and queens_tried_set == set(max_candidate):
+                    print(f"Stoppig early, queens_tried = {queens_tried_set}, max_candidate = {set(max_candidate)}")
+                    break
             if self.bCost > cost_i:
                 self.bCost = cost_i
         return (candidate_sol, self.bCost)
@@ -117,11 +128,10 @@ class HillClimbing:
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-n, iters, restarts = 134, 1000, 3
-for i in range(1):
+n, iters, restarts = 134, 50000, 1
+for i in range(10):
     hc = HillClimbing(n,iters,restarts)
     hc.allow_sideways = False
     sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
     print("==RunNo,Cost,Time,Iterations,HeuristicCalls,HeuristicQueenCalls")
     print(f"=={i},{sol[1]},{hc.gRunTime},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount}")
-
