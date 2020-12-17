@@ -1,6 +1,7 @@
 
 import math
 import random
+from functools import lru_cache
 
 # It is just a helper class , does not actually have any state
 # other than the size
@@ -38,7 +39,8 @@ class Queens:
         return conflicts
     """
 
-    def getHeuristicCost(self, candidate):
+    @lru_cache(maxsize=1024*1024*1024)
+    def getHeuristicCost_lru(self, candidate):
         # Returns the total number of conflicts
         conflicts = 0
         for index1 in range(0, len(candidate)):
@@ -52,6 +54,9 @@ class Queens:
                     conflicts += 1
         return conflicts
 
+    def getHeuristicCost(self, candidate):
+        return self.getHeuristicCost_lru(tuple(candidate))
+
     """
     def getHeuristicCostQueen(self, candidate, queenId):
         # Return the number of conflicts for a given queen
@@ -63,19 +68,24 @@ class Queens:
                 conflicts += 1
         return conflicts
     """
-    def getHeuristicCostQueen(self, candidate, queenId):
+
+    @lru_cache(maxsize=1024*1024*1024)
+    def getHeuristicCostQueen_lru(self, candidate, queenId):
         # Return the number of conflicts for a given queen
         conflicts = 0
         for index in range(0, len(candidate)):
             if queenId == index:
                 continue
             #if ((candidate[queenId] == candidate[index]) or math.fabs(candidate[queenId] - candidate[index]) == math.fabs(index - queenId) ):
-            x1 = candidate[queenId] - candidate[index]
+            c1, c2 = candidate[queenId], candidate[index]
+            x1 = c1 - c2
             x2 = index - queenId
-            if ((candidate[queenId] == candidate[index]) or \
-                    x1 == x2 or x1 == (-1 * x2)):
+            if ((c1 == c2) or x1 == x2 or x1 == (-1 * x2)):
                 conflicts += 1
         return conflicts
+
+    def getHeuristicCostQueen(self, candidate, queenId):
+        return self.getHeuristicCostQueen_lru(tuple(candidate), queenId)
 
     def printSolution(self, candidate):
         # Print the solution
