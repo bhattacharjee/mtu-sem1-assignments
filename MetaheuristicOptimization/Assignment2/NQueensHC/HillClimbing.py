@@ -117,8 +117,8 @@ class HillClimbing:
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-n, iters, restarts = 134, 1000, 10
-for i in range(5):
+n, iters, restarts = 134, 1000, 3
+for i in range(1):
     hc = HillClimbing(n,iters,restarts)
     hc.allow_sideways = False
     sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
