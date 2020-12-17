@@ -90,6 +90,7 @@ class HillClimbing:
 
             ##best move for the selected queen
             min_cost = max_cost
+            start_min_cost = min_cost
             best_pos = []
 
             # Loop through all the rows loooking for a new place for the candidate queen
@@ -105,6 +106,8 @@ class HillClimbing:
                     best_pos = [pos_i]
                 elif min_cost == cost_i and True == self.allow_sideways:
                     # Note this will allow sideways moves
+                    best_pos.append(pos_i)
+                elif min_cost == cost_i and min_cost < start_min_cost and False == self.allow_sideways:
                     best_pos.append(pos_i)
             if best_pos:
                 # Some non-worsening move found
@@ -129,13 +132,16 @@ class HillClimbing:
                     break
             if self.bCost > cost_i:
                 self.bCost = cost_i
+                if not self.no_verbose_print:
+                    print(f"Improving move found in iteration {self.iteration}")
         return (candidate_sol, self.bCost)
 
     def solveWithRestarts(self, solve, maxR):
         global g_random_seed_counter
         res = solve()
         self.nRestart = 0
-        print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration)
+        if not self.no_verbose_print:
+            print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration)
         while self.nRestart < maxR and res[1] > 0:
             g_random_seed_counter += 1
             #random.seed(studentNum + 100 * g_random_seed_counter)
@@ -158,7 +164,7 @@ class HillClimbing:
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-def main(nruns:int, n:int, iters:int, restarts:int, allowSideways:bool, useCaching:bool, verbosePrinting:bool)->None:
+def main(nruns:int, n:int, iters:int, restarts:int, allowSideways:bool, useCaching:bool, verbosePrinting:bool, early_stopping:bool)->None:
     global studentNum
     #n, iters, restarts = 54, 50000, 1000
     run_times = []
@@ -168,6 +174,7 @@ def main(nruns:int, n:int, iters:int, restarts:int, allowSideways:bool, useCachi
         t1 = time.perf_counter()
         hc = HillClimbing(n,iters,restarts)
         hc.allow_sideways = allowSideways
+        hc.early_stop = early_stopping
         hc.no_verbose_print = (not verbosePrinting)
         hc.use_caching = useCaching
         sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
@@ -191,7 +198,8 @@ if "__main__" == __name__:
     parser.add_argument("-r", "--restarts", help="Number of restarts", type=int, default=-1, required=True)
     parser.add_argument("-s", "--allow-sideways", help="Allow Sideways moves", action="store_true")
     parser.add_argument("-c", "--use-caching", help="Use caching for speed-up", action="store_true")
-    parser.add_argument("-v", "--verbose_printing", help="Verbose printing", action="store_true")
+    parser.add_argument("-v", "--verbose-printing", help="Verbose printing", action="store_true")
+    parser.add_argument("-e", "--early-stopping", help="Stop early if it is certain no improving mood can be found (valid only if sideways is not allowed)", action="store_true")
     args = parser.parse_args()
 
     n = args.n_queens
@@ -201,5 +209,6 @@ if "__main__" == __name__:
     allow_sideways = args.allow_sideways
     use_caching = args.use_caching
     verbose_printing = args.verbose_printing
+    early_stopping = args.early_stopping
 
-    main(nruns, n, iters, restarts, allow_sideways, use_caching, verbose_printing)
+    main(nruns, n, iters, restarts, allow_sideways, use_caching, verbose_printing, early_stopping)
