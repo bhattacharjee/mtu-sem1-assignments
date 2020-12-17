@@ -157,16 +157,26 @@ class HillClimbing:
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-n, iters, restarts = 54, 50000, 1000
-for i in range(100):
-    hc = HillClimbing(n,iters,restarts)
-    hc.allow_sideways = True
-    hc.no_verbose_print = True
-    hc.use_caching = True
-    sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
-    average_stuck_iteration = 0
-    if len(hc.stuckHistory) > 0:
-        average_stuck_iteration = sum(hc.stuckHistory) / len(hc.stuckHistory)
-    print("==RunNo,Restart,Cost,Time,InitialSolutionGenerationTime,Iterations,HeuristicCalls,HeuristicQueenCalls,AvgNumIterationsBeforeLocalMinima")
-    print(f"=={i},{hc.nRestart},{sol[1]},{hc.gRunTime},{hc.solution_generation_time},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount},{average_stuck_iteration}")
-    print(hc.stuckHistory)
+def main(nruns:int, n:int, iters:int, restarts:int, allowSideways:bool, useCaching:bool, verbosePrinting:bool)->None:
+    n, iters, restarts = 54, 50000, 1000
+    run_times = []
+    wall_times = []
+    for i in range(100):
+        t1 = time.perf_counter()
+        hc = HillClimbing(n,iters,restarts)
+        hc.allow_sideways = False
+        hc.no_verbose_print = True
+        hc.use_caching = False
+        sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
+        average_stuck_iteration = 0
+        if len(hc.stuckHistory) > 0:
+            average_stuck_iteration = sum(hc.stuckHistory) / len(hc.stuckHistory)
+        print("==RunNo,Restart,Cost,Time,InitialSolutionGenerationTime,Iterations,HeuristicCalls,HeuristicQueenCalls,AvgNumIterationsBeforeLocalMinima")
+        print(f"=={i},{hc.nRestart},{sol[1]},{hc.gRunTime},{hc.solution_generation_time},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount},{average_stuck_iteration}")
+        print(hc.stuckHistory)
+        run_times.append(hc.gRunTime)
+        t1 = time.perf_counter() - t1
+        wall_times.append(t1)
+        print(f"Average Run Time so far in iteration {i}: {sum(run_times) / len(run_times)} {sum(wall_times) / len(wall_times)}")
+
+main(0, 0, 0, 0, False, False, False)
