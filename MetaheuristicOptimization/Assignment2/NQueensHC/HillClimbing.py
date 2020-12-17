@@ -23,6 +23,7 @@ class HillClimbing:
         self.cHistory = []
         self.cBHistory = []
         self.iHistory = []
+        self.stuckHistory = [] # After how many iterations did we get stuck?
         self.gHeuristicCostCount = 0
         self.gHeuristicCostQueenCount = 0
         self.gStartTime = -1
@@ -31,6 +32,8 @@ class HillClimbing:
         self.allow_sideways = True
         self.early_stop = True
         self.no_verbose_print = False
+        self.use_caching = True
+        self.solution_generation_time = 0
 
     def printAgain(self, candidate_sol):
         cost_arr = []
@@ -41,10 +44,15 @@ class HillClimbing:
 
 
     def solveMaxMin(self):
+        t_sol_gen = time.process_time()
         candidate_sol = self.q.generateRandomState(self.size)
+        t_sol_gen = time.process_time() - t_sol_gen
+        self.solution_generation_time += t_sol_gen
+
         self.bCost = self.q.getHeuristicCost(candidate_sol)
         self.iteration = -1
         #print(f"Initial cost = {self.bCost}")
+        self.q.use_caching = self.use_caching
 
         queens_tried_set = set()
         while self.iteration < self.maxIterations and self.bCost > 0:
@@ -116,6 +124,7 @@ class HillClimbing:
                 if self.early_stop and not self.allow_sideways and queens_tried_set == set(max_candidate):
                     #print(f"Stoppig early, queens_tried = {queens_tried_set}, max_candidate = {set(max_candidate)}")
                     #self.printAgain(candidate_sol)
+                    self.stuckHistory.append(self.iteration)
                     break
             if self.bCost > cost_i:
                 self.bCost = cost_i
@@ -148,11 +157,16 @@ class HillClimbing:
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-n, iters, restarts = 84, 50000, 1000
+n, iters, restarts = 54, 50000, 1000
 for i in range(100):
     hc = HillClimbing(n,iters,restarts)
     hc.allow_sideways = True
     hc.no_verbose_print = True
+    hc.use_caching = True
     sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
-    print("==RunNo,Cost,Time,Iterations,HeuristicCalls,HeuristicQueenCalls")
-    print(f"=={i},{sol[1]},{hc.gRunTime},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount}")
+    average_stuck_iteration = 0
+    if len(hc.stuckHistory) > 0:
+        average_stuck_iteration = sum(hc.stuckHistory) / len(hc.stuckHistory)
+    print("==RunNo,Restart,Cost,Time,InitialSolutionGenerationTime,Iterations,HeuristicCalls,HeuristicQueenCalls,AvgNumIterationsBeforeLocalMinima")
+    print(f"=={i},{hc.nRestart},{sol[1]},{hc.gRunTime},{hc.solution_generation_time},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount},{average_stuck_iteration}")
+    print(hc.stuckHistory)
