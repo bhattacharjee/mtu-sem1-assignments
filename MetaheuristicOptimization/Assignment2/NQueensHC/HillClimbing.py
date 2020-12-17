@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 import sys
 import time
 
-studentNum = 12345
+studentNum = 195734
 random.seed(studentNum)
+g_random_seed_counter = 0
 
 class HillClimbing:
     def __init__(self, _size, _maxIterations, _maxRestarts):
@@ -29,12 +30,21 @@ class HillClimbing:
         self.gRunTime = 0
         self.allow_sideways = True
         self.early_stop = True
+        self.no_verbose_print = False
+
+    def printAgain(self, candidate_sol):
+        cost_arr = []
+        for cand_i in range(0, self.size):
+            cost_arr.append(self.q.getHeuristicCostQueen(candidate_sol, cand_i))
+        print("Again: cost = ", self.q.getHeuristicCost(candidate_sol))
+        print(f"FINAL COSTS: {cost_arr}")
+
 
     def solveMaxMin(self):
         candidate_sol = self.q.generateRandomState(self.size)
         self.bCost = self.q.getHeuristicCost(candidate_sol)
         self.iteration = -1
-        print(f"Initial cost = {self.bCost}")
+        #print(f"Initial cost = {self.bCost}")
 
         queens_tried_set = set()
         while self.iteration < self.maxIterations and self.bCost > 0:
@@ -97,26 +107,37 @@ class HillClimbing:
             else:
                 # Put back previous sol if no improving solution
                 candidate_sol[candidate]=old_val
+                # We may have set cost_i to the cost of an individual queen
+                # rather than all queens put together, returning the former
+                # would be incorrect
+                cost_i = self.q.getHeuristicCost(candidate_sol)
+                self.gHeuristicCostCount += 1
                 #print(queens_tried_set, candidate, old_val)
                 if self.early_stop and not self.allow_sideways and queens_tried_set == set(max_candidate):
-                    print(f"Stoppig early, queens_tried = {queens_tried_set}, max_candidate = {set(max_candidate)}")
+                    #print(f"Stoppig early, queens_tried = {queens_tried_set}, max_candidate = {set(max_candidate)}")
+                    #self.printAgain(candidate_sol)
                     break
             if self.bCost > cost_i:
                 self.bCost = cost_i
         return (candidate_sol, self.bCost)
 
     def solveWithRestarts(self, solve, maxR):
+        global g_random_seed_counter
         res = solve()
         self.nRestart = 0
         print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration)
         while self.nRestart < maxR and res[1] > 0:
-            random.seed(studentNum + 100 * self.nRestart)
+            g_random_seed_counter += 1
+            random.seed(studentNum + 100 * g_random_seed_counter)
             self.nRestart +=1
             res = solve()
-            print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration, self.gIteration)
-            print("Time Taken = ", (time.process_time() - self.gStartTime) / (1 if 0 == self.nRestart else self.nRestart))
+            if not self.no_verbose_print:
+                print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration, self.gIteration)
+                print("Time Taken = ", (time.process_time() - self.gStartTime) / (1 if 0 == self.nRestart else self.nRestart))
+                print("random_seed_counter = ", g_random_seed_counter)
         print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration, self.gIteration)
         print("Time Taken = ", (time.process_time() - self.gStartTime) / (1 if 0 == self.nRestart else self.nRestart))
+        print("Random seed = ", g_random_seed_counter)
         return res
 
     def solveWithRestartsAndTimeIt(self, solve, maxR):
@@ -127,10 +148,11 @@ class HillClimbing:
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-n, iters, restarts = 134, 50000, 1
-for i in range(10):
+n, iters, restarts = 84, 50000, 1000
+for i in range(100):
     hc = HillClimbing(n,iters,restarts)
-    hc.allow_sideways = False
+    hc.allow_sideways = True
+    hc.no_verbose_print = True
     sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
     print("==RunNo,Cost,Time,Iterations,HeuristicCalls,HeuristicQueenCalls")
     print(f"=={i},{sol[1]},{hc.gRunTime},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount}")
