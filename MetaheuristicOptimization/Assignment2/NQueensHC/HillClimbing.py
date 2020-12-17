@@ -3,6 +3,7 @@ import random
 from Queens import *
 import matplotlib.pyplot as plt
 import sys
+import time
 
 studentNum = 12345
 random.seed(studentNum)
@@ -21,24 +22,33 @@ class HillClimbing:
         self.cHistory = []
         self.cBHistory = []
         self.iHistory = []
+        self.gHeuristicCostCount = 0
+        self.gHeuristicCostQueenCount = 0
+        self.gStartTime = -1
+        self.gEndTime = -1
+        self.gRunTime = 0
+        self.allow_sideways = True
 
     def solveMaxMin(self):
         candidate_sol = self.q.generateRandomState(self.size)
         self.bCost = self.q.getHeuristicCost(candidate_sol)
         self.iteration = -1
+        print(f"Initial cost = {self.bCost}")
 
         while self.iteration < self.maxIterations and self.bCost > 0:
             self.gIteration += 1
             self.iteration += 1
-            self.cBHistory.append(self.bCost)
-            self.cHistory.append (self.q.getHeuristicCost(candidate_sol))
-            self.iHistory.append(self.gIteration)
+            #self.cBHistory.append(self.bCost)
+            #self.cHistory.append (self.q.getHeuristicCost(candidate_sol))
+            self.gHeuristicCostCount += 1
+            #self.iHistory.append(self.gIteration)
 
             max_candidate = []
             max_cost = -1
             # Find queen involved in max conflicts
             for cand_i in range(0, self.size):
                 cost_i = self.q.getHeuristicCostQueen(candidate_sol, cand_i)
+                self.gHeuristicCostQueenCount += 1
                 if max_cost < cost_i:
                     max_cost = cost_i
                     max_candidate = [cand_i]
@@ -66,18 +76,18 @@ class HillClimbing:
                     continue
                 candidate_sol[candidate] = pos_i
                 cost_i = self.q.getHeuristicCostQueen(candidate_sol, candidate)
+                self.gHeuristicCostQueenCount += 1
                 if min_cost > cost_i:
                     min_cost = cost_i
                     best_pos = [pos_i]
-                elif min_cost == cost_i and min_cost != self.bCost:
+                elif min_cost == cost_i and True == self.allow_sideways:
                     # Note this will allow sideways moves
-                    # EDIT: Preventing sideways moves with the added condition
-                    # min_cost != self.bCost
                     best_pos.append(pos_i)
             if best_pos:
                 # Some non-worsening move found
                 candidate_sol[candidate] = best_pos[ random.randint(0, len(best_pos)-1) ]
                 cost_i = self.q.getHeuristicCost(candidate_sol)
+                self.gHeuristicCostCount += 1
             else:
                 # Put back previous sol if no improving solution
                 candidate_sol[candidate]=old_val
@@ -90,15 +100,28 @@ class HillClimbing:
         self.nRestart = 0
         print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration)
         while self.nRestart < maxR and res[1] > 0:
+            random.seed(studentNum + 100 * self.nRestart)
             self.nRestart +=1
             res = solve()
             print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration, self.gIteration)
+            print("Time Taken = ", (time.process_time() - self.gStartTime) / (1 if 0 == self.nRestart else self.nRestart))
         print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration, self.gIteration)
+        print("Time Taken = ", (time.process_time() - self.gStartTime) / (1 if 0 == self.nRestart else self.nRestart))
+        return res
+
+    def solveWithRestartsAndTimeIt(self, solve, maxR):
+        self.gStartTime = time.process_time()
+        res = self.solveWithRestarts(solve, maxR)
+        self.gEndTime = time.process_time()
+        self.gRunTime = self.gEndTime - self.gStartTime
         return res
 
 #n, iters, restarts = int(sys.argv[1]), int(sys.argv[2]), int(sys.argv[3])
-n, iters, restarts = 134, 1000, 1
-for i in range(1):
+n, iters, restarts = 134, 1000, 10
+for i in range(5):
     hc = HillClimbing(n,iters,restarts)
-    sol = hc.solveWithRestarts(hc.solveMaxMin, hc.maxRestarts)
+    hc.allow_sideways = False
+    sol = hc.solveWithRestartsAndTimeIt(hc.solveMaxMin, hc.maxRestarts)
+    print("==RunNo,Cost,Time,Iterations,HeuristicCalls,HeuristicQueenCalls")
+    print(f"=={i},{sol[1]},{hc.gRunTime},{hc.gIteration},{hc.gHeuristicCostCount},{hc.gHeuristicCostQueenCount}")
 
