@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import sys
 import time
 
-A
 studentNum = 12345
 random.seed(studentNum)
 
