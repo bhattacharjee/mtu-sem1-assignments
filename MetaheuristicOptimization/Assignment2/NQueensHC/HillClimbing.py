@@ -8,7 +8,7 @@ import argparse
 
 studentNum = 195734
 random.seed(studentNum)
-g_random_seed_counter = 0
+g_random_seed_counter = 5
 
 class HillClimbing:
     def __init__(self, _size, _maxIterations, _maxRestarts):
@@ -138,13 +138,15 @@ class HillClimbing:
 
     def solveWithRestarts(self, solve, maxR):
         global g_random_seed_counter
+        g_random_seed_counter += 1
+        random.seed(studentNum + 100 * g_random_seed_counter)
         res = solve()
         self.nRestart = 0
         if not self.no_verbose_print:
             print ("Restart: ",self.nRestart, "Cost: ",res[1], "Iter: ",self.iteration)
         while self.nRestart < maxR and res[1] > 0:
             g_random_seed_counter += 1
-            #random.seed(studentNum + 100 * g_random_seed_counter)
+            random.seed(studentNum + 100 * g_random_seed_counter)
             self.nRestart +=1
             res = solve()
             if not self.no_verbose_print:
