@@ -17,7 +17,7 @@ import sys
 
 
 # In[276]:
-
+import math
 
 from functools import lru_cache
 class TSPSolution(object):
@@ -38,7 +38,7 @@ class TSPSolution(object):
         # This function takes the city number, not index into array
         c1x, c1y = self.inst[x]
         c2x, c2y = self.inst[y]
-        return ((c2x - c1x) ** 2 + (c2y - c1y) ** 2)
+        return math.sqrt((c2x - c1x) * (c2x - c1x) + (c2y - c1y) * (c2y - c1y))
     
     def copy(self):
         return TSPSolution(self.inst, self.tour.copy(), self.distance)
