@@ -4,10 +4,10 @@
 # In[52]:
 
 
-#get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 
-# In[196]:
+# In[435]:
 
 
 from lab_tsp_insertion import *
@@ -16,15 +16,16 @@ import matplotlib.pyplot as plt
 import sys
 
 
-# In[276]:
-import math
+# In[436]:
+
 
 from functools import lru_cache
 class TSPSolution(object):
-    def __init__(self, instance: list, tour:list, distance:int):
+    def __init__(self, instance: list, tour:list, distance:int, use_cache:bool=True):
         self.tour = tour
         self.n_cities = len(tour)
         self.inst = instance
+        self.use_cache = use_cache
         self.distance = self.calculate_solution_distance()
     
     def __repr__(self):
@@ -34,21 +35,46 @@ class TSPSolution(object):
         return self.n_cities
     
     @lru_cache(maxsize=1024 * 1024 * 1024)
-    def get_distance(self, x, y):
+    def get_distance_lru(self, x, y):
         # This function takes the city number, not index into array
         c1x, c1y = self.inst[x]
         c2x, c2y = self.inst[y]
         return math.sqrt((c2x - c1x) * (c2x - c1x) + (c2y - c1y) * (c2y - c1y))
     
+    def get_distance_nocache(self, x, y):
+        print("no_cache")
+        # This function takes the city number, not index into array
+        c1x, c1y = self.inst[x]
+        c2x, c2y = self.inst[y]
+        return math.sqrt((c2x - c1x) * (c2x - c1x) + (c2y - c1y) * (c2y - c1y))
+    
+    def get_distance(self, x, y):
+        if self.use_cache:
+            return self.get_distance_lru(x, y)
+        else:
+            return self.get_distance_nocache(x, y)
+    
     def copy(self):
-        return TSPSolution(self.inst, self.tour.copy(), self.distance)
+        return TSPSolution(self.inst, self.tour.copy(), self.distance, self.use_cache)
     
     @lru_cache(maxsize=1024 * 1024 * 1024)
-    def is_valid_swap(self, x:int, y:int):
+    def is_valid_swap_lru(self, x:int, y:int):
         x, y = min(x, y), max(x, y)
         x1 = (x + 1) % self.n_cities
         y1 = (y + 1) % self.n_cities
         return x != y and x != y1 and x != x1 and y != y1 and y != x1 and y1 != x1
+    
+    def is_valid_swap_nocache(self, x:int, y:int):
+        x, y = min(x, y), max(x, y)
+        x1 = (x + 1) % self.n_cities
+        y1 = (y + 1) % self.n_cities
+        return x != y and x != y1 and x != x1 and y != y1 and y != x1 and y1 != x1
+    
+    def is_valid_swap(self, x:int, y:int):
+        if self.use_cache:
+            return self.is_valid_swap_lru(x, y)
+        else:
+            return self.is_valid_swap_nocache(x, y)
     
     def calculate_cost_if_swapped(self, x:int, y: int):
         # If the edges are swapped what would be the cost
@@ -89,11 +115,11 @@ class TSPSolution(object):
         self.distance = new_distance
 
 
-# In[277]:
+# In[437]:
 
 
 class TSPHillClimbing(object):
-    def __init__(self, inst:dict = None, max_sideways_moves:int=0, description:str="None",                time_plot=None, distance_plot=None, distance_time_plot=None, verbose:bool=False,                use_random_heuristic:bool=False):
+    def __init__(self, inst:dict = None, max_sideways_moves:int=0, description:str="None",                time_plot=None, distance_plot=None, distance_time_plot=None, verbose:bool=False,                use_random_heuristic:bool=False, use_cache:bool=True):
         self.inst = inst
         self.ind = None
         self.g_best_solution = None
@@ -112,8 +138,12 @@ class TSPHillClimbing(object):
         self.n_restart = -1
         self.description = description
         self.verbose = verbose
+        self.use_cache = use_cache
         self.distance_time_plot = distance_time_plot
         self.use_random_heuristic = use_random_heuristic
+        self.rt = []              # Array containing the run times
+        self.y = []               # Array containing the distance at each iteration
+        self.iters_list = []      # Array containing the number of iterations
         if None != self.inst:
             self.ind = self.get_solution()
             self.update_best_g_instance(self.ind)
@@ -132,7 +162,8 @@ class TSPHillClimbing(object):
             cities, distance = insertion_heuristic1(self.inst)
         else:
             cities, distance = randomTours(self.inst)
-        return TSPSolution(self.inst, cities, distance)
+        print(self.use_cache)
+        return TSPSolution(self.inst, cities, distance, use_cache=self.use_cache)
     
     def check_improving_move(self):
         self.current_iter_dist = self.ind.distance
@@ -174,9 +205,9 @@ class TSPHillClimbing(object):
         return old_distance, self.current_iter_dist, False
         
     def iterate(self, n_iterations, allow_sideways=False, max_sideways_moves=-1):
-        y = []
-        rt = []
-        iters_list = []
+        self.y = []
+        self.rt = []
+        self.iters_list = []
         self.n_sideways_moves = 0
         self.last_improving_iteration = 0
         t1 = time.perf_counter()
@@ -185,11 +216,11 @@ class TSPHillClimbing(object):
                 sys.stdout.write('-')
             old_distance, current_iter_dist, all_moves_worse = self.iterate_once(allow_sideways)
             if 0 == self.iteration:
-                y.append(math.sqrt(old_distance))
+                self.y.append(old_distance)
             else:
-                y.append(math.sqrt(current_iter_dist))
-            rt.append(time.perf_counter() - t1)
-            iters_list.append(self.iteration)
+                self.y.append(current_iter_dist)
+            self.rt.append(time.perf_counter() - t1)
+            self.iters_list.append(self.iteration)
             if old_distance == current_iter_dist:
                 if self.verbose:
                     print(self.n_sideways_moves)
@@ -200,17 +231,21 @@ class TSPHillClimbing(object):
                     break
             if old_distance - current_iter_dist != 0:
                 if self.verbose:
-                    sys.stdout.write("%f %f" %                              ((math.sqrt(old_distance) - math.sqrt(current_iter_dist)),                              math.sqrt(current_iter_dist),))
+                    sys.stdout.write("%f %f" %                              ((old_distance - current_iter_dist),                              current_iter_dist,))
         if self.verbose:
             print("iterations done: ", self.iteration)
             print('-' * 80)
         description = self.description if None != self.description else ""
         if self.distance_plot:
-            self.distance_plot.plot(iters_list, y, label=('%s %d' % (description, self.n_restart)))
+            self.distance_plot.plot(self.iters_list, self.y, label=('%s %d' % (description, self.n_restart)))
         if self.time_plot:
-            self.time_plot.plot(iters_list, rt, label=('%s %d' % (description, self.n_restart)))
+            self.time_plot.plot(self.iters_list, self.rt, label=('%s %d' % (description, self.n_restart)))
         if self.distance_time_plot:
-            self.distance_time_plot.plot(rt, y, label=('%s %d' % (description, self.n_restart)))
+            self.distance_time_plot.plot(self.rt, self.y, label=('%s %d' % (description, self.n_restart)))
+        print("Description = ", self.description)
+        print("Restart,Iteration,RunTime,Distance")
+        for i,r,d in zip(self.iters_list, self.rt, self.y):
+            print(f"{self.n_restart},{i},{r},{d}")
         
     def restart_and_iterate(self, n_iterations=100, n_restarts:int=5, allow_sideways=False, max_sideways_moves=-1):
         for self.n_restart in range(n_restarts):
@@ -223,7 +258,7 @@ class TSPHillClimbing(object):
             #print(math.sqrt(self.ind.distance))
 
 
-# In[278]:
+# In[438]:
 
 
 class TSPHillClimbingRandomIprovement(TSPHillClimbing):
@@ -244,9 +279,9 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
     
         
     def iterate(self, n_iterations, allow_sideways=False, max_sideways_moves=-1):
-        y = []
-        rt = []
-        iters_list = []
+        self.y = []
+        self.rt = []
+        self.iters_list = []
         self.n_sideways_moves = 0
         t1 = time.perf_counter()
         for self.iteration in range(n_iterations):
@@ -254,11 +289,11 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
                 sys.stdout.write('-')
             old_distance, current_iter_dist, all_moves_worse = self.iterate_once(allow_sideways)
             if 0 == self.iteration:
-                y.append(math.sqrt(old_distance))
+                self.y.append(old_distance)
             else:
-                y.append(math.sqrt(current_iter_dist))
-            rt.append(time.perf_counter() - t1)
-            iters_list.append(self.iteration)
+                self.y.append(current_iter_dist)
+            self.rt.append(time.perf_counter() - t1)
+            self.iters_list.append(self.iteration)
             if old_distance == current_iter_dist:
                 if self.iteration - self.last_improving_iteration > 500:
                     if self.verbose:
@@ -266,21 +301,25 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
                     break
             if old_distance - current_iter_dist > 0:
                 if self.verbose:
-                    sys.stdout.write("%f %f" %                                  ((math.sqrt(old_distance) - math.sqrt(current_iter_dist)),                                 math.sqrt(current_iter_dist)))
+                    sys.stdout.write("%f %f" %                                  ((old_distance - current_iter_dist),                                 current_iter_dist))
         if self.verbose:
             print("iterations done: ", self.iteration)
             print('-' * 80)
         description = self.description if None != self.description else ""
         if self.distance_plot:
-            self.distance_plot.plot(iters_list, y, label=('%s %d' % (description, self.n_restart)))
+            self.distance_plot.plot(self.iters_list, self.y, label=('%s %d' % (description, self.n_restart)))
         if self.time_plot:
-            self.time_plot.plot(iters_list, rt, label=('%s %d' % (description, self.n_restart)))
+            self.time_plot.plot(self.iters_list, self.rt, label=('%s %d' % (description, self.n_restart)))
         if self.distance_time_plot:
-            self.distance_time_plot.plot(rt, y, label=('%s %d' % (description, self.n_restart)))
+            self.distance_time_plot.plot(self.rt, self.y, label=('%s %d' % (description, self.n_restart)))
+        print("Description = ", self.description)
+        print("Restart,Iteration,RunTime,Distance")
+        for i,r,d in zip(self.iters_list, self.rt, self.y):
+            print(f"{self.n_restart},{i},{r},{d}")
     pass
 
 
-# In[279]:
+# In[439]:
 
 
 class TSPFirstImprovement(TSPHillClimbingRandomIprovement):
@@ -301,47 +340,53 @@ class TSPFirstImprovement(TSPHillClimbingRandomIprovement):
                     return
 
 
-# In[280]:
+# In[440]:
 
 
 import random
 random.seed(5)
+import time
 def main():
-    figure = plt.figure(figsize=(15,3))
+    t1 = time.process_time()
+    wt1 = time.perf_counter()
+    figure = plt.figure(figsize=(15,5))
     time_plot = figure.add_subplot(131)
+    time_plot.set_xlabel('iterations')
+    time_plot.set_ylabel('seconds')
     distance_plot = figure.add_subplot(132)
+    distance_plot.set_xlabel('iterations')
+    distance_plot.set_ylabel('distance')
     distance_time_plot = figure.add_subplot(133)
+    distance_time_plot.set_xlabel('seconds')
+    distance_time_plot.set_ylabel('distance')
     time_plot.set_title('Time')
     distance_plot.set_title('Distance')
     distance_time_plot.set_title('Distance vs Time')
-    inst = readInstance('C:\\Users\\rbhatta1\\dev\\ml-assignments\\MetaheuristicOptimization\\Assignment2\\TSPdata\\inst-0.tsp')
-    # tsp = TSPHillClimbingRandomIprovement(inst, description="Random",time_plot=time_plot,distance_plot=distance_plot,distance_time_plot=distance_time_plot,use_random_heuristic=False)
-    # tsp.restart_and_iterate(10000, 2, True, 10)
-    # print("TSP Random", tsp.g_best_distance)
-    # tsp = TSPFirstImprovement(inst, description="First",time_plot=time_plot,distance_plot=distance_plot,distance_time_plot=distance_time_plot,use_random_heuristic=False)
-    # tsp.restart_and_iterate(10000, 2, True, 10)
-    # print("TSP FirstImprovement", tsp.g_best_distance)
-    tsp = TSPHillClimbing(inst, description="TSP",time_plot=time_plot,distance_plot=distance_plot,distance_time_plot=distance_time_plot,use_random_heuristic=False)
+    inst = readInstance('small/inst-0.tsp')
+    tsp = TSPHillClimbingRandomIprovement(inst, description="Random",                                          time_plot=time_plot,                                          distance_plot=distance_plot,                                          distance_time_plot=distance_time_plot,                                          use_random_heuristic=False)
+    tsp.restart_and_iterate(10000, 2, True, 10)
+    print("TSP Random", tsp.g_best_distance)
+    tsp = TSPFirstImprovement(inst, description="First",                                          time_plot=time_plot,                                          distance_plot=distance_plot,                                          distance_time_plot=distance_time_plot,                                          use_random_heuristic=False)
+    tsp.restart_and_iterate(10000, 2, True, 10)
+    print("TSP FirstImprovement", tsp.g_best_distance)
+    tsp = TSPHillClimbing(inst, description="Exhaustive",                          time_plot=time_plot,                          distance_plot=distance_plot,                          distance_time_plot=distance_time_plot,                          use_random_heuristic=False)
     tsp.restart_and_iterate(10000, 2, True, 10)
     print("TSP Exhaustive", tsp.g_best_distance)
     print('-' * 80)
     time_plot.legend()
     distance_plot.legend()
     distance_time_plot.legend()
-    #plt.show()
+    plt.show()
+    t2 = time.process_time()
+    wt2 = time.perf_counter()
+    print(t2 - t1, wt2 - wt1)
     return tsp
 
 
-# In[ ]:
+# In[441]:
 
 
 tsp = main()
-
-
-# In[ ]:
-
-
-
 
 
 # In[ ]:
