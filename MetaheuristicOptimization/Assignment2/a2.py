@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 
-
-from lab_tsp_insertion import *
-import math
-import matplotlib.pyplot as plt
 import sys
-
-
-# In[436]:
-
-
+import math
+import argparse
 from functools import lru_cache
+import matplotlib.pyplot as plt
+from lab_tsp_insertion import *
+
 class TSPSolution(object):
     def __init__(self, instance:list, tour:list, distance:int, use_cache:bool=True):
         self.tour = tour
@@ -33,7 +29,6 @@ class TSPSolution(object):
         return math.sqrt((c2x - c1x) * (c2x - c1x) + (c2y - c1y) * (c2y - c1y))
 
     def get_distance_nocache(self, x, y):
-        print("no_cache")
         # This function takes the city number, not index into array
         c1x, c1y = self.inst[x]
         c2x, c2y = self.inst[y]
@@ -105,10 +100,6 @@ class TSPSolution(object):
         #    print(f"New distance should have been {new_distance} but is {self.calculate_solution_distance()}")
         self.distance = new_distance
 
-
-# In[437]:
-
-
 class TSPHillClimbing(object):
     def __init__(self, inst:dict = None, max_sideways_moves:int=0,\
             description:str="None", time_plot=None, distance_plot=None,\
@@ -157,7 +148,6 @@ class TSPHillClimbing(object):
             cities, distance = insertion_heuristic1(self.inst)
         else:
             cities, distance = randomTours(self.inst)
-        print(self.use_cache)
         return TSPSolution(self.inst, cities, distance, use_cache=self.use_cache)
 
     def check_improving_move(self):
@@ -238,13 +228,12 @@ class TSPHillClimbing(object):
             self.time_plot.plot(self.iters_list, self.rt, label=('%s %d' % (description, self.n_restart)))
         if self.distance_time_plot:
             self.distance_time_plot.plot(self.rt, self.y, label=('%s %d' % (description, self.n_restart)))
-        print("Description = ", self.description)
-        print("Restart,Iteration,RunTime,Distance")
         for i,r,d in zip(self.iters_list, self.rt, self.y):
             print(f"{self.n_restart},{i},{r},{d}")
 
     def restart_and_iterate(self, n_iterations=100, n_restarts:int=5,\
             allow_sideways=False, max_sideways_moves=-1):
+        print("Restart,Iteration,RunTime,Distance")
         for self.n_restart in range(n_restarts):
             self.ind = self.get_solution()
             #print(math.sqrt(self.ind.distance))
@@ -253,10 +242,6 @@ class TSPHillClimbing(object):
             if self.current_iter_dist < self.g_best_distance:
                 self.update_best_g_instance(self.ind)
             #print(math.sqrt(self.ind.distance))
-
-
-# In[438]:
-
 
 class TSPHillClimbingRandomIprovement(TSPHillClimbing):
     def check_improving_move(self):
@@ -315,8 +300,6 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
             print(f"{self.n_restart},{i},{r},{d}")
     pass
 
-# In[439]:
-
 
 class TSPFirstImprovement(TSPHillClimbingRandomIprovement):
     def check_improving_move(self):
@@ -335,12 +318,57 @@ class TSPFirstImprovement(TSPHillClimbingRandomIprovement):
                     self.current_iter_sols = [[i,j]]
                     return
 
-# In[440]:
+def main(file_name, n_runs, n_restarts, n_iterations, algorithm, description,\
+        use_cache, use_random_heuristic, plot_graph, max_sideways, verbose,\
+        allow_sideways):
+    inst = readInstance(file_name)
+    args = {'inst': inst, 'max_sideways_moves':max_sideways,
+            'description': description, 'time_plot': None, 'distance_plot': None,
+            'distance_time_plot': None, 'verbose': verbose,
+            'use_random_heuristic': use_random_heuristic, 'use_cache': use_cache}
+    tsp = TSPHillClimbing(**args)
+    tsp.restart_and_iterate(n_iterations, n_restarts, allow_sideways, max_sideways)
 
 
-import random
-random.seed(5)
-import time
+
+
+if "__main__" == __name__:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--file-name", help="Input file name", type=str, required=True)
+    parser.add_argument("-nc", "--no-cache", help="Do not use cache", action="store_true")
+    parser.add_argument("-n", "--n-runs", help="Number of runs", type=int, required=True)
+    parser.add_argument("-a", "--algorithm", help="0 - exhaustive , 1 = random, 2 = first improvement", choices=['0', '1', '2'], default=1)
+    parser.add_argument("-r", "--restarts", help="Number of restarts", type=int, required=True)
+    parser.add_argument("-i", "--iterations", help="Number of iterations in each restart", type=int, required=True)
+    parser.add_argument("-rh", "--random-heuristic", help="Use random heuristic", action="store_true")
+    parser.add_argument("-d", "--description", help="Description of the run", type=str, required=False, default="")
+    parser.add_argument("-plot", "--plot-graph", help="Plot the graph as well", action="store_true")
+    parser.add_argument("-msm", "--max-sideways-moves", help="Maximum number of sideways moves", type=int, default=500)
+    parser.add_argument("-v", "--verbose", help="Verbose printing", action="store_true")
+    parser.add_argument("-s", "--allow-sideways", help="Allow sideways moves", action="store_true")
+    args = parser.parse_args()
+
+    file_name = args.file_name
+    n_runs = args.n_runs
+    n_restarts = args.restarts
+    n_iterations = args.iterations
+    algorithm = int(args.algorithm)
+    description = args.description
+    use_cache = not args.no_cache
+    use_random_heuristic = args.random_heuristic
+    plot_graph = args.plot_graph
+    max_sideways = args.max_sideways_moves
+    verbose = args.verbose
+    allow_sideways = args.allow_sideways
+    main(file_name, n_runs, n_restarts, n_iterations, algorithm, description,\
+        use_cache, use_random_heuristic, plot_graph, max_sideways, verbose,\
+        allow_sideways)
+
+
+
+
+
+"""
 def main():
     t1 = time.process_time()
     wt1 = time.perf_counter()
@@ -357,7 +385,7 @@ def main():
     time_plot.set_title('Time')
     distance_plot.set_title('Distance')
     distance_time_plot.set_title('Distance vs Time')
-    inst = readInstance('small/inst-0.tsp')
+    inst = read_instance('small/inst-0.tsp')
     tsp = TSPHillClimbingRandomIprovement(inst, description="Random", \
             time_plot=time_plot, distance_plot=distance_plot,\
             distance_time_plot=distance_time_plot, use_random_heuristic=False)
@@ -382,8 +410,4 @@ def main():
     wt2 = time.perf_counter()
     print(t2 - t1, wt2 - wt1)
     return tsp
-
-
-
-
-tsp = main()
+"""
