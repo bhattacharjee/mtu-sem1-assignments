@@ -334,6 +334,7 @@ class TSPFirstImprovement(TSPHillClimbingRandomIprovement):
                     self.current_iter_sols = [[i,j]]
                     return
 
+student_num = 195734
 def main(file_name, n_runs, n_restarts, n_iterations, algorithm, description,\
         use_cache, use_random_heuristic, plot_graph, max_sideways, verbose,\
         allow_sideways, out_file_name):
@@ -343,6 +344,7 @@ def main(file_name, n_runs, n_restarts, n_iterations, algorithm, description,\
     elif algorithm == 2:
         alg = "variant2."
     for i in range(n_runs):
+        random.seed(student_num + 100 * i)
         output_file_name = out_file_name + alg + str(i+1) + ".csv"
         with open(output_file_name, "w") as f:
             sys.stdout = f
