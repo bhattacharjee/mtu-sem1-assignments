@@ -108,6 +108,9 @@ class HillClimbing:
                     # Note this will allow sideways moves
                     best_pos.append(pos_i)
                 elif min_cost == cost_i and min_cost < start_min_cost and False == self.allow_sideways:
+                    # If this condition is not added, if several moves are found
+                    # which are better, only the first one will be considered,
+                    # and none of the others will be considered
                     best_pos.append(pos_i)
             if best_pos:
                 # Some non-worsening move found
