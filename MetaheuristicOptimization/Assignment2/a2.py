@@ -346,11 +346,15 @@ student_num = 195734
 def main(file_name, n_runs, n_restarts, n_iterations, algorithm, description,\
         use_cache, use_random_heuristic, plot_graph, max_sideways, verbose,\
         allow_sideways, out_file_name):
-    alg = "base."
-    if algorithm == 1:
+    if algorithm == 0 or algorithm == '0':
+        alg = "base."
+    elif algorithm == 1 or algorithm =='1':
         alg = "variant1."
-    elif algorithm == 2:
+    elif algorithm == 2 or algorithm == '2':
         alg = "variant2."
+    else:
+        sys.stderr.write(str(algorithm) + str(type(algorithm)))
+        assert(False)
     for i in range(n_runs):
         random.seed(student_num + 100 * i)
         output_file_name = out_file_name + alg + str(i+1) + ".csv"
@@ -404,6 +408,7 @@ if "__main__" == __name__:
     n_restarts = args.restarts
     n_iterations = args.iterations
     algorithm = int(args.algorithm)
+    print("algorithm is", algorithm, type(algorithm))
     description = args.description
     use_cache = not args.no_cache
     use_random_heuristic = args.random_heuristic
