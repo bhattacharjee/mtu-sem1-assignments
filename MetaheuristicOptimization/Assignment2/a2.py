@@ -118,6 +118,8 @@ class TSPHillClimbing(object):
         self.last_improving_iteration = -1
         self.iteration = -1
         self.figure = None
+        self.g_iteration = 0
+        self.g_iteration_list = []
         self.time_plot = time_plot
         self.distance_plot = distance_plot
         self.n_restart = -1
@@ -199,10 +201,12 @@ class TSPHillClimbing(object):
         self.rt2 = []
         self.best_dist_hist = []
         self.iters_list = []
+        self.g_iteration_list = []
         self.n_sideways_moves = 0
         self.last_improving_iteration = 0
         t1 = time.process_time()
         for self.iteration in range(n_iterations):
+            self.g_iteration += 1
             if self.verbose:
                 sys.stdout.write('-')
             old_distance, current_iter_dist, all_moves_worse = self.iterate_once(allow_sideways)
@@ -215,6 +219,7 @@ class TSPHillClimbing(object):
             self.rt2.append(tt - self.run_start_time)
             self.best_dist_hist.append(self.g_best_distance)
             self.iters_list.append(self.iteration)
+            self.g_iteration_list.append(self.g_iteration)
             if old_distance == current_iter_dist:
                 if self.verbose:
                     print(self.n_sideways_moves)
@@ -237,14 +242,14 @@ class TSPHillClimbing(object):
             self.time_plot.plot(self.iters_list, self.rt, label=('%s %d' % (description, self.n_restart)))
         if self.distance_time_plot:
             self.distance_time_plot.plot(self.rt, self.y, label=('%s %d' % (description, self.n_restart)))
-        for i,r,d,r2,bd in zip(self.iters_list, self.rt, self.y, self.rt2, self.best_dist_hist):
-            print(f"{self.n_restart},{i},{r},{d},{r2},{bd}")
+        for i,r,d,r2,bd,i2 in zip(self.iters_list, self.rt, self.y, self.rt2, self.best_dist_hist, self.g_iteration_list):
+            print(f"{self.n_restart},{i},{r},{d},{r2},{bd},{i2}")
 
     def restart_and_iterate(self, n_iterations=100, n_restarts:int=5,\
             allow_sideways=False, max_sideways_moves=-1):
         self.run_start_time = time.process_time()
         self.rt2 = []
-        print("Restart,Iteration,RunTime,Distance,RunTimeSinceBeginningOfRun,BestDistance")
+        print("Restart,Iteration,RunTime,Distance,RunTimeSinceBeginningOfRun,BestDistance,gIterations")
         for self.n_restart in range(n_restarts):
             self.ind = self.get_solution()
             #print(math.sqrt(self.ind.distance))
@@ -274,11 +279,13 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
         self.y = []
         self.rt = []
         self.rt2 = []
+        self.g_iteration_list = []
         self.best_dist_hist = []
         self.iters_list = []
         self.n_sideways_moves = 0
         t1 = time.process_time()
         for self.iteration in range(n_iterations):
+            self.g_iteration += 1
             if self.verbose:
                 sys.stdout.write('-')
             old_distance, current_iter_dist, all_moves_worse = self.iterate_once(allow_sideways)
@@ -291,6 +298,7 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
             self.rt2.append(tt - self.run_start_time)
             self.best_dist_hist.append(self.g_best_distance)
             self.iters_list.append(self.iteration)
+            self.g_iteration_list.append(self.g_iteration)
             if old_distance == current_iter_dist:
                 if self.iteration - self.last_improving_iteration > 500:
                     if self.verbose:
@@ -312,8 +320,8 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
             self.distance_time_plot.plot(self.rt, self.y, label=('%s %d' % (description, self.n_restart)))
         print("Description = ", self.description)
         print("Restart,Iteration,RunTime,Distance")
-        for i,r,d,r2,bd in zip(self.iters_list, self.rt, self.y, self.rt2, self.best_dist_hist):
-            print(f"{self.n_restart},{i},{r},{d},{r2},{bd}")
+        for i,r,d,r2,bd,i2 in zip(self.iters_list, self.rt, self.y, self.rt2, self.best_dist_hist,self.g_iteration_list):
+            print(f"{self.n_restart},{i},{r},{d},{r2},{bd},{i2}")
     pass
 
 
