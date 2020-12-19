@@ -131,6 +131,7 @@ class TSPHillClimbing(object):
         self.rt2 = []             # Array containing run times (since beginning of run)
         self.y = []               # Array containing the distance at each iteration
         self.iters_list = []      # Array containing the number of iterations
+        self.best_dist_hist = []  # Array containing best distances
         if None != self.inst:
             self.ind = self.get_solution()
             self.update_best_g_instance(self.ind)
@@ -196,6 +197,7 @@ class TSPHillClimbing(object):
         self.y = []
         self.rt = []
         self.rt2 = []
+        self.best_dist_hist = []
         self.iters_list = []
         self.n_sideways_moves = 0
         self.last_improving_iteration = 0
@@ -211,6 +213,7 @@ class TSPHillClimbing(object):
             tt = time.process_time()
             self.rt.append(tt - t1)
             self.rt2.append(tt - self.run_start_time)
+            self.best_dist_hist.append(self.g_best_distance)
             self.iters_list.append(self.iteration)
             if old_distance == current_iter_dist:
                 if self.verbose:
@@ -234,14 +237,14 @@ class TSPHillClimbing(object):
             self.time_plot.plot(self.iters_list, self.rt, label=('%s %d' % (description, self.n_restart)))
         if self.distance_time_plot:
             self.distance_time_plot.plot(self.rt, self.y, label=('%s %d' % (description, self.n_restart)))
-        for i,r,d,r2 in zip(self.iters_list, self.rt, self.y, self.rt2):
-            print(f"{self.n_restart},{i},{r},{d},{r2}")
+        for i,r,d,r2,bd in zip(self.iters_list, self.rt, self.y, self.rt2, self.best_dist_hist):
+            print(f"{self.n_restart},{i},{r},{d},{r2},{bd}")
 
     def restart_and_iterate(self, n_iterations=100, n_restarts:int=5,\
             allow_sideways=False, max_sideways_moves=-1):
         self.run_start_time = time.process_time()
         self.rt2 = []
-        print("Restart,Iteration,RunTime,Distance,RunTimeSinceBeginningOfRun")
+        print("Restart,Iteration,RunTime,Distance,RunTimeSinceBeginningOfRun,BestDistance")
         for self.n_restart in range(n_restarts):
             self.ind = self.get_solution()
             #print(math.sqrt(self.ind.distance))
@@ -271,6 +274,7 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
         self.y = []
         self.rt = []
         self.rt2 = []
+        self.best_dist_hist = []
         self.iters_list = []
         self.n_sideways_moves = 0
         t1 = time.process_time()
@@ -285,6 +289,7 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
             tt = time.process_time()
             self.rt.append(tt - t1)
             self.rt2.append(tt - self.run_start_time)
+            self.best_dist_hist.append(self.g_best_distance)
             self.iters_list.append(self.iteration)
             if old_distance == current_iter_dist:
                 if self.iteration - self.last_improving_iteration > 500:
@@ -307,8 +312,8 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
             self.distance_time_plot.plot(self.rt, self.y, label=('%s %d' % (description, self.n_restart)))
         print("Description = ", self.description)
         print("Restart,Iteration,RunTime,Distance")
-        for i,r,d,r2 in zip(self.iters_list, self.rt, self.y, self.rt2):
-            print(f"{self.n_restart},{i},{r},{d},{r2}")
+        for i,r,d,r2,bd in zip(self.iters_list, self.rt, self.y, self.rt2, self.best_dist_hist):
+            print(f"{self.n_restart},{i},{r},{d},{r2},{bd}")
     pass
 
 
