@@ -154,6 +154,10 @@ class TSPHillClimbing(object):
             cities, distance = insertion_heuristic1(self.inst)
         else:
             cities, distance = randomTours(self.inst)
+        # It is important to return a new instance of the class, instead of just
+        # modifying the current instance because we're using the LRU cache. This
+        # will cause the cache to be invalidated (as the self argument to each
+        # function will now be different).
         return TSPSolution(self.inst, cities, distance, use_cache=self.use_cache)
 
     def check_improving_move(self):
@@ -252,12 +256,10 @@ class TSPHillClimbing(object):
         print("Restart,Iteration,RunTime,Distance,RunTimeSinceBeginningOfRun,BestDistance,gIterations")
         for self.n_restart in range(n_restarts):
             self.ind = self.get_solution()
-            #print(math.sqrt(self.ind.distance))
             self.update_best_g_instance(self.ind)
             self.iterate(n_iterations, allow_sideways, max_sideways_moves)
             if self.current_iter_dist < self.g_best_distance:
                 self.update_best_g_instance(self.ind)
-            #print(math.sqrt(self.ind.distance))
 
 class TSPHillClimbingRandomIprovement(TSPHillClimbing):
     def check_improving_move(self):
@@ -340,6 +342,7 @@ class TSPFirstImprovement(TSPHillClimbingRandomIprovement):
                 elif newcost < self.current_iter_dist:
                     self.current_iter_dist = newcost
                     self.current_iter_sols = [[i,j]]
+                    # We've found an improvement, hence we must return
                     return
 
 student_num = 195734
@@ -420,51 +423,3 @@ if "__main__" == __name__:
     main(file_name, n_runs, n_restarts, n_iterations, algorithm, description,\
         use_cache, use_random_heuristic, plot_graph, max_sideways, verbose,\
         allow_sideways, out_file_name)
-
-
-
-
-
-"""
-def main():
-    t1 = time.process_time()
-    wt1 = time.process_time()
-    figure = plt.figure(figsize=(15,5))
-    time_plot = figure.add_subplot(131)
-    time_plot.set_xlabel('iterations')
-    time_plot.set_ylabel('seconds')
-    distance_plot = figure.add_subplot(132)
-    distance_plot.set_xlabel('iterations')
-    distance_plot.set_ylabel('distance')
-    distance_time_plot = figure.add_subplot(133)
-    distance_time_plot.set_xlabel('seconds')
-    distance_time_plot.set_ylabel('distance')
-    time_plot.set_title('Time')
-    distance_plot.set_title('Distance')
-    distance_time_plot.set_title('Distance vs Time')
-    inst = read_instance('small/inst-0.tsp')
-    tsp = TSPHillClimbingRandomIprovement(inst, description="Random", \
-            time_plot=time_plot, distance_plot=distance_plot,\
-            distance_time_plot=distance_time_plot, use_random_heuristic=False)
-    tsp.restart_and_iterate(10000, 2, True, 10)
-    print("TSP Random", tsp.g_best_distance)
-    tsp = TSPFirstImprovement(inst, description="First", time_plot=time_plot,\
-            distance_plot=distance_plot, distance_time_plot=distance_time_plot,\
-            use_random_heuristic=False)
-    tsp.restart_and_iterate(10000, 2, True, 10)
-    print("TSP FirstImprovement", tsp.g_best_distance)
-    tsp = TSPHillClimbing(inst, description="Exhaustive", time_plot=time_plot,\
-            distance_plot=distance_plot, distance_time_plot=distance_time_plot,\
-            use_random_heuristic=False)
-    tsp.restart_and_iterate(10000, 2, True, 10)
-    print("TSP Exhaustive", tsp.g_best_distance)
-    print('-' * 80)
-    time_plot.legend()
-    distance_plot.legend()
-    distance_time_plot.legend()
-    plt.show()
-    t2 = time.process_time()
-    wt2 = time.process_time()
-    print(t2 - t1, wt2 - wt1)
-    return tsp
-"""
