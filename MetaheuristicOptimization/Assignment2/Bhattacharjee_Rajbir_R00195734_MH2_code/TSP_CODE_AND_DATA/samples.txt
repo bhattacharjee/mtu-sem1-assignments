@@ -1,0 +1,38 @@
+No sideways:
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100000 -r 1000  -e > 100_no_sideways_no_cache_early.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100000 -r 1000 -c -e > 100_no_sideways_cache_early.txt
+python -OO .\HillClimbing.py -q 54 -n 200 -i 100000 -r 1000  -e > no_sideways_no_cache_early.txt
+python -OO .\HillClimbing.py -q 54 -n 200 -i 100000 -r 1000 -c -e > no_sideways_cache_early.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 50 -r 1000   -e > no_sideways_no_cache_50_1.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 50 -r 1000 -c -e > no_sideways_cache_50.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100 -r 1000   -e  > no_sideways_no_cache_100.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100 -r 1000 -c   -e > no_sideways_cache_100.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 250 -r 1000  -e   > no_sideways_no_cache_250.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 250 -r 1000 -c  -e  > no_sideways_cache_250.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 500 -r 1000  -e   > no_sideways_no_cache_500.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 500 -r 1000 -c  -e  > no_sideways_cache_500.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 1000 -r 1000  -e   > no_sideways_no_cache_1000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 1000 -r 1000 -c  -e  > no_sideways_cache_1000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 10000 -r 1000  -e   > no_sideways_no_cache_10000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 10000 -r 1000 -c   -e > no_sideways_cache_10000.txt
+
+
+No EARLY EXIT sideways:
+python -OO .\HillClimbing.py -q 54 -n 100 -i 50 -r 500  -s > yes_sideways_no_cache_50.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 50 -r 500 -c -s  > yes_sideways_cache_50.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100 -r 250  -s > yes_sideways_no_cache_100.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100 -r 250 -c -s  > yes_sideways_cache_100.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 250 -r 100 -s   > yes_sideways_no_cache_250.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 250 -r 100 -c  -s > yes_sideways_cache_250.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 500 -r 50 -s   > yes_sideways_no_cache_500.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 500 -r 50 -c -s  > yes_sideways_cache_500.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 1000 -r 25 -s   > yes_sideways_no_cache_1000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 1000 -r 25 -c -s  > yes_sideways_cache_1000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 2500 -r 10  -s  > yes_sideways_no_cache_10000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 2500 -r 10 -c -s   > yes_sideways_cache_10000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 10000 -r 10  -s  > yes_sideways_no_cache_r10000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 10000 -r 10 -c -s   > yes_sideways_cache_r10000.txt
+python -OO .\HillClimbing.py -q 54 -n 200 -i 100000 -r 1000 -s > sideways_no_cache_100000.txt
+python -OO .\HillClimbing.py -q 54 -n 200 -i 100000 -r 1000 -s -c > sideways_cache_100000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100000 -r 1000 -s > 100_sideways_no_cache_100000.txt
+python -OO .\HillClimbing.py -q 54 -n 100 -i 100000 -r 1000 -s -c > 100_sideways_cache_100000.txt
