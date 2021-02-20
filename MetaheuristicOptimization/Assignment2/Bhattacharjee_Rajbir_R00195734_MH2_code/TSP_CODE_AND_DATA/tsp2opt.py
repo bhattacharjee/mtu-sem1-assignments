@@ -57,6 +57,7 @@ class TSPSolution(object):
         return x != y and x != y1 and x != x1 and y != y1 and y != x1 and y1 != x1
 
     def is_valid_swap(self, x:int, y:int):
+        # can two edges be swapped at all?
         if self.use_cache:
             return self.is_valid_swap_lru(x, y)
         else:
@@ -84,6 +85,7 @@ class TSPSolution(object):
         return dist
 
     def perform_swap(self, x, y):
+        # Actually perform the swap, this changes state
         x, y = min(x, y), max(x, y)
         new_distance = self.calculate_cost_if_swapped(x, y)
         x1 = (x + 1) % self.n_cities
@@ -161,6 +163,8 @@ class TSPHillClimbing(object):
         return TSPSolution(self.inst, cities, distance, use_cache=self.use_cache)
 
     def check_improving_move(self):
+        # Find if there is an improving move possible, store all such moves
+        # in current_iter_sols
         self.current_iter_dist = self.ind.distance
         self.current_iter_sols = []
         for i in range(self.ind.get_n_cities()):
@@ -176,10 +180,13 @@ class TSPHillClimbing(object):
                         self.current_iter_sols = [[i,j]]
 
     def iterate_once(self, allow_sideways=False):
+        # One iteration, this will be called multiple times
         update = False
         old_distance = self.ind.distance
         self.check_improving_move()
         if old_distance == self.current_iter_dist:
+            # There are two variants here, where sidewyas can be allowed
+            # or where sideways are not allowed
             if not allow_sideways or len(self.current_iter_sols) == 0:
                 #print("No moves possible")
                 return old_distance, self.current_iter_dist, True
@@ -189,6 +196,7 @@ class TSPHillClimbing(object):
                 self.n_sideways_moves += 1
                 update = True
         if int(self.ind.distance) > int(self.current_iter_dist):
+            # An improving move has been found
             self.last_improving_iteration = self.iteration
             self.n_sideways_moves = 0
             update = True
@@ -214,6 +222,8 @@ class TSPHillClimbing(object):
             if self.verbose:
                 sys.stdout.write('-')
             old_distance, current_iter_dist, all_moves_worse = self.iterate_once(allow_sideways)
+
+            # Most of the code below is just to print the data
             if 0 == self.iteration:
                 self.y.append(old_distance)
             else:
@@ -224,6 +234,7 @@ class TSPHillClimbing(object):
             self.best_dist_hist.append(self.g_best_distance)
             self.iters_list.append(self.iteration)
             self.g_iteration_list.append(self.g_iteration)
+
             if old_distance == current_iter_dist:
                 if self.verbose:
                     print(self.n_sideways_moves)
@@ -262,10 +273,18 @@ class TSPHillClimbing(object):
                 self.update_best_g_instance(self.ind)
 
 class TSPHillClimbingRandomIprovement(TSPHillClimbing):
+    """
+    This class picks an edge at random, and then checks all other edges whether
+    swapping with that edge produces better results or not
+    The functions check_improving_move and iterate have been modified, the rest
+    of the code remains the same as its parent class
+    """
     def check_improving_move(self):
         self.current_iter_dist = self.ind.distance
         self.current_iter_sols = []
+        # Choose an edge at random
         i = random.randint(0, self.ind.get_n_cities() - 1)
+        # Iterate through all other nodes to find if they improve the cost
         for j in range(self.ind.get_n_cities()):
             if not self.ind.is_valid_swap(i, j):
                 pass
@@ -301,7 +320,9 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
             self.best_dist_hist.append(self.g_best_distance)
             self.iters_list.append(self.iteration)
             self.g_iteration_list.append(self.g_iteration)
+
             if old_distance == current_iter_dist:
+                # If 500 non-improving moves have been made, then stop
                 if self.iteration - self.last_improving_iteration > 500:
                     if self.verbose:
                         print("Reached limit on number of non improving iterations")
@@ -328,6 +349,18 @@ class TSPHillClimbingRandomIprovement(TSPHillClimbing):
 
 
 class TSPFirstImprovement(TSPHillClimbingRandomIprovement):
+    """
+    This final version makes the following modification:
+    1. Choose an edge at random
+    2. Iterate through all other edges to check if the combination can be replaced
+    3. Whenever a better choice is found, make the swap
+
+    The only function that needed overriding is check_improving move. The rest
+    of the algorithm remains the same.
+
+    This algorithm may never stop. This is achieved via setting last_improving_iteration
+    in iterate, and checking it, and is already a part of the code via the parent class.
+    """
     def check_improving_move(self):
         self.current_iter_dist = self.ind.distance
         self.current_iter_sols = []
