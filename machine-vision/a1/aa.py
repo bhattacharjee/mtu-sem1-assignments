@@ -9,11 +9,16 @@ import math
 
 from Lab_MV_04_Interest_points import *
 
+GAUSSIAN_ADD = 0
+
+def load_original_image()->np.ndarray:
+    return cv2.imread('Assignment_MV_1_image.png')
+
 def load_image_and_convert_to_grayscale()->np.ndarray:
     """
     Open the image and convert to grayscale
     """
-    image = cv2.imread('Assignment_MV_1_image.png')
+    image = load_original_image()
     #image = cv2.imread('sobx.png')
     image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     #image_gray = image_gray.astype(float)
@@ -75,56 +80,123 @@ def get_gaussian_smoothing_kernel(size:int, sigma:float)->np.ndarray:
     kernel = kernel / np.sum(kernel)
     return kernel
 
-def task_1b()->tuple:
-    titles = []
-    images = []
-    gaussians = []
-    image = load_image_and_convert_to_grayscale()
-    images.append(image)
-    titles.append("base")
-    for k in range(12):
-        sigma = math.pow(2, k/2)
-        g = get_gaussian_smoothing_kernel(50, sigma)
-        im = image.copy()
-        im = cv2.filter2D(im, -1, g)
-        images.append(im)
-        gaussians.append(g)
-        titles.append(f"sigma={sigma}")
-    display_images_meshgrid(gaussians, gray=False)
-    display_images_meshgrid(images, True, titles)
-    return images, titles
-
-def task_2a()->tuple:
-    titles = []
-    images = []
-    image = load_image_and_convert_to_grayscale()
-    images.append(image)
-    titles.append("base")
-    for k in range(12):
-        sigma = math.pow(2, k/2)
-        sigma2 = math.pow(2, (k+1)/2)
-        g = get_gaussian_smoothing_kernel(200, sigma)
-        g2 = get_gaussian_smoothing_kernel(200, sigma2)
-        im = image.copy()
-        im = cv2.filter2D(im, -1, g)
-        im2 = image.copy()
-        im2 = cv2.filter2D(im2, -1, g2)
-        # Since there are negative values, we must offset by 128
-        im = im - im2 + 128
-        images.append(im)
-        titles.append(f"dog {sigma} - {sigma2}")
-    display_images_meshgrid(images, False, titles)
-    return images, titles
+def get_smoothed_images(image, sigma_values, kernel_size=50)->list:
+    smoothed_images = []
+    for sigma in sigma_values:
+        g = get_gaussian_smoothing_kernel(kernel_size, sigma)
+        im = cv2.filter2D(image, -1, g)
+        smoothed_images.append(im)
+    return smoothed_images
         
-def task_2b()->None:
-    images, titles = task_2a()
-    for i in range(1, len(images)):
-        im = images[i]
-        thresh = np.min(im) + (np.max(im) - np.min(im))/2
-        im[im <= thresh] = 0
-        im[im > thresh] = 255
-        images[i] = im
-    display_images_meshgrid(images, True, titles)
+def get_twelve_smoothed_images(image)->tuple:
+    sigma_arr = []
+    for k in range(12):
+        sigma_arr.append(math.pow(2, k/2))
+    images = get_smoothed_images(image, sigma_arr)
+    return images, sigma_arr
+
+def get_difference_of_gaussian_images(images, sigma_arr)->list:
+    dog_arr = []
+    for i in range(len(images)-1):
+        i1, i2 = images[i], images[i+1]
+        s1, s2 = sigma_arr[i], sigma_arr[i+1]
+        dog = i1 - i2 + GAUSSIAN_ADD
+        dog_arr.append({"dog": dog, "sigma1": s1, "sigma2": s2, })
+    return dog_arr
+
+def is_maximal_pixel(metric, x, y, pixel_value, T, check_same_level=True):
+    try:
+        if ((pixel_value >T) and
+            (pixel_value > metric[x-1,y-1]) and
+            (pixel_value > metric[x-1,y])   and
+            (pixel_value > metric[x-1,y+1]) and
+            (pixel_value > metric[x,y-1])   and
+            (pixel_value > metric[x,y+1])   and
+            (pixel_value > metric[x+1,y-1]) and
+            (pixel_value > metric[x+1,y])   and
+            (pixel_value > metric[x+1,y+1])):
+                if check_same_level and pixel_value > metric[x, y]:
+                    return True
+                elif not check_same_level:
+                    return True
+                else:
+                    return False
+        else:
+            return False
+    except:
+        return False
+    return False
+
+def get_non_maxima_suppression_pixels(image, lower, higher, T, sigma):
+    points = []
+    for x in range(1,len(image)-1):
+        for y in range(1,len(image[0])-1):
+            m1, m2, m3 = True, True, True
+            if lower is not None:
+                m1 = is_maximal_pixel(lower, x, y, image[x, y], T, True)
+            if higher is not None:
+                m3 = is_maximal_pixel(higher, x, y, image[x, y], T, True)
+            m2 = is_maximal_pixel(image, x, y, image[x, y], T, False)
+            if m1 and m2 and m3:
+                points.append((x, y, sigma, ))
+    return points
+
+def get_all_non_maxima_suppression_pixels(dog_arr, T):
+    points = []
+    #for i in range(2):
+    for i in range(len(dog_arr)):
+        print(f"processing {i}...")
+        lower = higher = image = None
+        x = dog_arr[i]
+        image = x["dog"]
+        sigma = x["sigma1"]
+        if i - 1 >= 0:
+            lower = dog_arr[i - 1]["dog"]
+        if i + 1 < len(dog_arr):
+            higher = dog_arr[i + 1]["dog"]
+        p = get_non_maxima_suppression_pixels(image, lower, higher, T, sigma)
+        [points.append(x) for x in p]
+        print(f"{sigma} {i} - {len(points)}")
+    return points
+
+def task_1b():
+    return get_twelve_smoothed_images(load_image_and_convert_to_grayscale())
+
+def task_2()->tuple:
+    image = load_image_and_convert_to_grayscale()
+    save_image = load_original_image()
+    images, sigma_arr = get_twelve_smoothed_images(image)
+
+    include_base_image = False
+    if include_base_image:
+        new_images = [image.copy()]
+        [new_images.append(x) for x in images]
+        new_sigma_arr = [0.5]
+        [new_sigma_arr.append(s) for s in sigma_arr]
+    else:
+        new_images = images
+        new_sigma_arr = sigma_arr
+
+    dog_arr = get_difference_of_gaussian_images(new_images, new_sigma_arr)
+    display = []
+    display_text = []
+    for x in dog_arr:
+        dog, s1, s2 = x["dog"], x["sigma1"], x["sigma2"]
+        display_text.append(f"{s1} - {s2}")
+        display.append(dog)
+    #display_images_meshgrid(display, True, display_text)
+    points = get_all_non_maxima_suppression_pixels(dog_arr, GAUSSIAN_ADD+10)
+    for point in points:
+        x, y, sigma = point
+        x = int(x)
+        y = int(y)
+        radius = math.floor(3 * sigma)
+        cv2.circle(save_image, (y, x,), radius, (0,255,0), 1)
+    cv2.imshow("result", save_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 
-task_2b()
+        
+
+task_2()
