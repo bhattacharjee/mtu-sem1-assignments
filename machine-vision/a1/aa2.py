@@ -67,23 +67,6 @@ def display_images_meshgrid(images:list, gray=True, title_arr=None)->None:
     #plt.show()
     return
 
-"""
-def get_gaussian_smoothing_kernel_internal(size:int, sigma:float)->np.ndarray:
-    x, y = np.meshgrid(np.arange(0, size), np.arange(0, size))
-    x = x - len(x) / 2
-    y = y - len(y) / 2
-    kernel = np.exp(-(x**2 + y**2) / (2 * sigma**2))
-    kernel = kernel / (2 * np.pi * sigma**2)
-
-    # Ideally the area under a gaussian must be 1, but in our case
-    # When sigma is large and the size is small, the gaussian will
-    # not be covered in the complete window, and so the image will
-    # appear to lose brightness when convolved with this gaussian
-    # The fix is to normalize to 1
-    #kernel = kernel / np.sum(kernel)
-    return kernel
-
-"""
 GAUSSIAN_KERNEL_SIZE_MULTIPLIER = 3
 # Copied from gyani
 def get_gaussian_smoothing_kernel_internal(size:int, sigma:float):
@@ -108,7 +91,6 @@ def get_smoothed_images(image, sigma_values, kernel_size=100)->list:
 def get_twelve_smoothed_images(image)->tuple:
     sigma_arr = []
     for k in range(12):
-        #sigma_arr.append(math.pow(2, k/2))
         sigma_arr.append(2 ** (k/2))
     images = get_smoothed_images(image, sigma_arr)
     return images, sigma_arr
@@ -165,7 +147,6 @@ def get_non_maxima_suppression_pixels(image, lower, higher, T, sigma):
 
 def get_all_non_maxima_suppression_pixels(dog_arr, T):
     points = []
-    #for i in range(2):
     for i in range(len(dog_arr)):
         print(f"processing {i}...")
         lower = higher = image = None
@@ -216,7 +197,6 @@ def task_2()->list:
         dog, s1, s2 = x["dog"], x["sigma1"], x["sigma2"]
         display_text.append(f"{s1} - {s2}")
         display.append(dog)
-    print("displaying dog")
     display_images_meshgrid(display, True, display_text)
     points = get_all_non_maxima_suppression_pixels(dog_arr, GAUSSIAN_ADD+THRESHOLD)
     print(f"Number of points found = {len(points)}")
@@ -231,20 +211,6 @@ def task_2()->list:
     cv2.destroyAllWindows()
     return points
 
-def get_derivative_of_gaussian_both_directions_combined(gaussian_images:list, sigma_list)->list:
-    images = []
-    dx = np.array([[1, 0, -1], ])
-    dy = np.array([[1, 0, -1], ]).T
-    for image, sigma in zip(gaussian_images, sigma_list):
-        image = image.copy()
-        image = cv2.filter2D(image, -1, cv2.flip(dx, -1))
-        image = cv2.filter2D(image, -1, cv2.flip(dy, -1))
-        image = image * (sigma * sigma)
-        image = image + GAUSSIAN_ADD
-        images.append(image)
-    return images
-
-
 """
 Get gaussian derivatives of a list of images in different sigma scales
 The output is a list, each element of the list is a tuple.
@@ -257,40 +223,13 @@ def get_derivative_of_gaussian(gaussian_images:list, sigma_list)->list:
     dy = np.array([[1, 0, -1], ]).T
     for image, sigma in zip(gaussian_images, sigma_list):
         i = image.copy()
-        #gx = cv2.filter2D(i, -1, cv2.flip(dx, -1))
-        gx = cv2.filter2D(i, -1, dx)
+        gx = cv2.filter2D(i, -1, cv2.flip(dx, -1))
+        #gx = cv2.filter2D(i, -1, dx)
         i = image.copy()
-        #-y = cv2.filter2D(i, -1, cv2.flip(dy, -1))
-        gy = cv2.filter2D(i, -1, dy)
+        gy = cv2.filter2D(i, -1, cv2.flip(dy, -1))
+        #gy = cv2.filter2D(i, -1, dy)
         retval.append((gx, gy, ))
     return retval
-
-
-        
-@lru_cache
-def get_interpolation_matrix(sigma)->np.ndarray:
-    size = int(3/2 * 3 * sigma) - int(3/2 * -3 * sigma) + 2
-    retval = np.zeros((size, size))
-    for i in range(-3, 4):
-        for j in range(-3, 4):
-            x = int((size / 2) + (3 / 2 * i * sigma))
-            y = int((size / 2) + (3 / 2 * j * sigma))
-            retval[x,y] = 1
-    return retval, round(size/2), round(size/2)
-
-@lru_cache
-def get_weighted_gaussian_matrix(sigma)->np.ndarray:
-    size = round(3/2 * 3 * sigma) - round(3/2 * -3 * sigma) + 2
-    retval = np.zeros((size, size))
-    for i in range(-3, 4):
-        for j in range(-3, 4):
-            exp_numerator = -(i ** 2 + j ** 2)
-            exp_denominator = (9 * sigma * sigma / 2)
-            denominator = 9 * np.pi * sigma * sigma / 2
-            x = int(round(size / 2) + (3 / 2 * i * sigma))
-            y = int(round(size / 2) + (3 / 2 * j * sigma))
-            retval[x,y] = np.exp(exp_numerator / exp_denominator) / denominator
-    return retval, round(size/2), round(size/2)
 
 @lru_cache
 def get_weight(q, r, sigma):
@@ -335,11 +274,13 @@ def task_3():
         theta = np.arctan2(gy, gx)
         theta_array.append(theta)
         sigma_cross_ref[sigma] = {
-                "image": im,
                 "gx": gx,
                 "gy": gy,
-                "magnitude": magnitude.copy(),
-                "theta": theta.copy()
+                "gx2": np.square(gx.copy()),
+                "gy2": np.square(gy.copy()),
+                "image": im,
+                "theta": theta.copy(),
+                "magnitude": magnitude.copy()
                 }
 
     augmented_points = []
@@ -374,6 +315,45 @@ def task_3():
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+    return augmented_points, sigma_cross_ref
 
-task_3()
+@lru_cache
+def get_weight2(s, t, sigma):
+    return np.exp(-(s**2 + t**2) / (81 * sigma**2 /2)) / (81 * np.pi * sigma**2 / 2)
+
+def task_4():
+    augmented_points, sigma_crf = task_3()
+
+    for point in augmented_points:
+        try:
+            x, y, sigma, theta_hat = point
+            theta_arr = sigma_crf[sigma]["theta"]
+            magnitude_arr = sigma_crf[sigma]["magnitude"]
+            all_hist = []
+            for i in range(-2, 2):
+                for j in range(-2, 2):
+                    hist = [0.0] * 8
+                    for k1 in range(0, 4):
+                        for k2 in range(0, 4):
+                            s = int(round(9/16 * (k1 + 0.5) * sigma))
+                            t = int(round(9/16 * (k2 + 0.5) * sigma))
+                            wst = get_weight2(s, t, sigma)
+                            xs = x + s
+                            yt = y + t
+                            mst = magnitude_arr[xs, yt]
+                            theta_st = theta_arr[xs, yt] - theta_hat
+                            ind = int(math.floor(theta_st / (2 * np.pi / 8)))
+                            hist[ind] += (wst * mst)
+                    all_hist.extend(hist)
+            all_hist = np.array(all_hist)
+            all_hist = all_hist / np.sqrt(np.sum(np.square(all_hist)))
+            all_hist[all_hist > 0.2] = 0.2
+            print(all_hist)
+        except:
+            pass
+
+
+
+
+task_4()
 
