@@ -22,7 +22,7 @@ def load_image_and_convert_to_grayscale()->np.ndarray:
     """
     image = load_original_image()
     #image = cv2.imread('sobx.png')
-    image_gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+    image_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     #image_gray = image_gray.astype(float)
     image_gray = np.float32(image_gray)
     return image_gray
@@ -48,7 +48,7 @@ def display_images_meshgrid(images:list, gray=True, title_arr=None)->None:
         for c in range(cols):
             index += 1
             if index >= len(images):
-                plt.show()
+                #plt.show()
                 return
             image = images[index]
             arr = np.asarray(image)
@@ -59,12 +59,12 @@ def display_images_meshgrid(images:list, gray=True, title_arr=None)->None:
             else:
                 tax = ax
             if gray:
-                tax.imshow(arr, cmap='gray', vmin=0, vmax=255)
+                tax.imshow(arr, cmap='gray')#, vmin=0, vmax=255)
             else:
                 tax.imshow(arr)
             if title_arr:
                 tax.title.set_text(title_arr[index])
-    plt.show()
+    #plt.show()
     return
 
 def get_gaussian_smoothing_kernel_internal(size:int, sigma:float)->np.ndarray:
@@ -79,24 +79,32 @@ def get_gaussian_smoothing_kernel_internal(size:int, sigma:float)->np.ndarray:
     # not be covered in the complete window, and so the image will
     # appear to lose brightness when convolved with this gaussian
     # The fix is to normalize to 1
-    kernel = kernel / np.sum(kernel)
+    #kernel = kernel / np.sum(kernel)
     return kernel
 
+KERNEL_SIZE = 3
+# Copied from gyani
+def get_gaussian_smoothing_kernel_internal(size:int, sigma:float):
+    point_x, point_y = np.meshgrid(np.arange(-KERNEL_SIZE*sigma, KERNEL_SIZE*sigma),
+                       np.arange(-KERNEL_SIZE*sigma, KERNEL_SIZE*sigma))
+    return np.exp(-(point_x**2 + point_y**2)/(2*sigma**2))/(2*np.pi*sigma**2)    
+
 def get_gaussian_smoothing_kernel(sigma:float)->np.ndarray:
-    return get_gaussian_smoothing_kernel_internal(math.ceil(3 * sigma), sigma)
+    return get_gaussian_smoothing_kernel_internal(math.ceil(6 * sigma), sigma)
 
 def get_smoothed_images(image, sigma_values, kernel_size=100)->list:
     smoothed_images = []
     for sigma in sigma_values:
         g = get_gaussian_smoothing_kernel(sigma)
-        im = cv2.filter2D(image, -1, g)
+        im = cv2.filter2D(image.copy(), -1, g)
         smoothed_images.append(im)
     return smoothed_images
         
 def get_twelve_smoothed_images(image)->tuple:
     sigma_arr = []
     for k in range(12):
-        sigma_arr.append(math.pow(2, k/2))
+        #sigma_arr.append(math.pow(2, k/2))
+        sigma_arr.append(2 ** (k/2))
     images = get_smoothed_images(image, sigma_arr)
     return images, sigma_arr
 
@@ -161,8 +169,12 @@ def get_all_non_maxima_suppression_pixels(dog_arr, T):
         sigma = x["sigma1"]
         if i - 1 >= 0:
             lower = dog_arr[i - 1]["dog"]
+        else:
+            continue
         if i + 1 < len(dog_arr):
             higher = dog_arr[i + 1]["dog"]
+        else:
+            continue
         p = get_non_maxima_suppression_pixels(image, lower, higher, T, sigma)
         [points.append(x) for x in p]
         print(f"{sigma} {i} - {len(points)}")
@@ -174,7 +186,7 @@ def task_1b():
     display_images_meshgrid(images)
     gaussian_kernels = []
     for s in sigma_arr:
-        gaussian_kernels.append(get_gaussian_smoothing_kernel(100, s))
+        gaussian_kernels.append(get_gaussian_smoothing_kernel(s))
     display_images_meshgrid(gaussian_kernels, gray=False)
 
 def task_2()->list:
@@ -199,6 +211,7 @@ def task_2()->list:
         dog, s1, s2 = x["dog"], x["sigma1"], x["sigma2"]
         display_text.append(f"{s1} - {s2}")
         display.append(dog)
+    print("displaying dog")
     display_images_meshgrid(display, True, display_text)
     points = get_all_non_maxima_suppression_pixels(dog_arr, GAUSSIAN_ADD+THRESHOLD)
     print(f"Number of points found = {len(points)}")
@@ -249,12 +262,12 @@ def get_derivative_of_gaussian(gaussian_images:list, sigma_list)->list:
         
 @lru_cache
 def get_interpolation_matrix(sigma)->np.ndarray:
-    size = round(3/2 * 3 * sigma) - round(3/2 * -3 * sigma) + 2
+    size = int(3/2 * 3 * sigma) - int(3/2 * -3 * sigma) + 2
     retval = np.zeros((size, size))
     for i in range(-3, 4):
         for j in range(-3, 4):
-            x = int(round(size / 2) + (3 / 2 * i * sigma))
-            y = int(round(size / 2) + (3 / 2 * j * sigma))
+            x = int((size / 2) + (3 / 2 * i * sigma))
+            y = int((size / 2) + (3 / 2 * j * sigma))
             retval[x,y] = 1
     return retval, round(size/2), round(size/2)
 
@@ -359,5 +372,6 @@ def task_3():
     cv2.destroyAllWindows()
 
 
+task_1b()
 task_3()
 
