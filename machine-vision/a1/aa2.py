@@ -91,7 +91,10 @@ def display_images_meshgrid(\
                 tax.title.set_text(title_arr[index])
     return
 
+"""This controls the size of the Gaussian kernel
+"""
 GAUSSIAN_KERNEL_SIZE_MULTIPLIER = 3
+
 """
 Given a sigma, return a gaussian smoothing kernel of the appropriate size
 """
