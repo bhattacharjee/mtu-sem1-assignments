@@ -4,11 +4,13 @@ import os
 import cv2
 import math
 import glob
+import time
 import numpy as np
 import matplotlib.pyplot as plt
 
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
+VIDEO_DELAY = 1
 
 def get_checkerboard(gridsize):
     image_files = glob.glob("Assignment_MV_02_calibration*.png")
@@ -45,6 +47,21 @@ def get_calibration_matrix(gridsize, images, corner_array_subpix):
     print(f"Calibration matrix is: \n{matrix}\n")
     return ret, matrix, distortion, rotation, translation
 
+def get_frames_for_video():
+    frames = list()
+    gray_frames = list()
+    cap = cv2.VideoCapture("./Assignment_MV_02_video.mp4")
+    while cap.grab():
+        ret, frame = cap.retrieve()
+        if False != ret:
+            gray = frame.copy()
+            gray = cv2.cvtColor(gray, cv2.COLOR_BGR2GRAY)
+            frames.append(frame)
+            gray_frames.append(gray)
+    cap.release()
+    cv2.destroyAllWindows()
+    return frames, gray_frames
+
 
 
 def get_K_matrix():
@@ -52,4 +69,71 @@ def get_K_matrix():
     ret, K, distortion, R, T = get_calibration_matrix(GRIDSIZE, images, corner_array_subpix)
     return K
 
-K = get_K_matrix()
+def get_homogenous(x):
+    x = x.flatten()
+    return np.array([x[0], x[1], 1])
+
+def get_correspondences(frames, gray_frames):
+    p0 = cv2.goodFeaturesToTrack(gray_frames[0], 200, 0.3, 7) # shape = 109,1,2
+    p0 = cv2.cornerSubPix(gray_frames[0], p0, (11, 11), (-1, -1), STOP_CRITERIA)
+    original_points = p0.copy()
+    old_gray = gray_frames[0]
+    frames = frames[1:]
+    gray_frames = gray_frames[1:]
+    history = []
+    history.append(p0)
+
+    if len(p0) > 0:
+        p = p0
+        for n, (frame, gray,) in enumerate(zip(frames, gray_frames)):
+            p1, status, err = cv2.calcOpticalFlowPyrLK(old_gray, gray, p, None)
+            p1 = cv2.cornerSubPix(old_gray, p1, (11, 11), (-1, -1), STOP_CRITERIA)
+            frame = frame.copy()
+            for m, point in enumerate(p1[status.flatten() == 1]):
+                cv2.circle(frame, (int(point[0,0]), int(point[0,1])), 2, 0xff0000, 2)
+            cv2.imshow('frame', frame)
+            cv2.waitKey(VIDEO_DELAY)
+            p = p1
+            old_gray = gray
+            history.append(p)
+
+    x1 = np.zeros((0, 3,), dtype=np.float32)
+    x2 = np.zeros((0, 3,), dtype=np.float32)
+    for i, j in zip(original_points[status.flatten() == 1], p1[status.flatten() == 1]):
+        i = get_homogenous(i)
+        j = get_homogenous(j)
+        x1 = np.append(x1, i.reshape(1, 3), axis=0)
+        x2 = np.append(x2, j.reshape(1, 3), axis=0)
+
+    frame = frames[0].copy()
+    for i in range(len(history) - 1):
+        h0 = history[i][status.flatten() == 1]
+        h1 = history[i+1][status.flatten() == 1]
+        for j, k in zip(h0, h1):
+            j = tuple(j.flatten().astype(int))
+            k = tuple(k.flatten().astype(int))
+            cv2.line(frame, j, k, 0x0000ff, 2)
+    cv2.imshow('frame', frame)
+    cv2.waitKey(0)
+    return original_points[status.flatten() == 1], p1[status.flatten() == 1], (x1, x2)
+
+def get_fundamental_matrix(p1_list, p2_list):
+    mu1 = np.mean(p1_list, axis=0)
+    mu2 = np.mean(p2_list, axis=0)
+    sigma1 = np.std(p1_list, axis=0)
+    sigma2 = np.std(p2_list, axis=0)
+    """
+    T = np.array([
+        [
+        ])
+    """
+    print(mu1, sigma1)
+    print(mu2, sigma2)
+    return None
+
+
+
+#K = get_K_matrix()
+frames, gray_frames = get_frames_for_video()
+first_frame_points, last_frame_points, correspond = get_correspondences(frames, gray_frames)
+F = get_fundamental_matrix(correspond[0], correspond[1])
