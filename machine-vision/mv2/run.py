@@ -115,25 +115,94 @@ def get_correspondences(frames, gray_frames):
             cv2.line(frame, j, k, 0x0000ff, 2)
     cv2.imshow('frame', frame)
     cv2.waitKey(0)
-    return original_points[status.flatten() == 1], p1[status.flatten() == 1], (x1, x2)
+    return original_points[status.flatten() == 1], p1[status.flatten() == 1], (x1, x2), history
+
+CXX = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 0]])
 
 def get_fundamental_matrix(p1_list, p2_list):
+    def get_T(m, s):
+        T = np.array([
+            [   1/s[0],    0,          -m[0]/s[0],  ],
+            [   0,         1/s[1],     -m[1]/s[1],  ],
+            [   0,         0,          1,           ],
+            ])
+        return T
     mu1 = np.mean(p1_list, axis=0)
     mu2 = np.mean(p2_list, axis=0)
     sigma1 = np.std(p1_list, axis=0)
     sigma2 = np.std(p2_list, axis=0)
+    T1 = get_T(mu1, sigma1)
+    T2 = get_T(mu2, sigma2)
+    y1 = np.matmul(T1, p1_list.T).T
+    y2 = np.matmul(T2, p2_list.T).T
+    chosen = np.array([False] * y1.shape[0], dtype=bool)
+    chosen[np.random.choice(y1.shape[0], 8, replace=False)] = True
+    yy1 = y1[chosen]
+    yy2 = y2[chosen]
+
+    A = np.zeros((0,9), dtype=np.float32)
+    for x1, x2 in zip(yy1, yy2):
+        A = np.append(A, [np.kron(x1.T, x2.T)], axis=0)
+    U,S,V = np.linalg.svd(A)
+    F = V[8,:].reshape(3,3).T
+    # Enforce singularity
+    U,S,V = np.linalg.svd(F)
+    F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), V))
+    # Verify it is indeed singular
     """
-    T = np.array([
-        [
-        ])
+    if np.linalg.det(F) < 1.0e-10:
+        print("F is singular")
+    else:
+        print(f"F is not singular {np.linalg.det(F)}")
     """
-    print(mu1, sigma1)
-    print(mu2, sigma2)
-    return None
+    assert(np.linalg.det(F) < 1.0e-10)
+    F = T2.T @ F @ T1
+    """
+    if np.linalg.det(F) < 1.0e-10:
+        print("F is singular")
+    else:
+        print(f"F is not singular {np.linalg.det(F)}")
+    """
+    assert(np.linalg.det(F) < 1.0e-10)
+
+    # Must take the original points before multiplication with T1 and T2
+    yy1 = p1_list[chosen == False]
+    yy2 = p2_list[chosen == False]
+    gi = np.zeros((0, 1))
+    
+    kkkk = 0
+    for x1, x2 in zip(yy1, yy2):
+        kkkk += 1
+        x1 = x1.reshape((3,1,))
+        x2 = x2.reshape((3,1,))
+        gi = np.append(gi, x2.T @ F @ x1)
+
+    sigma2 = np.zeros((0, 1))
+    for x1, x2 in zip(yy1, yy2):
+        x1 = x1.reshape((3,1,))
+        x2 = x2.reshape((3,1,))
+        s2 = x1.T @ F @ CXX @ F.T @ x1 + x2.T @ F.T @ CXX @ F @ x2
+        sigma2 = np.append(sigma2, s2.reshape((1,)))
+    T = np.square(gi) / sigma2
+    is_outlier = (T > 6.635)
+    inliers_sum = sum(T[T <= 6.635])
+    n_outliers = np.sum(is_outlier)
+
+    return F, n_outliers, inliers_sum, is_outlier
 
 
 
 #K = get_K_matrix()
 frames, gray_frames = get_frames_for_video()
-first_frame_points, last_frame_points, correspond = get_correspondences(frames, gray_frames)
-F = get_fundamental_matrix(correspond[0], correspond[1])
+first_frame_points, last_frame_points, correspond, history = get_correspondences(frames, gray_frames)
+outliers = []
+F_matrices = []
+outliers_array = []
+for i in range(10000):
+    F, n_out, inliers_sum, outlier_arr = get_fundamental_matrix(correspond[0], correspond[1])
+    outliers.append(n_out)
+    F_matrices.append(F)
+    outliers_array.append(outlier_arr)
+index = np.argmin(np.array(outliers))
+print(outliers[index])
+print(F_matrices[index])
