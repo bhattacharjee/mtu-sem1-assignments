@@ -22,7 +22,7 @@ def get_checkerboard(gridsize):
         if ret:
             corners = cv2.cornerSubPix(image, corners, (11, 11), (-1, -1), STOP_CRITERIA)
             #for c in corners:
-            #    cv2.circle(or_images[n], (int(c[0][0]), int(c[0][1])), 3, 0xff0000, 5)
+            #    cv2.circle(or_images[n], (int(c[0][0]), int(c[0][1])), 3, (255, 0, 0), 5)
             cv2.drawChessboardCorners(or_images[n], gridsize, corners, ret)
             cv2.imshow('image', or_images[n])
             cv2.waitKey(0)
@@ -90,7 +90,7 @@ def get_correspondences(frames, gray_frames):
             p1 = cv2.cornerSubPix(old_gray, p1, (11, 11), (-1, -1), STOP_CRITERIA)
             frame = frame.copy()
             for m, point in enumerate(p1[status.flatten() == 1]):
-                cv2.circle(frame, (int(point[0,0]), int(point[0,1])), 2, 0xff0000, 2)
+                cv2.circle(frame, (int(point[0,0]), int(point[0,1])), 2, (255,0,0), 2)
             cv2.imshow('frame', frame)
             cv2.waitKey(VIDEO_DELAY)
             p = p1
@@ -112,10 +112,11 @@ def get_correspondences(frames, gray_frames):
         for j, k in zip(h0, h1):
             j = tuple(j.flatten().astype(int))
             k = tuple(k.flatten().astype(int))
-            cv2.line(frame, j, k, 0x0000ff, 2)
+            cv2.line(frame, j, k, (0,0,255), 2)
     cv2.imshow('frame', frame)
     cv2.waitKey(0)
-    return original_points[status.flatten() == 1], p1[status.flatten() == 1], (x1, x2), history
+    return original_points[status.flatten() == 1], p1[status.flatten() == 1], \
+            (x1, x2), history, status.flatten()
 
 CXX = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 0]])
 
@@ -165,24 +166,27 @@ def get_fundamental_matrix(p1_list, p2_list):
     """
     assert(np.linalg.det(F) < 1.0e-10)
 
+    # NOTE:
+    # The problem description says that gi and s^2 must be calculated
+    # only for the other points, but we do it for all the points
+    # anyway because it makes it easier for the caller to work with the
+    # original indices. The 8 points included here would all be inliers
+    #
     # Must take the original points before multiplication with T1 and T2
-    yy1 = p1_list[chosen == False]
-    yy2 = p2_list[chosen == False]
+    yy1 = p1_list.copy() #[chosen == False]
+    yy2 = p2_list.copy() #[chosen == False]
+
     gi = np.zeros((0, 1))
+    sigma2 = np.zeros((0, 1))
     
-    kkkk = 0
     for x1, x2 in zip(yy1, yy2):
-        kkkk += 1
         x1 = x1.reshape((3,1,))
         x2 = x2.reshape((3,1,))
         gi = np.append(gi, x2.T @ F @ x1)
-
-    sigma2 = np.zeros((0, 1))
-    for x1, x2 in zip(yy1, yy2):
-        x1 = x1.reshape((3,1,))
-        x2 = x2.reshape((3,1,))
         s2 = x1.T @ F @ CXX @ F.T @ x1 + x2.T @ F.T @ CXX @ F @ x2
         sigma2 = np.append(sigma2, s2.reshape((1,)))
+
+
     T = np.square(gi) / sigma2
     is_outlier = (T > 6.635)
     inliers_sum = sum(T[T <= 6.635])
@@ -190,19 +194,63 @@ def get_fundamental_matrix(p1_list, p2_list):
 
     return F, n_outliers, inliers_sum, is_outlier
 
+def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
+    e1 = tuple(e1.tolist()[:2])
+    e2 = tuple(e2.tolist()[:2])
+    for i in range(1, len(frames)):
+        frame = frames[i].copy()
+        cv2.circle(frame, (int(e1[0]), int(e1[1])), 2, (0, 255, 0), 5)
+        cv2.circle(frame, (int(e2[0]), int(e2[1])), 2, (0, 0, 255), 5)
+        for j in range(i):
+            p1s = history[j]
+            p2s = history[j+1]
+            for x, y in zip(p1s[is_outlier_array], p2s[is_outlier_array]):
+                cv2.line(frame, tuple(x.flatten().astype(int)), \
+                        tuple(y.flatten().astype(int)), (100, 100, 255), 2)
+            for x, y in zip(p1s[is_outlier_array == False], p2s[is_outlier_array == False]):
+                cv2.line(frame, tuple(x.flatten().astype(int)), \
+                        tuple(y.flatten().astype(int)), (255, 0, 0), 2)
+        cv2.imshow(desc, frame)
+        cv2.waitKey(50)
+    cv2.waitKey(0)
 
+def get_best_fundamental_matrix(correspond):
+    n_outliers = None
+    F = None
+    outliers_array = []
+    least_outliers = len(correspond[0])
+    max_inliers_sum = 0
+    is_outlier_array = None
+    for i in range(10000):
+        f, n_out, inliers_sum, outlier_arr = \
+                get_fundamental_matrix(correspond[0], correspond[1])
+        if n_out < least_outliers or \
+                (n_out == least_outliers and max_inliers_sum < inliers_sum):
+            least_outliers = n_out
+            max_inliers_sum = inliers_sum
+            F = f
+            is_outlier_array = outlier_arr
+    return F, n_outliers, outliers_array, is_outlier_array
+            
+def calculate_epipoles(F):
+    U,S,V = np.linalg.svd(F)    
+    e1 = V[2,:]
+    U,S,V = np.linalg.svd(F.T)    
+    e2 = V[2,:]
+    return e1,e2    
 
-#K = get_K_matrix()
+K = get_K_matrix()
 frames, gray_frames = get_frames_for_video()
-first_frame_points, last_frame_points, correspond, history = get_correspondences(frames, gray_frames)
-outliers = []
-F_matrices = []
-outliers_array = []
-for i in range(10000):
-    F, n_out, inliers_sum, outlier_arr = get_fundamental_matrix(correspond[0], correspond[1])
-    outliers.append(n_out)
-    F_matrices.append(F)
-    outliers_array.append(outlier_arr)
-index = np.argmin(np.array(outliers))
-print(outliers[index])
-print(F_matrices[index])
+first_frame_points, last_frame_points, correspond, history, status = \
+                get_correspondences(frames, gray_frames)
+F, n_outliers, outliers_array, is_outlier_array = get_best_fundamental_matrix(correspond)
+
+# Get rid of all the points that disappeared somewhere in between
+for n, h in enumerate(history):
+    history[n] = h[status == 1]
+
+e1, e2 = calculate_epipoles(F)
+e1 = np.divide(e1, e1[2])
+e2 = np.divide(e2, e2[2])
+plot_tracks(frames, history, is_outlier_array, e1, e2, "Plot inliers and outliers tracks")
+
