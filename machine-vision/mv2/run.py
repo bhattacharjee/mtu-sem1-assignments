@@ -21,8 +21,6 @@ def get_checkerboard(gridsize):
         ret, corners = cv2.findChessboardCorners(image, gridsize, 11)
         if ret:
             corners = cv2.cornerSubPix(image, corners, (11, 11), (-1, -1), STOP_CRITERIA)
-            #for c in corners:
-            #    cv2.circle(or_images[n], (int(c[0][0]), int(c[0][1])), 3, (255, 0, 0), 5)
             cv2.drawChessboardCorners(or_images[n], gridsize, corners, ret)
             cv2.imshow('image', or_images[n])
             cv2.waitKey(0)
@@ -195,12 +193,12 @@ def get_fundamental_matrix(p1_list, p2_list):
     return F, n_outliers, inliers_sum, is_outlier
 
 def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
-    e1 = tuple(e1.tolist()[:2])
-    e2 = tuple(e2.tolist()[:2])
+    e1 = tuple(e1.astype(int).tolist()[:2])
+    e2 = tuple(e2.astype(int).tolist()[:2])
     for i in range(1, len(frames)):
         frame = frames[i].copy()
-        cv2.circle(frame, (int(e1[0]), int(e1[1])), 2, (0, 255, 0), 5)
-        cv2.circle(frame, (int(e2[0]), int(e2[1])), 2, (0, 0, 255), 5)
+        cv2.circle(frame, e1, 2, (0, 255, 0), 5)
+        cv2.circle(frame, e2, 2, (0, 0, 255), 5)
         for j in range(i):
             p1s = history[j]
             p2s = history[j+1]
