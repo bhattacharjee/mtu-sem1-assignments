@@ -237,18 +237,21 @@ def calculate_epipoles(F):
     e2 = V[2,:]
     return e1,e2    
 
-K = get_K_matrix()
-frames, gray_frames = get_frames_for_video()
-first_frame_points, last_frame_points, correspond, history, status = \
-                get_correspondences(frames, gray_frames)
-F, n_outliers, outliers_array, is_outlier_array = get_best_fundamental_matrix(correspond)
+def main():
+    K = get_K_matrix()
+    frames, gray_frames = get_frames_for_video()
+    first_frame_points, last_frame_points, correspond, history, status = \
+                    get_correspondences(frames, gray_frames)
+    F, n_outliers, outliers_array, is_outlier_array = get_best_fundamental_matrix(correspond)
 
-# Get rid of all the points that disappeared somewhere in between
-for n, h in enumerate(history):
-    history[n] = h[status == 1]
+    # Get rid of all the points that disappeared somewhere in between
+    for n, h in enumerate(history):
+        history[n] = h[status == 1]
 
-e1, e2 = calculate_epipoles(F)
-e1 = np.divide(e1, e1[2])
-e2 = np.divide(e2, e2[2])
-plot_tracks(frames, history, is_outlier_array, e1, e2, "Plot inliers and outliers tracks")
+    e1, e2 = calculate_epipoles(F)
+    e1 = np.divide(e1, e1[2])
+    e2 = np.divide(e2, e2[2])
+    plot_tracks(frames, history, is_outlier_array, e1, e2, "Plot inliers and outliers tracks")
 
+if "__main__" == __name__:
+    main()
