@@ -13,14 +13,15 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 
 def get_checkerboard(gridsize):
-    image_files = glob.glob("Assignment_MV_02_calibration*.png")
-    images = [cv2.cvtColor(cv2.imread(fname), cv2.COLOR_BGR2GRAY) for fname in image_files]
-    or_images = [cv2.imread(fname) for fname in image_files]
+    imfiles = glob.glob("Assignment_MV_02_calibration*.png")
+    images = [cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2GRAY) for f in imfiles]
+    or_images = [cv2.imread(fname) for fname in imfiles]
     corner_array_subpix = []
     for n, image in enumerate(images):
         ret, corners = cv2.findChessboardCorners(image, gridsize, 11)
         if ret:
-            corners = cv2.cornerSubPix(image, corners, (11, 11), (-1, -1), STOP_CRITERIA)
+            corners = cv2.cornerSubPix(image, corners, (11, 11), \
+                    (-1, -1), STOP_CRITERIA)
             cv2.drawChessboardCorners(or_images[n], gridsize, corners, ret)
             cv2.imshow('image', or_images[n])
             cv2.waitKey(0)
@@ -31,7 +32,7 @@ def get_checkerboard(gridsize):
 
 def get_calibration_matrix(gridsize, images, corner_array_subpix):
     object3d = np.zeros((1, gridsize[0] * gridsize[1], 3), np.float32)
-    object3d[0, :, :2] = np.mgrid[0:gridsize[0], 0:gridsize[1]].T.reshape(-1, 2)
+    object3d[0,:,:2] = np.mgrid[0:gridsize[0], 0:gridsize[1]].T.reshape(-1, 2)
     worldpoints = []
     camerapoints = []
     for corners in corner_array_subpix:
@@ -64,7 +65,8 @@ def get_frames_for_video():
 
 def get_K_matrix():
     images, or_images, corner_array_subpix = get_checkerboard(GRIDSIZE)
-    ret, K, distortion, R, T = get_calibration_matrix(GRIDSIZE, images, corner_array_subpix)
+    ret, K, distortion, R, T = get_calibration_matrix(GRIDSIZE, images,\
+            corner_array_subpix)
     return K
 
 def get_homogenous(x):
@@ -73,7 +75,8 @@ def get_homogenous(x):
 
 def get_correspondences(frames, gray_frames):
     p0 = cv2.goodFeaturesToTrack(gray_frames[0], 200, 0.3, 7) # shape = 109,1,2
-    p0 = cv2.cornerSubPix(gray_frames[0], p0, (11, 11), (-1, -1), STOP_CRITERIA)
+    p0 = cv2.cornerSubPix(gray_frames[0], p0, (11, 11),\
+            (-1, -1), STOP_CRITERIA)
     original_points = p0.copy()
     old_gray = gray_frames[0]
     frames = frames[1:]
@@ -85,10 +88,12 @@ def get_correspondences(frames, gray_frames):
         p = p0
         for n, (frame, gray,) in enumerate(zip(frames, gray_frames)):
             p1, status, err = cv2.calcOpticalFlowPyrLK(old_gray, gray, p, None)
-            p1 = cv2.cornerSubPix(old_gray, p1, (11, 11), (-1, -1), STOP_CRITERIA)
+            p1 = cv2.cornerSubPix(old_gray, p1, (11, 11), \
+                    (-1, -1), STOP_CRITERIA)
             frame = frame.copy()
             for m, point in enumerate(p1[status.flatten() == 1]):
-                cv2.circle(frame, (int(point[0,0]), int(point[0,1])), 2, (255,0,0), 2)
+                cv2.circle(frame, (int(point[0,0]), int(point[0,1])), \
+                        2, (255,0,0), 2)
             cv2.imshow('frame', frame)
             cv2.waitKey(VIDEO_DELAY)
             p = p1
@@ -97,7 +102,8 @@ def get_correspondences(frames, gray_frames):
 
     x1 = np.zeros((0, 3,), dtype=np.float32)
     x2 = np.zeros((0, 3,), dtype=np.float32)
-    for i, j in zip(original_points[status.flatten() == 1], p1[status.flatten() == 1]):
+    for i, j in zip(original_points[status.flatten() == 1], \
+                    p1[status.flatten() == 1]):
         i = get_homogenous(i)
         j = get_homogenous(j)
         x1 = np.append(x1, i.reshape(1, 3), axis=0)
@@ -205,7 +211,8 @@ def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
             for x, y in zip(p1s[is_outlier_array], p2s[is_outlier_array]):
                 cv2.line(frame, tuple(x.flatten().astype(int)), \
                         tuple(y.flatten().astype(int)), (100, 100, 255), 2)
-            for x, y in zip(p1s[is_outlier_array == False], p2s[is_outlier_array == False]):
+            for x, y in zip(p1s[is_outlier_array == False], \
+                            p2s[is_outlier_array == False]):
                 cv2.line(frame, tuple(x.flatten().astype(int)), \
                         tuple(y.flatten().astype(int)), (255, 0, 0), 2)
         cv2.imshow(desc, frame)
@@ -242,7 +249,8 @@ def main():
     frames, gray_frames = get_frames_for_video()
     first_frame_points, last_frame_points, correspond, history, status = \
                     get_correspondences(frames, gray_frames)
-    F, n_outliers, outliers_array, is_outlier_array = get_best_fundamental_matrix(correspond)
+    F, n_outliers, outliers_array, is_outlier_array = \
+                    get_best_fundamental_matrix(correspond)
 
     # Get rid of all the points that disappeared somewhere in between
     for n, h in enumerate(history):
@@ -251,7 +259,8 @@ def main():
     e1, e2 = calculate_epipoles(F)
     e1 = np.divide(e1, e1[2])
     e2 = np.divide(e2, e2[2])
-    plot_tracks(frames, history, is_outlier_array, e1, e2, "Plot inliers and outliers tracks")
+    plot_tracks(frames, history, is_outlier_array, e1, e2, \
+            "Plot inliers and outliers tracks")
 
 if "__main__" == __name__:
     main()
