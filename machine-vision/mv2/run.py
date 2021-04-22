@@ -193,8 +193,12 @@ def get_fundamental_matrix(p1_list, p2_list):
 
     T = np.square(gi) / sigma2
     is_outlier = (T > 6.635)
-    inliers_sum = sum(T[T <= 6.635])
-    n_outliers = np.sum(is_outlier)
+    # To calculate the sum of inliers, only consider points
+    # other than the 8 we used to calculate the F matrix
+    inliers_sum = sum(T[chosen == False][T[chosen == False] <= 6.635])
+    # While calculating number of outliers, only consider those points
+    # other than the 8 we used to calculate the F matrix
+    n_outliers = np.sum(is_outlier[chosen == False])
 
     return F, n_outliers, inliers_sum, is_outlier
 
@@ -226,7 +230,7 @@ def get_best_fundamental_matrix(correspond):
     least_outliers = len(correspond[0])
     max_inliers_sum = 0
     is_outlier_array = None
-    for i in range(10000):
+    for i in range(100):
         f, n_out, inliers_sum, outlier_arr = \
                 get_fundamental_matrix(correspond[0], correspond[1])
         if n_out < least_outliers or \
