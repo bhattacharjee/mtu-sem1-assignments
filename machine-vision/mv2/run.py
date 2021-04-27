@@ -263,9 +263,18 @@ def calculate_epipoles(F):
 def get_essential_matrix(K, F):
     E = np.linalg.inv(K) @ F @ K
     U,S,V = np.linalg.svd(E)
+    # Ensure S[0] and S[1] are the same
     S[0] = (S[0] + S[1]) / 2
     S[1] = S[0]
-    S[2] = 0
+    # S[2] is turning out to be very small (e-15) but not zero, force zero
+    S[2] = 0                
+    # Ensure U and V have non negative determinant
+    if np.linalg.det(U) < 0:
+        U[:,2] *= -1
+    if np.linalg.det(V) < 0:
+        V[:,2] *= -1
+    # Reconstruct fixed E
+    E = U @ np.diag(S) @ V.T
     return E, U, S, V
 
 def main():
