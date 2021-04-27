@@ -13,7 +13,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 100
+F_ITERATIONS = 10
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -83,12 +83,12 @@ def get_correspondence_array(X1, X2, K):
     directions = []
     for i, j in zip(X1, X2):
         # Convert to homogenous coordinates
-        i = np.append(i.flatten().reshape(1,2), np.ones((1, 1))).reshape(1,3)
-        j = np.append(j.flatten().reshape(1,2), np.ones((1, 1))).reshape(1,3)
+        i = np.append(i.flatten().reshape(1,2), np.ones((1, 1))).reshape(3,1)
+        j = np.append(j.flatten().reshape(1,2), np.ones((1, 1))).reshape(3,1)
         ret.append((i, j,))
-        m = np.linalg.inv(K) @ i.T
-        n = np.linalg.inv(K) @ j.T
-        directions.append((m.T, n.T,))
+        m = np.linalg.inv(K) @ i
+        n = np.linalg.inv(K) @ j
+        directions.append((m, n,))
     return ret, directions
 
 def get_correspondences(frames, gray_frames):
@@ -296,9 +296,9 @@ def get_translation_rotation(U, S, V, beta=1):
     W, Z = get_w_v()
     T1 = beta * (U @ Z @ U.T)
     T2 = -1 * T1
-    R1 = U @ W @ V.T
-    R2 = U @ W.T @ V.T
-    return T1, T2, R1, R2
+    R1_T = U @ W @ V.T
+    R2_T = U @ W.T @ V.T
+    return T1, T2, R1_T, R2_T
 
 def get_distance_from_speed(fps, n_frames, speed):
     t = n_frames / fps
@@ -328,7 +328,7 @@ def main():
 
 
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
-    T1, T2, R1, R2 = get_translation_rotation(E_U, E_S, E_V,\
+    T1, T2, R1_T, R2_T = get_translation_rotation(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
     t1 = T1[:,2].reshape(3,1)
     t2 = T2[:,2].reshape(3,1)
@@ -340,13 +340,44 @@ def main():
     print(T2)
     print(t2)
     print("R1")
-    print(R1)
+    print(R1_T.T)
     print("R2")
-    print(R2)
+    print(R2_T.T)
 
-    print ("R = ", R1.shape)
+    print ("R = ", R1_T.shape)
     print ("T = ", T1.shape)
     print ("m = ", cor_directions_m[0][0].shape)
+    print ("m = ", cor_points_x[0][0].shape)
+
+    def solve(m, md, R, t):
+        x1 = t.T @ m
+        x2 = t.T @ R @ md
+        RHM = np.append(x1, x2, axis=0)
+
+        x1 = np.matmul(m.T, m).flatten()[0]
+        x2 = -1 * np.matmul(m.T, np.matmul(R, md)).flatten()[0]
+        x3 = np.matmul(m.T, np.matmul(R, md)).flatten()[0]
+        x4 = -1 * np.matmul(md.T, md).flatten()[0]
+        LHM = np.array([[x1, x2], [x3, x4]])
+
+        uv = np.linalg.inv(LHM) @ RHM
+
+        return tuple(uv.flatten().tolist())
+
+
+    m = cor_directions_m[0][0]
+    md = cor_directions_m[0][1]
+
+    u, v = solve(m, md, R1_T.T, t1)
+    if not (u >= 0 and v >= 0):
+        u, v = solve(m, md, R1_T.T, t2)
+    if not (u >= 0 and v >= 0):
+        u, v = solve(m, md, R2_T.T, t1)
+    if not (u >= 0 and v >= 0):
+        u, v = solve(m, md, R2_T.T, t2)
+
+    l, mu = u, v
+
 
 
 
