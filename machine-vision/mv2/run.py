@@ -62,7 +62,7 @@ def get_frames_for_video():
             gray_frames.append(gray)
     cap.release()
     cv2.destroyAllWindows()
-    return frames, gray_frames
+    return len(frames), frames, gray_frames
 
 
 
@@ -277,9 +277,32 @@ def get_essential_matrix(K, F):
     E = U @ np.diag(S) @ V.T
     return E, U, S, V
 
+def get_w_v():
+    W = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
+    Z = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 0]])
+    return W, Z
+
+def get_translation_rotation(U, S, V, beta=1):
+    W, Z = get_w_v()
+    T1 = beta * (U @ Z @ U.T)
+    T2 = -1 * T1
+    R1 = U @ W @ V.T
+    R2 = U @ W.T @ V.T
+    print('-' * 100)
+    print(T1)
+    print(T2)
+    print(R1)
+    print(R2)
+    return T1, T2, R1, R2
+
+def get_distance_from_speed(fps, n_frames, speed):
+    t = n_frames / fps
+    print(speed * t * 5. / 18.)
+    return speed * t * 5. / 18.
+
 def main():
     K = get_K_matrix()
-    frames, gray_frames = get_frames_for_video()
+    n_frames, frames, gray_frames = get_frames_for_video()
     first_frame_points, last_frame_points, correspond, history, status = \
                     get_correspondences(frames, gray_frames)
     F, n_outliers, outliers_array, is_outlier_array = \
@@ -304,6 +327,8 @@ def main():
         print(f"{i}: {x} <--> {y}")
 
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
+    T1, T2, R1, R2 = get_translation_rotation(E_U, E_S, E_V,\
+                                beta=get_distance_from_speed(30, n_frames, 50))
 
 
 
