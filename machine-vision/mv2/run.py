@@ -305,10 +305,13 @@ def get_distance_from_speed(fps, n_frames, speed):
     return speed * t * 5. / 18.
 
 def main():
+    # Task 1
     K = get_K_matrix()
     n_frames, frames, gray_frames = get_frames_for_video()
     first_frame_points, last_frame_points, correspond, history, status = \
                     get_correspondences(frames, gray_frames)
+
+    # Task 2
     F, n_outliers, outliers_array, is_outlier_array = \
                     get_best_fundamental_matrix(correspond)
 
@@ -327,6 +330,7 @@ def main():
     cor_points_x, cor_directions_m = get_correspondence_array(X1, X2, K)
 
 
+    # Task 3
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
     T1, T2, R1_T, R2_T = get_translation_rotation(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
