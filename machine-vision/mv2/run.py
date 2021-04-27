@@ -13,6 +13,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
+F_ITERATIONS = 100
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -249,7 +250,7 @@ def get_best_fundamental_matrix(correspond):
     least_outliers = len(correspond[0])
     max_inliers_sum = 0
     is_outlier_array = None
-    for i in range(100):
+    for i in range(F_ITERATIONS):
         f, n_out, inliers_sum, outlier_arr = \
                 get_fundamental_matrix(correspond[0], correspond[1])
         if n_out < least_outliers or \
@@ -331,6 +332,7 @@ def main():
                                 beta=get_distance_from_speed(30, n_frames, 50))
     t1 = T1[:,2].reshape(3,1)
     t2 = T2[:,2].reshape(3,1)
+
     print("T1")
     print(T1)
     print(t1)
