@@ -77,11 +77,18 @@ def get_homogenous(x):
     return np.array([x[0], x[1], 1])
 
 # Takes two arrays and creates an array of tuples
-def get_correspondence_array(X1, X2):
+def get_correspondence_array(X1, X2, K):
     ret = []
+    directions = []
     for i, j in zip(X1, X2):
-        ret.append((i.flatten().tolist(), j.flatten().tolist(),))
-    return ret
+        # Convert to homogenous coordinates
+        i = np.append(i.flatten().reshape(1,2), np.ones((1, 1))).reshape(1,3)
+        j = np.append(j.flatten().reshape(1,2), np.ones((1, 1))).reshape(1,3)
+        ret.append((i, j,))
+        m = np.linalg.inv(K) @ i.T
+        n = np.linalg.inv(K) @ j.T
+        directions.append((m.T, n.T,))
+    return ret, directions
 
 def get_correspondences(frames, gray_frames):
     p0 = cv2.goodFeaturesToTrack(gray_frames[0], 200, 0.3, 7) # shape = 109,1,2
@@ -297,7 +304,6 @@ def get_translation_rotation(U, S, V, beta=1):
 
 def get_distance_from_speed(fps, n_frames, speed):
     t = n_frames / fps
-    print(speed * t * 5. / 18.)
     return speed * t * 5. / 18.
 
 def main():
@@ -320,7 +326,9 @@ def main():
 
     X1 = history[0][is_outlier_array]
     X2 = history[-1][is_outlier_array]
-    corresp = get_correspondence_array(X1, X2)
+    corresp_points, corresp_directions = get_correspondence_array(X1, X2, K)
+    print(corresp_directions)
+    print("==== ", corresp[0][0].shape, K.shape)
     print(corresp)
 
     for i, (x, y) in enumerate(zip(X1, X2)):
