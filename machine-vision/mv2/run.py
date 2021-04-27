@@ -329,6 +329,22 @@ def main():
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
     T1, T2, R1, R2 = get_translation_rotation(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
+    t1 = T1[:,2].reshape(3,1)
+    t2 = T2[:,2].reshape(3,1)
+    print("T1")
+    print(T1)
+    print(t1)
+    print("T2")
+    print(T2)
+    print(t2)
+    print("R1")
+    print(R1)
+    print("R2")
+    print(R2)
+
+    print ("R = ", R1.shape)
+    print ("T = ", T1.shape)
+    print ("m = ", cor_directions_m[0][0].shape)
 
 
 
