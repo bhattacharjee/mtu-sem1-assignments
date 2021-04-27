@@ -323,11 +323,8 @@ def main():
 
     X1 = history[0][is_outlier_array == False]
     X2 = history[-1][is_outlier_array == False]
-    print(len(X1), "inliers ")
-    corresp_points, corresp_directions = get_correspondence_array(X1, X2, K)
+    cor_points_x, cor_directions_m = get_correspondence_array(X1, X2, K)
 
-    for i, (x, y) in enumerate(zip(X1, X2)):
-        print(f"{i}: {x} <--> {y}")
 
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
     T1, T2, R1, R2 = get_translation_rotation(E_U, E_S, E_V,\
