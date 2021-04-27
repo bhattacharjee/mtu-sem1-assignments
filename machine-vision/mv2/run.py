@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
+PLAY_VIDEO = False
+DRAW_CHECKERBOARD = False
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -22,9 +24,10 @@ def get_checkerboard(gridsize):
         if ret:
             corners = cv2.cornerSubPix(image, corners, (11, 11), \
                     (-1, -1), STOP_CRITERIA)
-            cv2.drawChessboardCorners(or_images[n], gridsize, corners, ret)
-            cv2.imshow('image', or_images[n])
-            cv2.waitKey(0)
+            if DRAW_CHECKERBOARD:
+                cv2.drawChessboardCorners(or_images[n], gridsize, corners, ret)
+                cv2.imshow('image', or_images[n])
+                cv2.waitKey(0)
             corner_array_subpix.append(corners)
         else:
             corner_array_subpix.append([])
@@ -73,6 +76,13 @@ def get_homogenous(x):
     x = x.flatten()
     return np.array([x[0], x[1], 1])
 
+# Takes two arrays and creates an array of tuples
+def get_correspondence_array(X1, X2):
+    ret = []
+    for i, j in zip(X1, X2):
+        ret.append((i.flatten().tolist(), j.flatten().tolist(),))
+    return ret
+
 def get_correspondences(frames, gray_frames):
     p0 = cv2.goodFeaturesToTrack(gray_frames[0], 200, 0.3, 7) # shape = 109,1,2
     p0 = cv2.cornerSubPix(gray_frames[0], p0, (11, 11),\
@@ -94,8 +104,9 @@ def get_correspondences(frames, gray_frames):
             for m, point in enumerate(p1[status.flatten() == 1]):
                 cv2.circle(frame, (int(point[0,0]), int(point[0,1])), \
                         2, (255,0,0), 2)
-            cv2.imshow('frame', frame)
-            cv2.waitKey(VIDEO_DELAY)
+            if PLAY_VIDEO:
+                cv2.imshow('frame', frame)
+                cv2.waitKey(VIDEO_DELAY)
             p = p1
             old_gray = gray
             history.append(p)
@@ -219,8 +230,9 @@ def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
                             p2s[is_outlier_array == False]):
                 cv2.line(frame, tuple(x.flatten().astype(int)), \
                         tuple(y.flatten().astype(int)), (255, 0, 0), 2)
-        cv2.imshow(desc, frame)
-        cv2.waitKey(50)
+        if PLAY_VIDEO:
+            cv2.imshow(desc, frame)
+            cv2.waitKey(VIDEO_DELAY)
     cv2.waitKey(0)
 
 def get_best_fundamental_matrix(correspond):
@@ -248,6 +260,14 @@ def calculate_epipoles(F):
     e2 = V[2,:]
     return e1,e2    
 
+def get_essential_matrix(K, F):
+    E = np.linalg.inv(K) @ F @ K
+    U,S,V = np.linalg.svd(E)
+    S[0] = (S[0] + S[1]) / 2
+    S[1] = S[0]
+    S[2] = 0
+    return E, U, S, V
+
 def main():
     K = get_K_matrix()
     frames, gray_frames = get_frames_for_video()
@@ -265,6 +285,18 @@ def main():
     e2 = np.divide(e2, e2[2])
     plot_tracks(frames, history, is_outlier_array, e1, e2, \
             "Plot inliers and outliers tracks")
+
+    X1 = history[0][is_outlier_array]
+    X2 = history[-1][is_outlier_array]
+    corresp = get_correspondence_array(X1, X2)
+    print(corresp)
+
+    for i, (x, y) in enumerate(zip(X1, X2)):
+        print(f"{i}: {x} <--> {y}")
+
+    E, E_U, E_S, E_V = get_essential_matrix(K, F)
+
+
 
 if "__main__" == __name__:
     main()
