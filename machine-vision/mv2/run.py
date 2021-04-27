@@ -289,17 +289,14 @@ def get_w_v():
     Z = np.array([[0, 1, 0], [-1, 0, 0], [0, 0, 0]])
     return W, Z
 
+# Get the two possible translation and two possible rotation matrices
+# These can be combined into four combinations
 def get_translation_rotation(U, S, V, beta=1):
     W, Z = get_w_v()
     T1 = beta * (U @ Z @ U.T)
     T2 = -1 * T1
     R1 = U @ W @ V.T
     R2 = U @ W.T @ V.T
-    print('-' * 100)
-    print(T1)
-    print(T2)
-    print(R1)
-    print(R2)
     return T1, T2, R1, R2
 
 def get_distance_from_speed(fps, n_frames, speed):
@@ -324,12 +321,10 @@ def main():
     plot_tracks(frames, history, is_outlier_array, e1, e2, \
             "Plot inliers and outliers tracks")
 
-    X1 = history[0][is_outlier_array]
-    X2 = history[-1][is_outlier_array]
+    X1 = history[0][is_outlier_array == False]
+    X2 = history[-1][is_outlier_array == False]
+    print(len(X1), "inliers ")
     corresp_points, corresp_directions = get_correspondence_array(X1, X2, K)
-    print(corresp_directions)
-    print("==== ", corresp[0][0].shape, K.shape)
-    print(corresp)
 
     for i, (x, y) in enumerate(zip(X1, X2)):
         print(f"{i}: {x} <--> {y}")
