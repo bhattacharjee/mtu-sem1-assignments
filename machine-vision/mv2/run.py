@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3 
 
 import os
 import cv2
@@ -15,6 +15,7 @@ VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
 F_ITERATIONS = 10
+DEBUG = True
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -307,7 +308,14 @@ def get_translation_rotation(U, S, V, beta=1):
     T2 = -1 * T1
     R1_T = U @ W @ V.T
     R2_T = U @ W.T @ V.T
-    if __debug__:
+
+    print(T1)
+    print(T2)
+    M = np.linalg.inv(R1_T) @ T1
+    print("======== M = \n", M, "\n", M.T)
+    M = np.linalg.inv(R2_T) @ T1
+    print("======== M = \n", M, "\n", M.T)
+    if __debug__ or DEBUG:
         print('-------------------------------------------------------------------------')
         print(f"calculated T1 = \n{T1}")
         print(f"calculated R1 = \n{R1_T.T}")
@@ -319,10 +327,11 @@ def get_distance_from_speed(fps, n_frames, speed):
     return speed * t * 5. / 18.
 
 def print_validation_matrix(E, beta):
-    if __debug__:
+    if __debug__ or DEBUG:
         R1, R2, T = cv2.decomposeEssentialMat(E)
         print('-------------------------------------------------------------------------')
         print("From CV2")
+        print('&&&---------------------------------------------&&&&&&&')
         print(f"cv2 T1        = \n{T * beta}")
         print(f"cv2 R1        = \n{R1.T}")
         print(f"cv2 R2        = \n{R2.T}")
@@ -361,17 +370,22 @@ def main():
     print_validation_matrix(E, beta=get_distance_from_speed(30, n_frames, 50))
 
     def solve(m, md, R, t):
-        x1 = t.T @ m
-        x2 = t.T @ R @ md
-        RHM = np.append(x1, x2, axis=0)
+        r1 = m.T @ m
+        r1 = np.append(r1, -1 * (m.T @ R @ md), axis=1)
+        r2 = m.T @ R @ md
+        r2 = np.append(r2, -1 * (md.T @ md), axis=1)
+        LHS = np.append(r1, r2, axis=0)
 
-        x1 = np.matmul(m.T, m).flatten()[0]
-        x2 = -1 * np.matmul(m.T, np.matmul(R, md)).flatten()[0]
-        x3 = np.matmul(m.T, np.matmul(R, md)).flatten()[0]
-        x4 = -1 * np.matmul(md.T, md).flatten()[0]
-        LHM = np.array([[x1, x2], [x3, x4]])
+        # convert 3x3 skew symmetric matrix to a 3x1 matrix
+        t = np.array([[t[1,2]], [-t[0,2]], [t[0,1]]])
+        if __debug__ or DEBUG:
+            print(t)
 
-        uv = np.linalg.inv(LHM) @ RHM
+        r1 = t.T @ m
+        r2 = t.T @ R @ md
+        RHS = np.append(r1, r2, axis=0)
+
+        uv = np.linalg.inv(LHS) @ RHS
 
         return tuple(uv.flatten().tolist())
 
@@ -379,13 +393,13 @@ def main():
     m = cor_directions_m[0][0]
     md = cor_directions_m[0][1]
 
-    u, v = solve(m, md, R1_T.T, t1)
+    u, v = solve(m, md, R1_T.T, T1)
     if not (u >= 0 and v >= 0):
-        u, v = solve(m, md, R1_T.T, t2)
+        u, v = solve(m, md, R1_T.T, T2)
     if not (u >= 0 and v >= 0):
-        u, v = solve(m, md, R2_T.T, t1)
+        u, v = solve(m, md, R2_T.T, T1)
     if not (u >= 0 and v >= 0):
-        u, v = solve(m, md, R2_T.T, t2)
+        u, v = solve(m, md, R2_T.T, T2)
 
     l, mu = u, v
 
