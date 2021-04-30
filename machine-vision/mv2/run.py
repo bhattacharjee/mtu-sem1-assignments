@@ -8,6 +8,7 @@ import time
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
@@ -283,6 +284,14 @@ def get_essential_matrix(K, F):
         V[:,2] *= -1
     # Reconstruct fixed E
     E = U @ np.diag(S) @ V.T
+    # Calculate the SVD again
+    U, S, V = np.linalg.svd(E)
+
+    # It turns out that S[2] is a very small value in the order
+    # of 1.0e-16, we just force it to be zero here
+    S[2] = 0.
+    # Task: Make sure that S[0] and S[1] are the same
+    assert(np.abs(S[0] - S[1]) < 1.0e-10)
     return E, U, S, V
 
 def get_w_v():
@@ -298,11 +307,26 @@ def get_translation_rotation(U, S, V, beta=1):
     T2 = -1 * T1
     R1_T = U @ W @ V.T
     R2_T = U @ W.T @ V.T
+    if __debug__:
+        print('-------------------------------------------------------------------------')
+        print(f"calculated T1 = \n{T1}")
+        print(f"calculated R1 = \n{R1_T.T}")
+        print(f"calculated R2 = \n{R2_T.T}")
     return T1, T2, R1_T, R2_T
 
 def get_distance_from_speed(fps, n_frames, speed):
     t = n_frames / fps
     return speed * t * 5. / 18.
+
+def print_validation_matrix(E, beta):
+    if __debug__:
+        R1, R2, T = cv2.decomposeEssentialMat(E)
+        print('-------------------------------------------------------------------------')
+        print("From CV2")
+        print(f"cv2 T1        = \n{T * beta}")
+        print(f"cv2 R1        = \n{R1.T}")
+        print(f"cv2 R2        = \n{R2.T}")
+        print("=========================================================================")
 
 def main():
     # Task 1
@@ -334,24 +358,7 @@ def main():
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
     T1, T2, R1_T, R2_T = get_translation_rotation(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
-    t1 = T1[:,2].reshape(3,1)
-    t2 = T2[:,2].reshape(3,1)
-
-    print("T1")
-    print(T1)
-    print(t1)
-    print("T2")
-    print(T2)
-    print(t2)
-    print("R1")
-    print(R1_T.T)
-    print("R2")
-    print(R2_T.T)
-
-    print ("R = ", R1_T.shape)
-    print ("T = ", T1.shape)
-    print ("m = ", cor_directions_m[0][0].shape)
-    print ("m = ", cor_points_x[0][0].shape)
+    print_validation_matrix(E, beta=get_distance_from_speed(30, n_frames, 50))
 
     def solve(m, md, R, t):
         x1 = t.T @ m
@@ -381,8 +388,6 @@ def main():
         u, v = solve(m, md, R2_T.T, t2)
 
     l, mu = u, v
-
-
 
 
 if "__main__" == __name__:
