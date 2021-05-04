@@ -381,40 +381,40 @@ def solve(m, md, R, t):
     r2 = t.T @ R @ md
     RHS = np.append(r1, r2, axis=0)
 
-    uv = np.linalg.inv(LHS) @ RHS
+    lambda_mu = np.linalg.inv(LHS) @ RHS
 
-    return tuple(uv.flatten().tolist())
+    return tuple(lambda_mu.flatten().tolist())
 
 def get_best_r_t(r_t_list, cor_directions_m):
-    # For each combination R, T, calculate the u,v
+    # For each combination R, T, calculate the lambda, mu
     # for each set of correspondences
     # Find the R, T where the biggest number of inlier
     # points are there
-    # Inliers are those where u >= 0 and v >= 0
-    best_positive_uv_count = 0
+    # Inliers are those where lambda >= 0 and mu >= 0
+    best_positive_lambda_mu_count = 0
     best_R = None
     best_T = None
 
     for (R, T) in r_t_list:
-        positive_uv_count = 0
+        positive_lambda_mu_count = 0
         for (m, md) in cor_directions_m:
-            u, v = solve(m, md, R, T)
-            if u >= 0 and v >= 0:
-                positive_uv_count += 1
-        if positive_uv_count > best_positive_uv_count:
-            best_positive_uv_count = positive_uv_count
+            lmbda , mu = solve(m, md, R, T)
+            if lmbda >= 0 and mu >= 0:
+                positive_lambda_mu_count += 1
+        if positive_lambda_mu_count > best_positive_lambda_mu_count:
+            best_positive_lambda_mu_count = positive_lambda_mu_count
             best_R = R
             best_T = T
     return best_R, best_T
 
 def get_inlier_correspondences(R, T, cor_points_x, cor_directions_m):
     # Find all outliers, that is ones which are behind
-    # the camera, where either u or v are negative
+    # the camera, where either lambda or mu are negative
     out_cor_points = []
     out_cor_directions = []
     for i, (m, md) in enumerate(cor_directions_m):
-        u, v = solve(m, md, R, T)
-        if u >= 0 and v >= 0:
+        lmbda, mu = solve(m, md, R, T)
+        if lmbda >= 0 and mu >= 0:
             out_cor_directions.append((m, md, ))
             out_cor_points.append(cor_points_x[i])
     return out_cor_points, out_cor_directions
