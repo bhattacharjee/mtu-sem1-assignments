@@ -245,6 +245,12 @@ def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
             cv2.waitKey(VIDEO_DELAY)
     cv2.waitKey(0)
 
+def unskew(m):
+    x1 = -1 * m[1][2]
+    x2 = m[0][2]
+    x3 = m[1][0]
+    return np.array([[x1], [x2], [x3]])
+
 def get_best_fundamental_matrix(correspond):
     n_outliers = None
     F = None
