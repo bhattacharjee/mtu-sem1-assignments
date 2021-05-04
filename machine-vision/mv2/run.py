@@ -15,7 +15,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10#_000
+F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = False
 PLOT_X_MU = False
@@ -315,42 +315,21 @@ def get_w_v():
 # Get the two possible translation and two possible rotation matrices
 # These can be combined into four combinations
 def get_translation_rotation(U, S, V, beta=1):
-    W, Z = get_w_v()
-    T1 = beta * (U @ Z @ U.T)
-    T2 = -1 * T1
-    R1_T = U @ W @ V.T
-    R2_T = U @ W.T @ V.T
-
-    if __debug__ and DEBUG:
-        print(T2)
-        M = np.linalg.inv(R1_T) @ T1
-        print("======== M = \n", M, "\n", M.T)
-        M = np.linalg.inv(R2_T) @ T1
-        print("======== M = \n", M, "\n", M.T)
-        print('-' * 80)
-        print(f"calculated T1 = \n{T1}")
-        print(f"calculated R1 = \n{R1_T.T}")
-        print(f"calculated R2 = \n{R2_T.T}")
-    return [(R1_T.T, T1), (R1_T.T, T2), (R2_T.T, T1), (R2_T.T, T2)]
-
-# Get the two possible translation and two possible rotation matrices
-# These can be combined into four combinations
-def get_translation_rotation2(U, S, V, beta=1):
     matrices = []
     W, Z = get_w_v()
     RT_T1 = unskew(beta * (U @ Z @ U.T))
-    RT_T2 = unskew(-beta * (U @ Z @ U.T))
+    RT_T2 = -1 * RT_T1
     R1_T = U @ W @ V.T
     R2_T = U @ W.T @ V.T
 
-    T = np.linalg.inv(R1_T) @ RT_T1
-    matrices.append((R1_T.T, T, ))
-    T = np.linalg.inv(R2_T) @ RT_T1
-    matrices.append((R2_T.T, T, ))
-    T = np.linalg.inv(R1_T) @ RT_T2
-    matrices.append((R1_T.T, T, ))
-    T = np.linalg.inv(R2_T) @ RT_T2
-    matrices.append((R2_T.T, T, ))
+    def append_matrices(matrices, R_T, R_T_T):
+        T = np.linalg.inv(R_T) @ R_T_T
+        matrices.append((R_T.T, T, ))
+
+    append_matrices(matrices, R1_T, RT_T1)
+    append_matrices(matrices, R2_T, RT_T1)
+    append_matrices(matrices, R1_T, RT_T2)
+    append_matrices(matrices, R2_T, RT_T2)
 
     return matrices
 
@@ -421,8 +400,8 @@ def get_inlier_correspondences(R, T, cor_points_x, cor_directions_m):
     for i, (m, md) in enumerate(cor_directions_m):
         lmbda, mu = solve(m, md, R, T)
         if lmbda >= 0 and mu >= 0:
-            out_cor_directions.append((m, md, ))
             out_cor_points.append(cor_points_x[i])
+            out_cor_directions.append(cor_directions_m[i])
     return out_cor_points, out_cor_directions
 
 def verify_directions_converge(cor_directions_m):
@@ -472,6 +451,8 @@ class AnnotateThreeDimension(Annotation):
         Annotation.draw(self, renderer)
 
 def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
+    return # TODO: Remove this
+
     def plot_point(ax, p, clr='red', txt=None):
         x, y, z = tuple(p.tolist())
         ax.scatter3D(x, y, z, color=clr) 
@@ -499,6 +480,46 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
     plt.title("3 D plot of world points")
     plt.show()
 
+def normalize(x):
+    sh = x.shape
+    x = x / np.reshape(x, -1)[-1]
+    return np.reshape(x, sh)
+
+def get_reprojected_points(three_d_points, K, R, T):
+    def get_reprojected(p):
+        x = normalize(K @ p)
+        xd = normalize(K @ R.T @ (p - T))
+        return x, xd
+
+    reprojected = list()
+    for p in three_d_points:
+        x, xd = get_reprojected(p)
+        reprojected.append((x, xd,))
+        #print(np.reshape(p, -1), " ---> ", np.reshape(x,-1), np.reshape(xd,-1))
+    return reprojected
+
+def plot_reprojected(cor_x_pts, reprojected_x_pts):
+    def get_xy(x):
+        x = normalize(np.reshape(x, -1))
+        return x[:2]
+
+    def plot_rp(ax, orig, rep, clr1, clr2):
+        ax.scatter(orig[0], orig[1], color=clr1)
+        ax.scatter(rep[0], rep[1], color=clr2)
+        x_values = [orig[0], rep[0]]
+        y_values = [orig[1], rep[1]]
+        ax.plot(x_values, y_values, color='black')
+
+    fig, ax = plt.subplots(1, 2)
+    for orig, rep in zip(cor_x_pts, reprojected_x_pts):
+        x, x1 = orig[0], rep[0]
+        x = get_xy(x)
+        x1 = get_xy(x1)
+        plot_rp(ax[0], x, x1, 'red', 'blue')
+        x, x1 = orig[1], rep[1]
+        x = get_xy(x)
+        x1 = get_xy(x1)
+        plot_rp(ax[1], x, x1, 'green', 'yellow')
 
 def main():
     # Task 1
@@ -528,7 +549,7 @@ def main():
 
     # Task 3
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
-    r_t_matrices = get_translation_rotation2(E_U, E_S, E_V,\
+    r_t_matrices = get_translation_rotation(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
     print_validation_matrix(E, beta=get_distance_from_speed(30, n_frames, 50))
 
@@ -545,6 +566,14 @@ def main():
     c1, c2 = get_camera_centres(R, T)
     three_d_points, x_lmbda_3d, x_mu_3d = get_3d_points(R, T, cor_directions_m)
     create_3d_plot(c1, c2, three_d_points, x_lmbda_3d, x_mu_3d)
+    
+    # Get reprojected points
+    reprojected = get_reprojected_points(three_d_points, K, R, T)
+
+    plot_reprojected(cor_points_x, reprojected)
+    plot_reprojected(cor_points_x, get_reprojected_points(x_lmbda_3d, K, R, T))
+    plot_reprojected(cor_points_x, get_reprojected_points(x_mu_3d, K, R, T))
+    plt.show()
 
 
 if "__main__" == __name__:
