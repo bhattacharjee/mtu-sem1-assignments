@@ -7,7 +7,8 @@ import glob
 import time
 import numpy as np
 import matplotlib.pyplot as plt
-
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
@@ -435,7 +436,42 @@ def verify_directions_converge(cor_directions_m):
                 print(np.cross(m1, m2))
 
 def get_3d_points(R, T, cor_directions_m):
-    return None
+    three_d_points = list()
+    x_lambda_points = list()
+    x_mu_points = list()
+    for (m, md) in cor_directions_m:
+        lmbda, mu = solve(m, md, R, T)
+        x_lmbda = lmbda * m
+        x_mu = T + (mu * (R @ md))
+        x_average = (x_lmbda + x_mu) / 2
+        x_lambda_points.append(x_lmbda)
+        x_mu_points.append(x_mu)
+        three_d_points.append(x_average)
+    return three_d_points, x_lambda_points, x_mu_points
+
+def get_camera_centres(R, T):
+    c1 = np.reshape(np.array([0, 0, 0]), (3, 1, ))
+    c2 = T + c1
+    return c1, c2
+
+def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
+    def plot_point(ax, p, clr='red'):
+        x, y, z = tuple(p.tolist())
+        ax.scatter3D(x, y, z, color=clr)
+
+    fig = plt.figure()
+    ax = fig.gca(projection ="3d")
+    plot_point(ax, c1, clr='blue')
+    plot_point(ax, c2, clr='blue')
+    for p in three_d_points:
+        plot_point(ax, p)
+    for p in lmbda_pt:
+        plot_point(ax, p, clr='green')
+    for p in mu_pt:
+        plot_point(ax, p, clr='cyan')
+    plt.title("3 D plot of world points")
+    plt.show()
+
 
 def main():
     # Task 1
@@ -479,7 +515,9 @@ def main():
     verify_directions_converge(cor_directions_m)
 
 
-    three_d_points = get_3d_points(R, T, cor_directions_m)
+    c1, c2 = get_camera_centres(R, T)
+    three_d_points, x_lmbda_3d, x_mu_3d = get_3d_points(R, T, cor_directions_m)
+    create_3d_plot(c1, c2, three_d_points, x_lmbda_3d, x_mu_3d)
 
 
 if "__main__" == __name__:
