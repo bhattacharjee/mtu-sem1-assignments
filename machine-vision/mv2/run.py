@@ -386,6 +386,28 @@ def solve(m, md, R, t):
 
     return tuple(uv.flatten().tolist())
 
+def get_best_r_t(r_t_list, cor_directions_m):
+    # For each combination R, T, calculate the u,v
+    # for each set of correspondences
+    # Find the R, T where the biggest number of inlier
+    # points are there
+    # Inliers are those where u >= 0 and v >= 0
+    best_positive_uv_count = 0
+    best_R = None
+    best_T = None
+
+    for (R, T) in r_t_list:
+        positive_uv_count = 0
+        for (m, md) in cor_directions_m:
+            u, v = solve(m, md, R, T)
+            if u >= 0 and v >= 0:
+                positive_uv_count += 1
+        if positive_uv_count > best_positive_uv_count:
+            best_positive_uv_count = positive_uv_count
+            best_R = R
+            best_T = T
+    return best_R, best_T
+
 def main():
     # Task 1
     K = get_K_matrix()
@@ -427,7 +449,8 @@ def main():
         if u >= 0 and v >= 0:
             break
 
-    l, mu = u, v
+    R, T = get_best_r_t(r_t_matrices, cor_directions_m)
+    print(R, T)
 
 
 if "__main__" == __name__:
