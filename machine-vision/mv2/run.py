@@ -15,8 +15,13 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10_000
+F_ITERATIONS = 10#_000
 DEBUG = False
+PLOT_X_LAMBDA = False
+PLOT_X_MU = False
+
+from mpl_toolkits.mplot3d.proj3d import proj_transform
+from matplotlib.text import Annotation
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -339,13 +344,13 @@ def get_translation_rotation2(U, S, V, beta=1):
     R2_T = U @ W.T @ V.T
 
     T = np.linalg.inv(R1_T) @ RT_T1
-    matrices.append((R1_T, T, ))
+    matrices.append((R1_T.T, T, ))
     T = np.linalg.inv(R2_T) @ RT_T1
-    matrices.append((R2_T, T, ))
+    matrices.append((R2_T.T, T, ))
     T = np.linalg.inv(R1_T) @ RT_T2
-    matrices.append((R1_T, T, ))
+    matrices.append((R1_T.T, T, ))
     T = np.linalg.inv(R2_T) @ RT_T2
-    matrices.append((R2_T, T, ))
+    matrices.append((R2_T.T, T, ))
 
     return matrices
 
@@ -454,21 +459,43 @@ def get_camera_centres(R, T):
     c2 = T + c1
     return c1, c2
 
+class AnnotateThreeDimension(Annotation):
+    def __init__(self, s, coords, *args, **kwargs):
+        Annotation.__init__(self, s, *args, **kwargs)
+        self.x = coords[0]
+        self.y = coords[1]
+        self.z = coords[2]
+
+    def draw(self, renderer):
+        x, y, z = proj_transform(self.x, self.y, self.z, renderer.M)
+        self.xy=(x, y,)
+        Annotation.draw(self, renderer)
+
 def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
-    def plot_point(ax, p, clr='red'):
+    def plot_point(ax, p, clr='red', txt=None):
         x, y, z = tuple(p.tolist())
-        ax.scatter3D(x, y, z, color=clr)
+        ax.scatter3D(x, y, z, color=clr) 
+        # For some reason adding text labels doesn't quite work as expected
+        # Hence we'll just force this to be NONE for the moment
+        txt = None
+        if None != txt:
+            ax.text(x, y, z, txt, zorder=1, size=20, color='k')
+            AnnotateThreeDimension(txt, p.tolist(), 
+                    ax, fontsize=10, xytext=(-3,-3))
+                    #textcoords='offset points', ha='right',va='bottom')
 
     fig = plt.figure()
     ax = fig.gca(projection ="3d")
-    plot_point(ax, c1, clr='blue')
-    plot_point(ax, c2, clr='blue')
+    plot_point(ax, c1, clr='blue', txt='c1')
+    plot_point(ax, c2, clr='blue', txt='c2')
     for p in three_d_points:
         plot_point(ax, p)
-    for p in lmbda_pt:
-        plot_point(ax, p, clr='green')
-    for p in mu_pt:
-        plot_point(ax, p, clr='cyan')
+    if PLOT_X_LAMBDA:
+        for p in lmbda_pt:
+            plot_point(ax, p, clr='green')
+    if PLOT_X_MU:
+        for p in mu_pt:
+            plot_point(ax, p, clr='cyan')
     plt.title("3 D plot of world points")
     plt.show()
 
