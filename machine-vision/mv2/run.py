@@ -15,7 +15,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10_000
+F_ITERATIONS = 10#_000
 DEBUG = False
 PLOT_X_LAMBDA = False
 PLOT_X_MU = False
@@ -521,6 +521,24 @@ def plot_reprojected(cor_x_pts, reprojected_x_pts):
         x1 = get_xy(x1)
         plot_rp(ax[1], x, x1, 'green', 'yellow')
 
+def plot_reprojected2(cor_x_pts, reprojected_x_pts):
+    def get_xy(x):
+        x = normalize(np.reshape(x, -1))
+        return x[:2]
+
+    def plot_rp(ax, orig, rep, clr1, clr2):
+        ax.scatter(orig[0], orig[1], color=clr1)
+        ax.scatter(rep[0], rep[1], color=clr2)
+        x_values = [orig[0], rep[0]]
+        y_values = [orig[1], rep[1]]
+        ax.plot(x_values, y_values, color='black')
+
+    fig, ax = plt.subplots(nrows=1, ncols=1)
+    for orig, rep in zip(cor_x_pts, reprojected_x_pts):
+        x = get_xy(orig)
+        x1 = get_xy(rep)
+        plot_rp(ax, x, x1, 'red', 'blue')
+
 def main():
     # Task 1
     K = get_K_matrix()
@@ -557,6 +575,8 @@ def main():
     # Get the R and T matrices that fit the best
     R, T = get_best_r_t(r_t_matrices, cor_directions_m)
 
+    print("Determinant = ", np.linalg.det(R))
+
     # Discard outliers (points behind either camera)
     cor_points_x, cor_directions_m = get_inlier_correspondences(\
             R, T, cor_points_x, cor_directions_m)
@@ -573,6 +593,15 @@ def main():
     plot_reprojected(cor_points_x, reprojected)
     plot_reprojected(cor_points_x, get_reprojected_points(x_lmbda_3d, K, R, T))
     plot_reprojected(cor_points_x, get_reprojected_points(x_mu_3d, K, R, T))
+
+    # Plot X_mu against its projection and X_lambda against its projection
+    points_first_frame = [x[0] for x in cor_points_x]
+    first_frame_reprojected = [x[0] for x in get_reprojected_points(x_lmbda_3d, K, R, T)]
+    plot_reprojected2(points_first_frame, first_frame_reprojected)
+    points_last_frame = [x[1] for x in cor_points_x]
+    last_frame_reprojected = [x[1] for x in get_reprojected_points(x_mu_3d, K, R, T)]
+    plot_reprojected2(points_last_frame, last_frame_reprojected)
+
     plt.show()
 
 
