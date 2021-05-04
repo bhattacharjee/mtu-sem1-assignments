@@ -343,6 +343,26 @@ def print_validation_matrix(E, beta):
         print(f"cv2 R2        = \n{R2.T}")
         print("=========================================================================")
 
+def solve(m, md, R, t):
+    r1 = m.T @ m
+    r1 = np.append(r1, -1 * (m.T @ R @ md), axis=1)
+    r2 = m.T @ R @ md
+    r2 = np.append(r2, -1 * (md.T @ md), axis=1)
+    LHS = np.append(r1, r2, axis=0)
+
+    # convert 3x3 skew symmetric matrix to a 3x1 matrix
+    t = np.array([[t[1,2]], [-t[0,2]], [t[0,1]]])
+    if __debug__ or DEBUG:
+        print(t)
+
+    r1 = t.T @ m
+    r2 = t.T @ R @ md
+    RHS = np.append(r1, r2, axis=0)
+
+    uv = np.linalg.inv(LHS) @ RHS
+
+    return tuple(uv.flatten().tolist())
+
 def main():
     # Task 1
     K = get_K_matrix()
@@ -374,26 +394,6 @@ def main():
     T1, T2, R1_T, R2_T = get_translation_rotation(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
     print_validation_matrix(E, beta=get_distance_from_speed(30, n_frames, 50))
-
-    def solve(m, md, R, t):
-        r1 = m.T @ m
-        r1 = np.append(r1, -1 * (m.T @ R @ md), axis=1)
-        r2 = m.T @ R @ md
-        r2 = np.append(r2, -1 * (md.T @ md), axis=1)
-        LHS = np.append(r1, r2, axis=0)
-
-        # convert 3x3 skew symmetric matrix to a 3x1 matrix
-        t = np.array([[t[1,2]], [-t[0,2]], [t[0,1]]])
-        if __debug__ or DEBUG:
-            print(t)
-
-        r1 = t.T @ m
-        r2 = t.T @ R @ md
-        RHS = np.append(r1, r2, axis=0)
-
-        uv = np.linalg.inv(LHS) @ RHS
-
-        return tuple(uv.flatten().tolist())
 
 
     m = cor_directions_m[0][0]
