@@ -14,8 +14,8 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10
-DEBUG = True
+F_ITERATIONS = 10_000
+DEBUG = False
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -315,13 +315,12 @@ def get_translation_rotation(U, S, V, beta=1):
     R1_T = U @ W @ V.T
     R2_T = U @ W.T @ V.T
 
-    print(T1)
-    print(T2)
-    M = np.linalg.inv(R1_T) @ T1
-    print("======== M = \n", M, "\n", M.T)
-    M = np.linalg.inv(R2_T) @ T1
-    print("======== M = \n", M, "\n", M.T)
-    if __debug__ or DEBUG:
+    if __debug__ and DEBUG:
+        print(T2)
+        M = np.linalg.inv(R1_T) @ T1
+        print("======== M = \n", M, "\n", M.T)
+        M = np.linalg.inv(R2_T) @ T1
+        print("======== M = \n", M, "\n", M.T)
         print('-------------------------------------------------------------------------')
         print(f"calculated T1 = \n{T1}")
         print(f"calculated R1 = \n{R1_T.T}")
@@ -355,7 +354,7 @@ def get_distance_from_speed(fps, n_frames, speed):
     return speed * t * 5. / 18.
 
 def print_validation_matrix(E, beta):
-    if __debug__ or DEBUG:
+    if __debug__ and DEBUG:
         R1, R2, T = cv2.decomposeEssentialMat(E)
         print('-------------------------------------------------------------------------')
         print("From CV2")
@@ -375,7 +374,7 @@ def solve(m, md, R, t):
     if t.shape == (3, 3):
         # convert 3x3 skew symmetric matrix to a 3x1 matrix
         t = np.array([[t[1,2]], [-t[0,2]], [t[0,1]]])
-    if __debug__ or DEBUG:
+    if __debug__ and DEBUG:
         print(t)
 
     r1 = t.T @ m
@@ -407,6 +406,16 @@ def get_best_r_t(r_t_list, cor_directions_m):
             best_R = R
             best_T = T
     return best_R, best_T
+
+def get_inlier_correspondences(R, T, cor_directions_m):
+    # Find all outliers, that is ones which are behind
+    # the camera, where either u or v are negative
+    out_array = []
+    for (m, md) in cor_directions_m:
+        u, v = solve(m, md, R, T)
+        if u >= 0 and v >= 0:
+            out_array.append((m, md, ))
+    return out_array
 
 def main():
     # Task 1
@@ -441,16 +450,22 @@ def main():
     print_validation_matrix(E, beta=get_distance_from_speed(30, n_frames, 50))
 
 
-    m = cor_directions_m[0][0]
-    md = cor_directions_m[0][1]
-
-    for (R, T) in r_t_matrices:
-        u, v = solve(m, md, R, T)
-        if u >= 0 and v >= 0:
-            break
-
+    print(f"Correspondences = {len(cor_directions_m)}")
     R, T = get_best_r_t(r_t_matrices, cor_directions_m)
-    print(R, T)
+
+    print("R = \n", R)
+    print("T = \n", T)
+    # Discard outliers
+    cor_directions_m = get_inlier_correspondences(R, T, cor_directions_m)
+    print(f"inliers = {len(cor_directions_m)}")
+
+    for i in range(len(cor_directions_m) - 1):
+        for j in range(i, len(cor_directions_m)):
+            m1 = cor_directions_m[i][1]
+            m2 = cor_directions_m[j][1]
+            m1 = np.reshape(m1, -1)
+            m2 = np.reshape(m2, -1)
+            print(np.cross(m1, m2))
 
 
 if "__main__" == __name__:
