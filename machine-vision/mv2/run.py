@@ -15,7 +15,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10#_000
+F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = False
 PLOT_X_MU = False
@@ -285,24 +285,32 @@ def calculate_epipoles(F):
 def get_essential_matrix(K, F):
     E = np.linalg.inv(K) @ F @ K
     U,S,V = np.linalg.svd(E)
+
     # Ensure S[0] and S[1] are the same
     S[0] = (S[0] + S[1]) / 2
+    if S[0] < 0:
+        print("negative")
     S[1] = S[0]
     # S[2] is turning out to be very small (e-15) but not zero, force zero
     S[2] = 0                
-    # Ensure U and V have non negative determinant
-    if np.linalg.det(U) < 0:
-        U[:,2] *= -1
-    if np.linalg.det(V) < 0:
-        V[:,2] *= -1
+
     # Reconstruct fixed E
     E = U @ np.diag(S) @ V.T
     # Calculate the SVD again
     U, S, V = np.linalg.svd(E)
 
+    # Ensure U and V have non negative determinant
+    if np.linalg.det(U) < 0:
+        U[:,2] *= -1
+    if np.linalg.det(V) < 0:
+        V[2,:] *= -1
+
+    E = U @ np.diag(S) @ V.T
+
     # It turns out that S[2] is a very small value in the order
     # of 1.0e-16, we just force it to be zero here
     S[2] = 0.
+    print(U, S, V)
     # Task: Make sure that S[0] and S[1] are the same
     assert(np.abs(S[0] - S[1]) < 1.0e-10)
     return E, U, S, V
@@ -321,6 +329,15 @@ def get_translation_rotation(U, S, V, beta=1):
     RT_T2 = -1 * RT_T1
     R1_T = U @ W @ V.T
     R2_T = U @ W.T @ V.T
+
+    """
+    # TODO: check with others
+    print(np.linalg.det(R1_T.T), np.linalg.det(R2_T.T), np.linalg.det(R1_T), np.linalg.det(R2_T))
+    if np.linalg.det(R1_T) < 0:
+        R1_T = -1 * R1_T
+    if np.linalg.det(R2_T) < 0:
+        R2_T = -1 * R2_T
+    """
 
     def append_matrices(matrices, R_T, R_T_T):
         T = np.linalg.inv(R_T) @ R_T_T
@@ -576,6 +593,7 @@ def main():
     R, T = get_best_r_t(r_t_matrices, cor_directions_m)
 
     print("Determinant = ", np.linalg.det(R))
+
 
     # Discard outliers (points behind either camera)
     cor_points_x, cor_directions_m = get_inlier_correspondences(\
