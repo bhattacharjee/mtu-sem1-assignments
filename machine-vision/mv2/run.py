@@ -326,7 +326,29 @@ def get_translation_rotation(U, S, V, beta=1):
         print(f"calculated T1 = \n{T1}")
         print(f"calculated R1 = \n{R1_T.T}")
         print(f"calculated R2 = \n{R2_T.T}")
-    return T1, T2, R1_T, R2_T
+    return [(R1_T.T, T1), (R1_T.T, T2), (R2_T.T, T1), (R2_T.T, T2)]
+
+# Get the two possible translation and two possible rotation matrices
+# These can be combined into four combinations
+def get_translation_rotation2(U, S, V, beta=1):
+    matrices = []
+    W, Z = get_w_v()
+    RT_T1 = unskew(beta * (U @ Z @ U.T))
+    RT_T2 = unskew(-beta * (U @ Z @ U.T))
+    R1_T = U @ W @ V.T
+    R2_T = U @ W.T @ V.T
+
+    T = np.linalg.inv(R1_T) @ RT_T1
+    matrices.append((R1_T, T, ))
+    T = np.linalg.inv(R2_T) @ RT_T1
+    matrices.append((R2_T, T, ))
+    T = np.linalg.inv(R1_T) @ RT_T2
+    matrices.append((R1_T, T, ))
+    T = np.linalg.inv(R2_T) @ RT_T2
+    matrices.append((R2_T, T, ))
+
+    return matrices
+
 
 def get_distance_from_speed(fps, n_frames, speed):
     t = n_frames / fps
@@ -350,8 +372,9 @@ def solve(m, md, R, t):
     r2 = np.append(r2, -1 * (md.T @ md), axis=1)
     LHS = np.append(r1, r2, axis=0)
 
-    # convert 3x3 skew symmetric matrix to a 3x1 matrix
-    t = np.array([[t[1,2]], [-t[0,2]], [t[0,1]]])
+    if t.shape == (3, 3):
+        # convert 3x3 skew symmetric matrix to a 3x1 matrix
+        t = np.array([[t[1,2]], [-t[0,2]], [t[0,1]]])
     if __debug__ or DEBUG:
         print(t)
 
@@ -391,7 +414,7 @@ def main():
 
     # Task 3
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
-    T1, T2, R1_T, R2_T = get_translation_rotation(E_U, E_S, E_V,\
+    r_t_matrices = get_translation_rotation2(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
     print_validation_matrix(E, beta=get_distance_from_speed(30, n_frames, 50))
 
@@ -399,13 +422,10 @@ def main():
     m = cor_directions_m[0][0]
     md = cor_directions_m[0][1]
 
-    u, v = solve(m, md, R1_T.T, T1)
-    if not (u >= 0 and v >= 0):
-        u, v = solve(m, md, R1_T.T, T2)
-    if not (u >= 0 and v >= 0):
-        u, v = solve(m, md, R2_T.T, T1)
-    if not (u >= 0 and v >= 0):
-        u, v = solve(m, md, R2_T.T, T2)
+    for (R, T) in r_t_matrices:
+        u, v = solve(m, md, R, T)
+        if u >= 0 and v >= 0:
+            break
 
     l, mu = u, v
 
