@@ -19,7 +19,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10_000
+F_ITERATIONS = 10#_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -436,12 +436,12 @@ def get_3d_points(R, T, cor_directions_m):
     three_d_points = list()
     x_lambda_points = list()
     x_mu_points = list()
-    for (m, md) in cor_directions_m:
+    for i, (m, md) in enumerate(cor_directions_m):
         lmbda, mu = solve(m, md, R, T)
         x_lmbda = lmbda * m
         x_mu = T + (mu * (R @ md))
         xx, yy = normalize(x_lmbda.flatten()), normalize(x_mu.flatten())
-        print(xx, yy, np.sum(np.square(xx - yy)))
+        print(i, xx, yy, np.sum(np.square(xx - yy)))
         x_average = (x_lmbda + x_mu) / 2
         x_lambda_points.append(x_lmbda)
         x_mu_points.append(x_mu)
@@ -466,9 +466,12 @@ class AnnotateThreeDimension(Annotation):
         Annotation.draw(self, renderer)
 
 def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
-    def plot_point(ax, p, clr='red', txt=None):
+    def plot_point(ax, p, clr='red', txt=None, markr=None):
         x, y, z = tuple(p.tolist())
-        ax.scatter3D(x, y, z, color=clr) 
+        if markr:
+            ax.scatter3D(x, y, z, color=clr, marker=markr) 
+        else:
+            ax.scatter3D(x, y, z, color=clr)
         # For some reason adding text labels doesn't quite work as expected
         # Hence we'll just force this to be NONE for the moment
         txt = None
@@ -489,22 +492,22 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
 
     fig = plt.figure()
     ax = fig.gca(projection ="3d")
-    plot_point(ax, c1, clr='blue', txt='c1')
-    plot_point(ax, c2, clr='blue', txt='c2')
+    plot_point(ax, c1, clr='blue', txt='c1', markr='P')
+    plot_point(ax, c2, clr='blue', txt='c2', markr='P')
     for p in three_d_points:
-        plot_point(ax, p)
+        plot_point(ax, p, markr='o')
     if PLOT_X_LAMBDA:
         for p in lmbda_pt:
-            plot_point(ax, p, clr='green')
+            plot_point(ax, p, clr='green', markr='.')
     if PLOT_X_MU:
         for p in mu_pt:
-            plot_point(ax, p, clr='cyan')
+            plot_point(ax, p, clr='cyan', markr='.')
     if PLOT_X_LAMBDA:
         for p1, p2 in zip(lmbda_pt, three_d_points):
-            plot_line(ax, p1, p2, clr='yellow')
+            plot_line(ax, p1, p2, clr='black')
     if PLOT_X_MU:
         for p1, p2 in zip(mu_pt, three_d_points):
-            plot_line(ax, p1, p2, clr='yellow')
+            plot_line(ax, p1, p2, clr='black')
     plt.title("3 D plot of world points")
     plt.show()
 
