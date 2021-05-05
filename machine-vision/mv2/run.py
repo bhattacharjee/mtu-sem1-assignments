@@ -29,6 +29,16 @@ RANDOM_SEED = 0
 random.seed(RANDOM_SEED)
 np.random.seed(RANDOM_SEED)
 
+def wait_for_key_press():
+    print("\nPress enter to continue ... ")
+    cv2.waitKey(0)
+    print("Continuing ... OK\n")
+
+def plot_show():
+    print("\nClose the plot to continue ...")
+    plt.show()
+    print("Continuing ... OK\n")
+
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
     images = [cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2GRAY) for f in imfiles]
@@ -42,7 +52,7 @@ def get_checkerboard(gridsize):
             if DRAW_CHECKERBOARD:
                 cv2.drawChessboardCorners(or_images[n], gridsize, corners, ret)
                 cv2.imshow('image', or_images[n])
-                cv2.waitKey(0)
+                wait_for_key_press()
             corner_array_subpix.append(corners)
         else:
             corner_array_subpix.append([])
@@ -151,7 +161,7 @@ def get_correspondences(frames, gray_frames):
             k = tuple(k.flatten().astype(int))
             cv2.line(frame, j, k, (0,0,255), 2)
     cv2.imshow('frame', frame)
-    cv2.waitKey(0)
+    wait_for_key_press()
     return original_points[status.flatten() == 1], p1[status.flatten() == 1], \
             (x1, x2), history, status.flatten()
 
@@ -276,7 +286,7 @@ def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
         if PLAY_VIDEO:
             cv2.imshow(desc, frame)
             cv2.waitKey(VIDEO_DELAY)
-    cv2.waitKey(0)
+    wait_for_key_press()
 
 def unskew(m):
     x1 = -1 * m[1][2]
@@ -542,7 +552,7 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
         for p1, p2 in zip(mu_pt, three_d_points):
             plot_line(ax, p1, p2, clr='black')
     plt.title("3 D plot of world points")
-    plt.show()
+    plot_show()
 
 def normalize(x):
     sh = x.shape
@@ -585,6 +595,43 @@ def plot_reprojected(cor_x_pts, reprojected_x_pts):
         x = get_xy(x)
         x1 = get_xy(x1)
         plot_rp(ax[1], x, x1, 'blue', 'red')
+
+def plot_reprojected_on_img(\
+        first_frame,\
+        last_frame,\
+        cor_x_pts,\
+        reprojected_pts):
+    # Original points are in blue, reprojected in red
+    def get_xy(x):
+        x = normalize(np.reshape(x, -1))
+        return x[:2]
+
+    def plot_rp(fr, x, y):
+        x = tuple(x.flatten().astype(int).tolist())
+        y = tuple(y.flatten().astype(int).tolist())
+        cv2.line(fr, x, y, color=(0,255,0), thickness=2)
+        cv2.circle(fr, x, radius=2, color=(255,0,0), thickness=2)
+        cv2.circle(fr, y, radius=2, color=(0,0,255), thickness=2)
+
+    for orig, rep in zip(cor_x_pts, reprojected_pts):
+        x, x1 = orig[0], rep[0]
+        x = get_xy(x)
+        x1 = get_xy(x1)
+        plot_rp(first_frame, x, x1)
+
+    print("First frame")
+    cv2.imshow("Reprojection on first frame", first_frame)
+
+    for orig, rep in zip(cor_x_pts, reprojected_pts):
+        x, x1 = orig[1], rep[1]
+        x = get_xy(x)
+        x1 = get_xy(x1)
+        plot_rp(last_frame, x, x1)
+
+    print("Last frame")
+    cv2.imshow("Reprojection on last frame", last_frame)
+    wait_for_key_press()
+    pass
 
 def plot_reprojected2(cor_x_pts, reprojected_x_pts):
     def get_xy(x):
@@ -661,8 +708,9 @@ def main():
     reprojected = get_reprojected_points(three_d_points, K, R, T)
 
     plot_reprojected(cor_points_x, reprojected)
+    plot_reprojected_on_img(frames[0], frames[-1], cor_points_x, reprojected)
 
-    plt.show()
+    plot_show()
 
 
 if "__main__" == __name__:
