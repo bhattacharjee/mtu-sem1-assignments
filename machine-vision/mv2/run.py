@@ -19,11 +19,11 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10#_000
+F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
-RANDOM_SEED = 0
+RANDOM_SEED = 12345
 
 
 random.seed(RANDOM_SEED)
@@ -289,7 +289,7 @@ def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
     wait_for_key_press()
 
 def unskew(m):
-    x1 = -1 * m[1][2]
+    x1 = m[2][1]
     x2 = m[0][2]
     x3 = m[1][0]
     return np.array([[x1], [x2], [x3]])
@@ -402,15 +402,32 @@ def print_validation_matrix(E, beta):
         print('=' * 80)
 
 def solve(m, md, R, t):
+    """
     r1 = m.T @ m
     r1 = np.append(r1, -1 * (m.T @ R @ md), axis=1)
     r2 = m.T @ R @ md
     r2 = np.append(r2, -1 * (md.T @ md), axis=1)
-    LHS = np.append(r1, r2, axis=0)
+    LHS1 = np.append(r1, r2, axis=0)
+    """
+    a = m.T @ m
+    a = a.flatten().tolist()[0]
+    b = -1 * (m.T @ R @ md)
+    b = b.flatten().tolist()[0]
+    c = m.T @ R @ md
+    c = c.flatten().tolist()[0]
+    d = -1 * (md.T @ md)
+    d = d.flatten().tolist()[0]
+    LHS = np.array([[a, b], [c, d]])
+
+    """
+    for i in range(4):
+        print("asserting", i)
+        assert(LHS1.flatten().tolist()[i] == LHS.flatten().tolist()[i])
+    """
 
     if t.shape == (3, 3):
         # convert 3x3 skew symmetric matrix to a 3x1 matrix
-        t = np.array([[t[1,2]], [-t[0,2]], [t[0,1]]])
+        t = unskew(t)
     if __debug__ and DEBUG:
         print(t)
 
@@ -442,6 +459,7 @@ def get_best_r_t(r_t_list, cor_directions_m):
             best_positive_lambda_mu_count = positive_lambda_mu_count
             best_R = R
             best_T = T
+
     print("\nChosen Rotation Matrix =\n", best_R)
     print("Determinant of R = ", np.linalg.det(R), "\n")
     print("\nChosen Translation Matrix =\n", best_T)
@@ -610,8 +628,8 @@ def plot_reprojected_on_img(\
         x = tuple(x.flatten().astype(int).tolist())
         y = tuple(y.flatten().astype(int).tolist())
         cv2.line(fr, x, y, color=(0,255,0), thickness=2)
-        cv2.circle(fr, x, radius=2, color=(255,0,0), thickness=2)
-        cv2.circle(fr, y, radius=2, color=(0,0,255), thickness=2)
+        cv2.circle(fr, x, radius=4, color=(255,0,0), thickness=2)
+        cv2.circle(fr, y, radius=4, color=(0,0,255), thickness=2)
 
     for orig, rep in zip(cor_x_pts, reprojected_pts):
         x, x1 = orig[0], rep[0]
