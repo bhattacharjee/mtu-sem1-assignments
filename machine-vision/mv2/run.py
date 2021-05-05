@@ -19,7 +19,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10_000
+F_ITERATIONS = 10#_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -59,9 +59,9 @@ def get_calibration_matrix(gridsize, images, corner_array_subpix):
             camerapoints.append(corners)
     ret, matrix, distortion, rotation, translation = cv2.calibrateCamera(
         worldpoints, camerapoints, images[0].shape, None, None)
-    print(f"Focal lengths are {matrix[0, 0]}, {matrix[1, 1]}")
-    print(f"Principal point is ({matrix[0, 2]},{matrix[1, 2]})")
-    print(f"Calibration matrix is: \n{matrix}\n")
+    print(f"\nFocal lengths = {matrix[0, 0]}, {matrix[1, 1]}")
+    print(f"\nPrincipal point = ({matrix[0, 2]},{matrix[1, 2]})")
+    print(f"\nCalibration Matrix = \n{matrix}\n")
     return ret, matrix, distortion, rotation, translation
 
 def get_frames_for_video():
@@ -302,6 +302,8 @@ def get_best_fundamental_matrix(correspond):
         print("F is singular")
     else:
         print(f"F is not singular {np.linalg.det(F)}")
+
+    print("Fundamental Matrix =\n", F, "\n")
     return F, n_outliers, outliers_array, is_outlier_array
             
 def calculate_epipoles(F):
@@ -332,6 +334,8 @@ def get_essential_matrix(K, F):
 
     # Task: Make sure that S[0] and S[1] are the same
     assert(np.abs(S[0] - S[1]) < 1.0e-10)
+
+    print("Essential matrix =\n", E)
     return E, U, S, V
 
 def get_w_v():
@@ -426,6 +430,9 @@ def get_best_r_t(r_t_list, cor_directions_m):
             best_positive_lambda_mu_count = positive_lambda_mu_count
             best_R = R
             best_T = T
+    print("\nChosen Rotation Matrix =\n", best_R)
+    print("Determinant of R = ", np.linalg.det(R), "\n")
+    print("\nChosen Translation Matrix =\n", best_T)
     return best_R, best_T
 
 def get_inlier_correspondences(R, T, cor_points_x, cor_directions_m):
@@ -636,7 +643,6 @@ def main():
     # Get the R and T matrices that fit the best
     R, T = get_best_r_t(r_t_matrices, cor_directions_m)
 
-    print("Determinant of R = ", np.linalg.det(R))
 
 
     # Discard outliers (points behind either camera)
