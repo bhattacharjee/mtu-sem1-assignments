@@ -18,8 +18,8 @@ STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = True
-DRAW_CHECKERBOARD = False
-F_ITERATIONS = 100#_000
+DRAW_CHECKERBOARD = True
+F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -51,11 +51,11 @@ def get_checkerboard(gridsize):
                     (-1, -1), STOP_CRITERIA)
             if DRAW_CHECKERBOARD:
                 cv2.drawChessboardCorners(or_images[n], gridsize, corners, ret)
-                cv2.imshow('image', or_images[n])
-                wait_for_key_press()
+                cv2.imshow(f"checkerboard {n}", or_images[n])
             corner_array_subpix.append(corners)
         else:
             corner_array_subpix.append([])
+    wait_for_key_press()
     return images, or_images, corner_array_subpix
 
 def get_calibration_matrix(gridsize, images, corner_array_subpix):
