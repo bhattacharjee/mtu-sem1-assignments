@@ -491,7 +491,7 @@ def verify_directions_converge(cor_directions_m):
                 print(np.cross(m1, m2))
 
 def get_3d_points(R, T, cor_directions_m):
-    three_d_points = list()
+    mean_three_d_points = list()
     x_lambda_points = list()
     x_mu_points = list()
     for i, (m, md) in enumerate(cor_directions_m):
@@ -504,8 +504,8 @@ def get_3d_points(R, T, cor_directions_m):
         x_average = (x_lmbda + x_mu) / 2
         x_lambda_points.append(x_lmbda)
         x_mu_points.append(x_mu)
-        three_d_points.append(x_average)
-    return three_d_points, x_lambda_points, x_mu_points
+        mean_three_d_points.append(x_average)
+    return mean_three_d_points, x_lambda_points, x_mu_points
 
 def get_camera_centres(R, T):
     c1 = np.reshape(np.array([0, 0, 0]), (3, 1, ))
@@ -568,7 +568,7 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
     if PLOT_X_MU:
         for p1, p2 in zip(mu_pt, three_d_points):
             plot_line(ax, p1, p2, clr='black')
-    plt.title("3 D plot of world points")
+    plt.title("3 D plot of world points, X[lambda], X[mu] and their mean")
 
 def normalize(x):
     sh = x.shape
@@ -781,20 +781,30 @@ def main():
 
 
     c1, c2 = get_camera_centres(R, T)
-    three_d_points, x_lmbda_3d, x_mu_3d = get_3d_points(R, T, cor_directions_m)
-    create_3d_plot(c1, c2, three_d_points, x_lmbda_3d, x_mu_3d)
+    mean_three_d_points, x_lmbda_3d, x_mu_3d = get_3d_points(\
+                                                R, T, cor_directions_m)
+    create_3d_plot(c1, c2, mean_three_d_points, x_lmbda_3d, x_mu_3d)
     
     # Get reprojected points
-    reprojected = get_reprojected_points(three_d_points, K, R, T)
+    mean_reprojected = get_reprojected_points(mean_three_d_points, K, R, T)
 
-    plot_reprojected(cor_points_x, reprojected)
-    plot_reprojected_on_img(frames[0], frames[-1], cor_points_x, reprojected)
+    plot_reprojected(cor_points_x, mean_reprojected)
+    plot_reprojected_on_img(frames[0], frames[-1], \
+                                cor_points_x, mean_reprojected)
 
     # Another experiment
+    #
     # - Reproject X[lambda] on the first frame only
     # - Reproject X[mu] to the last frame only
     # and plot
     # Results - we see perfect reprojection
+    #
+    # This is becauase
+    # X[lambda] is the world coordinates in the units of the first camera
+    # X[mu] are the world coordinates in the units of the second camera
+    #
+    # And when we reproject, we get the correct 2-D coordinates
+    # in each camera
     plot_xlambda_xmu_reprojected_separately(\
             frames[0], frames[-1], cor_points_x, x_lmbda_3d, x_mu_3d, K, R, T)
 
