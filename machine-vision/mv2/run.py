@@ -17,9 +17,9 @@ from matplotlib.text import Annotation
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
-PLAY_VIDEO = False
+PLAY_VIDEO = True
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10#_000
+F_ITERATIONS = 100#_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -161,7 +161,6 @@ def get_correspondences(frames, gray_frames):
             k = tuple(k.flatten().astype(int))
             cv2.line(frame, j, k, (0,0,255), 2)
     cv2.imshow('frame', frame)
-    wait_for_key_press()
     return original_points[status.flatten() == 1], p1[status.flatten() == 1], \
             (x1, x2), history, status.flatten()
 
@@ -286,7 +285,6 @@ def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
         if PLAY_VIDEO:
             cv2.imshow(desc, frame)
             cv2.waitKey(VIDEO_DELAY)
-    wait_for_key_press()
 
 def unskew(m):
     x1 = m[2][1]
@@ -571,7 +569,6 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
         for p1, p2 in zip(mu_pt, three_d_points):
             plot_line(ax, p1, p2, clr='black')
     plt.title("3 D plot of world points")
-    plot_show()
 
 def normalize(x):
     sh = x.shape
@@ -605,6 +602,7 @@ def plot_reprojected(cor_x_pts, reprojected_x_pts):
 
     # Original points are in blue, reprojected in red
     fig, ax = plt.subplots(1, 2)
+    fig.suptitle("X [avg of mu and lambda] plotted onto first and last frame")
     for orig, rep in zip(cor_x_pts, reprojected_x_pts):
         x, x1 = orig[0], rep[0]
         x = get_xy(x)
@@ -621,6 +619,18 @@ def plot_reprojected_on_img(\
         cor_x_pts,\
         reprojected_pts):
     # Original points are in blue, reprojected in red
+
+    # This is a different plot, instead of plotting
+    # (X[mu] + X[lamgda])/2 into both the first and last frames
+    # here we reproject X[lambda] onto the first frame
+    # and reproject X[mu] onto the last frame
+    # and plot both in the image and on a graph
+    #
+    # We see that the reprojections completely align in this
+    # plot.
+
+    first_frame = first_frame.copy()
+    last_frame = last_frame.copy()
     def get_xy(x):
         x = normalize(np.reshape(x, -1))
         return x[:2]
@@ -639,7 +649,8 @@ def plot_reprojected_on_img(\
         plot_rp(first_frame, x, x1)
 
     print("First frame")
-    cv2.imshow("Reprojection on first frame", first_frame)
+    cv2.imshow("Reprojection of average(X[mu], X[lambda]) on first frame",\
+            first_frame)
 
     for orig, rep in zip(cor_x_pts, reprojected_pts):
         x, x1 = orig[1], rep[1]
@@ -648,8 +659,8 @@ def plot_reprojected_on_img(\
         plot_rp(last_frame, x, x1)
 
     print("Last frame")
-    cv2.imshow("Reprojection on last frame", last_frame)
-    wait_for_key_press()
+    cv2.imshow("Reprojection of average(X[mu], X[lambda]) on last frame",\
+            last_frame)
     pass
 
 def plot_reprojected2(cor_x_pts, reprojected_x_pts):
@@ -669,6 +680,56 @@ def plot_reprojected2(cor_x_pts, reprojected_x_pts):
         x = get_xy(orig)
         x1 = get_xy(rep)
         plot_rp(ax, x, x1, 'red', 'blue')
+
+def plot_xlambda_xmu_reprojected_separately(\
+        first_frame, last_frame, cor_points_x, x_lmbda_3d, x_mu_3d, K, R, T):
+
+    def get_xy(x):
+        x = normalize(np.reshape(x, -1))
+        return x[:2]
+
+    fig, ax = plt.subplots(nrows=1, ncols=2)
+    fig.suptitle("X[lambda] projected onto first frame and x[mu] to last")
+
+    def plot_rp(ax, orig, rep, clr1, clr2):
+        ax.scatter(orig[0], orig[1], color=clr1)
+        ax.scatter(rep[0], rep[1], color=clr2)
+        x_values = [orig[0], rep[0]]
+        y_values = [orig[1], rep[1]]
+        ax.plot(x_values, y_values, color='black')
+
+    def plot_rp_img(fr, x, y):
+        x = tuple(x.flatten().astype(int).tolist())
+        y = tuple(y.flatten().astype(int).tolist())
+        cv2.line(fr, x, y, color=(0,255,0), thickness=2)
+        cv2.circle(fr, x, radius=4, color=(255,0,0), thickness=2)
+        cv2.circle(fr, y, radius=8, color=(0,0,255), thickness=2)
+
+    def plot_points(ax, frame, o, r, titstr):
+        plot_rp(ax, o, r, "blue", "red")
+        plot_rp_img(frame, o, r)
+        pass
+
+
+    first_frame = first_frame.copy()
+    last_frame = last_frame.copy()
+    reprojected_lambda = get_reprojected_points(x_lmbda_3d, K, R, T)
+    reprojected_mu = get_reprojected_points(x_mu_3d, K, R, T)
+
+    for orig, rep in zip(cor_points_x, reprojected_lambda):
+        print(orig[0].flatten())
+        print(rep[0].flatten())
+        o = get_xy(orig[0])
+        r = get_xy(rep[0])
+        plot_points(ax[0], first_frame, o, r, "x[lambda] on first frame")
+
+    for orig, rep in zip(cor_points_x, reprojected_mu):
+        o = get_xy(orig[1])
+        r = get_xy(rep[1])
+        plot_points(ax[1], last_frame, o, r, "x[mu] on last frame")
+
+    cv2.imshow("X[lambda] re-projected onto first frame", first_frame)
+    cv2.imshow("X[mu] re-projeced onto last frame", last_frame)
 
 def main():
     # Task 1
@@ -729,6 +790,15 @@ def main():
     plot_reprojected(cor_points_x, reprojected)
     plot_reprojected_on_img(frames[0], frames[-1], cor_points_x, reprojected)
 
+    # Another experiment
+    # - Reproject X[lambda] on the first frame only
+    # - Reproject X[mu] to the last frame only
+    # and plot
+    # Results - we see perfect reprojection
+    plot_xlambda_xmu_reprojected_separately(\
+            frames[0], frames[-1], cor_points_x, x_lmbda_3d, x_mu_3d, K, R, T)
+
+    wait_for_key_press()
     plot_show()
 
 
