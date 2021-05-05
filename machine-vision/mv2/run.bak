@@ -9,25 +9,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import random
-from mpl_toolkits.mplot3d.proj3d import proj_transform
-from matplotlib.text import Annotation
-
 
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10_000
+F_ITERATIONS = 10#_000
 DEBUG = False
-PLOT_X_LAMBDA = True 
-PLOT_X_MU = True
-RANDOM_SEED = 0
+PLOT_X_LAMBDA = False
+PLOT_X_MU = False
 
-
-random.seed(RANDOM_SEED)
-np.random.seed(RANDOM_SEED)
+from mpl_toolkits.mplot3d.proj3d import proj_transform
+from matplotlib.text import Annotation
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -293,19 +287,26 @@ def get_essential_matrix(K, F):
     U,S,V = np.linalg.svd(E)
 
     # Ensure S[0] and S[1] are the same
-    S[0] = S[1] = ((S[0] + S[1]) / 2)
-
+    S[0] = S[1] = (S[0] + S[1]) / 2
     # S[2] is turning out to be very small (e-15) but not zero, force zero
-    S[2] = 0.
+    S[2] = 0                
+
+    # Reconstruct fixed E
+    E = U @ np.diag(S) @ V.T
+    # Calculate the SVD again
+    U, S, V = np.linalg.svd(E)
 
     # Ensure U and V have non negative determinant
     if np.linalg.det(U) < 0:
         U[:,2] *= -1
-    if np.linalg.det(V.T) < 0:
+    if np.linalg.det(V) < 0:
         V[2,:] *= -1
 
-    # Reconstruct fixed E
     E = U @ np.diag(S) @ V.T
+
+    # It turns out that S[2] is a very small value in the order
+    # of 1.0e-16, we just force it to be zero here
+    S[2] = 0.
 
     # Task: Make sure that S[0] and S[1] are the same
     assert(np.abs(S[0] - S[1]) < 1.0e-10)
@@ -328,7 +329,8 @@ def get_translation_rotation(U, S, V, beta=1):
 
     """
     # TODO: check with others
-    print(np.linalg.det(R1_T.T), np.linalg.det(R2_T.T), np.linalg.det(R1_T), np.linalg.det(R2_T))
+    print(np.linalg.det(R1_T.T), np.linalg.det(R2_T.T),\
+            np.linalg.det(R1_T), np.linalg.det(R2_T))
     if np.linalg.det(R1_T) < 0:
         R1_T = -1 * R1_T
     if np.linalg.det(R2_T) < 0:
@@ -440,9 +442,9 @@ def get_3d_points(R, T, cor_directions_m):
         lmbda, mu = solve(m, md, R, T)
         x_lmbda = lmbda * m
         x_mu = T + (mu * (R @ md))
-        xx, yy = normalize(x_lmbda.flatten()), normalize(x_mu.flatten())
-        print(xx, yy, np.sum(np.square(xx - yy)))
+        # TODO
         x_average = (x_lmbda + x_mu) / 2
+        x_average = np.cross(x_lmbda.flatten(), x_mu.flatten())
         x_lambda_points.append(x_lmbda)
         x_mu_points.append(x_mu)
         three_d_points.append(x_average)
@@ -466,6 +468,8 @@ class AnnotateThreeDimension(Annotation):
         Annotation.draw(self, renderer)
 
 def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
+    return # TODO: Remove this
+
     def plot_point(ax, p, clr='red', txt=None):
         x, y, z = tuple(p.tolist())
         ax.scatter3D(x, y, z, color=clr) 
@@ -477,15 +481,6 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
             AnnotateThreeDimension(txt, p.tolist(), 
                     ax, fontsize=10, xytext=(-3,-3))
                     #textcoords='offset points', ha='right',va='bottom')
-
-    def plot_line(ax, p1, p2, clr='red'):
-        p1 = p1.flatten().tolist()
-        p2 = p2.flatten().tolist()
-        x = [p1[0], p2[0]]
-        y = [p1[1], p2[1]]
-        z = [p1[2], p2[2]]
-        ax.plot(x, y, z, color=clr)
-
 
     fig = plt.figure()
     ax = fig.gca(projection ="3d")
@@ -499,12 +494,6 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
     if PLOT_X_MU:
         for p in mu_pt:
             plot_point(ax, p, clr='cyan')
-    if PLOT_X_LAMBDA:
-        for p1, p2 in zip(lmbda_pt, three_d_points):
-            plot_line(ax, p1, p2, clr='yellow')
-    if PLOT_X_MU:
-        for p1, p2 in zip(mu_pt, three_d_points):
-            plot_line(ax, p1, p2, clr='yellow')
     plt.title("3 D plot of world points")
     plt.show()
 
@@ -620,7 +609,6 @@ def main():
     reprojected = get_reprojected_points(three_d_points, K, R, T)
 
     plot_reprojected(cor_points_x, reprojected)
-    """
     plot_reprojected(cor_points_x, get_reprojected_points(x_lmbda_3d, K, R, T))
     plot_reprojected(cor_points_x, get_reprojected_points(x_mu_3d, K, R, T))
 
@@ -631,7 +619,6 @@ def main():
     points_last_frame = [x[1] for x in cor_points_x]
     last_frame_reprojected = [x[1] for x in get_reprojected_points(x_mu_3d, K, R, T)]
     plot_reprojected2(points_last_frame, last_frame_reprojected)
-    """
 
     plt.show()
 
