@@ -9,6 +9,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import random
+from mpl_toolkits.mplot3d.proj3d import proj_transform
+from matplotlib.text import Annotation
+
 
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
@@ -19,9 +23,11 @@ F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = False
 PLOT_X_MU = False
+RANDOM_SEED = 0
 
-from mpl_toolkits.mplot3d.proj3d import proj_transform
-from matplotlib.text import Annotation
+
+random.seed(RANDOM_SEED)
+np.random.seed(RANDOM_SEED)
 
 def get_checkerboard(gridsize):
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
@@ -287,30 +293,20 @@ def get_essential_matrix(K, F):
     U,S,V = np.linalg.svd(E)
 
     # Ensure S[0] and S[1] are the same
-    S[0] = (S[0] + S[1]) / 2
-    if S[0] < 0:
-        print("negative")
-    S[1] = S[0]
-    # S[2] is turning out to be very small (e-15) but not zero, force zero
-    S[2] = 0                
+    S[0] = S[1] = ((S[0] + S[1]) / 2)
 
-    # Reconstruct fixed E
-    E = U @ np.diag(S) @ V.T
-    # Calculate the SVD again
-    U, S, V = np.linalg.svd(E)
+    # S[2] is turning out to be very small (e-15) but not zero, force zero
+    S[2] = 0.
 
     # Ensure U and V have non negative determinant
     if np.linalg.det(U) < 0:
         U[:,2] *= -1
-    if np.linalg.det(V) < 0:
+    if np.linalg.det(V.T) < 0:
         V[2,:] *= -1
 
+    # Reconstruct fixed E
     E = U @ np.diag(S) @ V.T
 
-    # It turns out that S[2] is a very small value in the order
-    # of 1.0e-16, we just force it to be zero here
-    S[2] = 0.
-    print(U, S, V)
     # Task: Make sure that S[0] and S[1] are the same
     assert(np.abs(S[0] - S[1]) < 1.0e-10)
     return E, U, S, V
@@ -444,6 +440,8 @@ def get_3d_points(R, T, cor_directions_m):
         lmbda, mu = solve(m, md, R, T)
         x_lmbda = lmbda * m
         x_mu = T + (mu * (R @ md))
+        xx, yy = normalize(x_lmbda.flatten()), normalize(x_mu.flatten())
+        print(xx, yy, np.sum(np.square(xx - yy)))
         x_average = (x_lmbda + x_mu) / 2
         x_lambda_points.append(x_lmbda)
         x_mu_points.append(x_mu)
