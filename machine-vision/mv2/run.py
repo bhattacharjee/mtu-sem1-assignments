@@ -245,9 +245,11 @@ def get_fundamental_matrix(p1_list, p2_list):
 
     T = np.square(gi) / sigma2
     is_outlier = (T > 6.635)
+
     # To calculate the sum of inliers, only consider points
     # other than the 8 we used to calculate the F matrix
     inliers_sum = sum(T[chosen == False][T[chosen == False] <= 6.635])
+
     # While calculating number of outliers, only consider those points
     # other than the 8 we used to calculate the F matrix
     n_outliers = np.sum(is_outlier[chosen == False])
