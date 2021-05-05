@@ -19,7 +19,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10#_000
+F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -158,6 +158,13 @@ def get_correspondences(frames, gray_frames):
 CXX = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 0]])
 
 def get_fundamental_matrix(p1_list, p2_list):
+
+    FORCE_POSITIVE_DETERMINANT = False
+
+    # Setting it to false because it prints 100000 lines otherwise
+    CHECK_SINGULARITY_ON_EACH_ITERATION = False
+
+
     def get_T(m, s):
         T = np.array([
             [   1/s[0],    0,          -m[0]/s[0],  ],
@@ -165,6 +172,7 @@ def get_fundamental_matrix(p1_list, p2_list):
             [   0,         0,          1,           ],
             ])
         return T
+
     mu1 = np.mean(p1_list, axis=0)
     mu2 = np.mean(p2_list, axis=0)
     sigma1 = np.std(p1_list, axis=0)
@@ -183,24 +191,35 @@ def get_fundamental_matrix(p1_list, p2_list):
         A = np.append(A, [np.kron(x1.T, x2.T)], axis=0)
     U,S,V = np.linalg.svd(A)
     F = V[8,:].reshape(3,3).T
+
     # Enforce singularity
     U,S,V = np.linalg.svd(F)
+
+    if FORCE_POSITIVE_DETERMINANT:
+        if np.linalg.det(U) < 0:
+            U[:,2] *= -1
+        if np.linalg.det(V.T) < 0:
+            V[2,:] *= -1
+
     F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), V))
     # Verify it is indeed singular
-    """
-    if np.linalg.det(F) < 1.0e-10:
-        print("F is singular")
-    else:
-        print(f"F is not singular {np.linalg.det(F)}")
-    """
+    if CHECK_SINGULARITY_ON_EACH_ITERATION:
+        if np.linalg.det(F) < 1.0e-10:
+            print("F is singular")
+        else:
+            print(f"F is not singular {np.linalg.det(F)}")
+
+    # Assert singularity
     assert(np.linalg.det(F) < 1.0e-10)
     F = T2.T @ F @ T1
-    """
-    if np.linalg.det(F) < 1.0e-10:
-        print("F is singular")
-    else:
-        print(f"F is not singular {np.linalg.det(F)}")
-    """
+
+    if CHECK_SINGULARITY_ON_EACH_ITERATION:
+        if np.linalg.det(F) < 1.0e-10:
+            print("F is singular")
+        else:
+            print(f"F is not singular {np.linalg.det(F)}")
+
+    # Assert singularity
     assert(np.linalg.det(F) < 1.0e-10)
 
     # NOTE:
@@ -279,6 +298,10 @@ def get_best_fundamental_matrix(correspond):
             max_inliers_sum = inliers_sum
             F = f
             is_outlier_array = outlier_arr
+    if np.linalg.det(F) < 1.0e-10:
+        print("F is singular")
+    else:
+        print(f"F is not singular {np.linalg.det(F)}")
     return F, n_outliers, outliers_array, is_outlier_array
             
 def calculate_epipoles(F):
@@ -441,7 +464,8 @@ def get_3d_points(R, T, cor_directions_m):
         x_lmbda = lmbda * m
         x_mu = T + (mu * (R @ md))
         xx, yy = normalize(x_lmbda.flatten()), normalize(x_mu.flatten())
-        print(i, xx, yy, np.sum(np.square(xx - yy)))
+        if __debug__ and DEBUG:
+            print(i, xx, yy, np.sum(np.square(xx - yy)))
         x_average = (x_lmbda + x_mu) / 2
         x_lambda_points.append(x_lmbda)
         x_mu_points.append(x_mu)
@@ -541,16 +565,17 @@ def plot_reprojected(cor_x_pts, reprojected_x_pts):
         y_values = [orig[1], rep[1]]
         ax.plot(x_values, y_values, color='black')
 
+    # Original points are in blue, reprojected in red
     fig, ax = plt.subplots(1, 2)
     for orig, rep in zip(cor_x_pts, reprojected_x_pts):
         x, x1 = orig[0], rep[0]
         x = get_xy(x)
         x1 = get_xy(x1)
-        plot_rp(ax[0], x, x1, 'red', 'blue')
+        plot_rp(ax[0], x, x1, 'blue', 'red')
         x, x1 = orig[1], rep[1]
         x = get_xy(x)
         x1 = get_xy(x1)
-        plot_rp(ax[1], x, x1, 'green', 'yellow')
+        plot_rp(ax[1], x, x1, 'blue', 'red')
 
 def plot_reprojected2(cor_x_pts, reprojected_x_pts):
     def get_xy(x):
@@ -574,6 +599,8 @@ def main():
     # Task 1
     K = get_K_matrix()
     n_frames, frames, gray_frames = get_frames_for_video()
+
+    # Get correspondence points
     first_frame_points, last_frame_points, correspond, history, status = \
                     get_correspondences(frames, gray_frames)
 
@@ -585,9 +612,12 @@ def main():
     for n, h in enumerate(history):
         history[n] = h[status == 1]
 
+    # e1 and e2 are the epipoles
     e1, e2 = calculate_epipoles(F)
     e1 = np.divide(e1, e1[2])
     e2 = np.divide(e2, e2[2])
+
+    # Plot the tracks in the image
     plot_tracks(frames, history, is_outlier_array, e1, e2, \
             "Plot inliers and outliers tracks")
 
@@ -606,7 +636,7 @@ def main():
     # Get the R and T matrices that fit the best
     R, T = get_best_r_t(r_t_matrices, cor_directions_m)
 
-    print("Determinant = ", np.linalg.det(R))
+    print("Determinant of R = ", np.linalg.det(R))
 
 
     # Discard outliers (points behind either camera)
@@ -623,18 +653,6 @@ def main():
     reprojected = get_reprojected_points(three_d_points, K, R, T)
 
     plot_reprojected(cor_points_x, reprojected)
-    """
-    plot_reprojected(cor_points_x, get_reprojected_points(x_lmbda_3d, K, R, T))
-    plot_reprojected(cor_points_x, get_reprojected_points(x_mu_3d, K, R, T))
-
-    # Plot X_mu against its projection and X_lambda against its projection
-    points_first_frame = [x[0] for x in cor_points_x]
-    first_frame_reprojected = [x[0] for x in get_reprojected_points(x_lmbda_3d, K, R, T)]
-    plot_reprojected2(points_first_frame, first_frame_reprojected)
-    points_last_frame = [x[1] for x in cor_points_x]
-    last_frame_reprojected = [x[1] for x in get_reprojected_points(x_mu_3d, K, R, T)]
-    plot_reprojected2(points_last_frame, last_frame_reprojected)
-    """
 
     plt.show()
 
