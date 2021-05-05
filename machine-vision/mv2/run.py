@@ -19,7 +19,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = False
 DRAW_CHECKERBOARD = False
-F_ITERATIONS = 10_000
+F_ITERATIONS = 10#_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -527,10 +527,10 @@ class AnnotateThreeDimension(Annotation):
         Annotation.draw(self, renderer)
 
 def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
-    def plot_point(ax, p, clr='red', txt=None, markr=None):
+    def plot_point(ax, p, clr='red', txt=None, markr=None, msz=-1):
         x, y, z = tuple(p.tolist())
-        if markr:
-            ax.scatter3D(x, y, z, color=clr, marker=markr) 
+        if markr and msz != -1:
+            ax.scatter3D(x, y, z, color=clr, marker=markr, s=msz) 
         else:
             ax.scatter3D(x, y, z, color=clr)
         # For some reason adding text labels doesn't quite work as expected
@@ -553,8 +553,9 @@ def create_3d_plot(c1, c2, three_d_points, lmbda_pt, mu_pt):
 
     fig = plt.figure()
     ax = fig.gca(projection ="3d")
-    plot_point(ax, c1, clr='blue', txt='c1', markr='P')
-    plot_point(ax, c2, clr='blue', txt='c2', markr='P')
+    plot_point(ax, c1, clr='blue', txt='c1', markr='P', msz=198)
+    plot_point(ax, c2, clr='blue', txt='c2', markr='P', msz=198)
+    plot_line(ax, c1, c2, clr='tan')
     for p in three_d_points:
         plot_point(ax, p, markr='o')
     if PLOT_X_LAMBDA:
