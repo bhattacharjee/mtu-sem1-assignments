@@ -792,13 +792,6 @@ def main():
     # - Reproject X[mu] to the last frame only
     # and plot
     # Results - we see perfect reprojection
-    #
-    # This is becauase
-    # X[lambda] is the world coordinates in the units of the first camera
-    # X[mu] are the world coordinates in the units of the second camera
-    #
-    # And when we reproject, we get the correct 2-D coordinates
-    # in each camera
     plot_xlambda_xmu_reprojected_separately(\
             frames[0], frames[-1], cor_points_x, x_lmbda_3d, x_mu_3d, K, R, T)
 
