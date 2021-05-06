@@ -23,7 +23,7 @@ F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
-RANDOM_SEED = 12345
+RANDOM_SEED = 22
 
 
 random.seed(RANDOM_SEED)
@@ -363,14 +363,7 @@ def get_translation_rotation(U, S, V, beta=1):
     R1_T = U @ W @ V.T
     R2_T = U @ W.T @ V.T
 
-    """
-    # TODO: check with others
-    print(np.linalg.det(R1_T.T), np.linalg.det(R2_T.T), np.linalg.det(R1_T), np.linalg.det(R2_T))
-    if np.linalg.det(R1_T) < 0:
-        R1_T = -1 * R1_T
-    if np.linalg.det(R2_T) < 0:
-        R2_T = -1 * R2_T
-    """
+    assert(np.linalg.det(R1_T.T) > 0 and np.linalg.det(R2_T.T) > 0)
 
     def append_matrices(matrices, R_T, R_T_T):
         T = np.linalg.inv(R_T) @ R_T_T
@@ -498,8 +491,9 @@ def get_3d_points(R, T, cor_directions_m):
         lmbda, mu = solve(m, md, R, T)
         x_lmbda = lmbda * m
         x_mu = T + (mu * (R @ md))
-        xx, yy = normalize(x_lmbda.flatten()), normalize(x_mu.flatten())
         if __debug__ and DEBUG:
+            xx, yy = normalize(x_lmbda.flatten()),\
+                            normalize(x_mu.flatten())
             print(i, xx, yy, np.sum(np.square(xx - yy)))
         x_average = (x_lmbda + x_mu) / 2
         x_lambda_points.append(x_lmbda)
@@ -689,7 +683,7 @@ def plot_xlambda_xmu_reprojected_separately(\
         return x[:2]
 
     fig, ax = plt.subplots(nrows=1, ncols=2)
-    fig.suptitle("X[lambda] projected onto first frame and x[mu] to last")
+    fig.suptitle("X[lambda] re-projected onto first frame and x[mu] to last")
 
     def plot_rp(ax, orig, rep, clr1, clr2):
         ax.scatter(orig[0], orig[1], color=clr1)
