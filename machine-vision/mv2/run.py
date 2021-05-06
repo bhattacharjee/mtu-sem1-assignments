@@ -213,7 +213,7 @@ def get_fundamental_matrix(p1_list, p2_list):
     F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), V))
     # Verify it is indeed singular
     if CHECK_SINGULARITY_ON_EACH_ITERATION:
-        if np.linalg.det(F) < 1.0e-10:
+        if np.abs(np.linalg.det(F)) < 1.0e-10:
             print("F is singular")
         else:
             print(f"F is not singular {np.linalg.det(F)}")
@@ -229,7 +229,7 @@ def get_fundamental_matrix(p1_list, p2_list):
             print(f"F is not singular {np.linalg.det(F)}")
 
     # Assert singularity
-    assert(np.linalg.det(F) < 1.0e-10)
+    assert(np.abs(np.linalg.det(F)) < 1.0e-10)
 
     # NOTE:
     # The problem description says that gi and s^2 must be calculated
