@@ -299,7 +299,10 @@ def get_best_fundamental_matrix(correspond):
     least_outliers = len(correspond[0])
     max_inliers_sum = 0
     is_outlier_array = None
+    print(f"\n\nIterating {F_ITERATIONS} times. Please wait for next prompt")
     for i in range(F_ITERATIONS):
+        if i != 0 and 0 == (i % (F_ITERATIONS / 10)):
+            print(f"Completed {i} iterations, wait for next prompt")
         f, n_out, inliers_sum, outlier_arr = \
                 get_fundamental_matrix(correspond[0], correspond[1])
         if n_out < least_outliers or \
@@ -308,6 +311,7 @@ def get_best_fundamental_matrix(correspond):
             max_inliers_sum = inliers_sum
             F = f
             is_outlier_array = outlier_arr
+    print("OK\n")
     if np.linalg.det(F) < 1.0e-10:
         print("F is singular")
     else:
@@ -642,9 +646,10 @@ def plot_reprojected_on_img(\
         x1 = get_xy(x1)
         plot_rp(first_frame, x, x1)
 
-    print("First frame")
+    print("\n\nShowing First frame ...")
     cv2.imshow("Reprojection of average(X[mu], X[lambda]) on first frame",\
             first_frame)
+    print("OK")
 
     for orig, rep in zip(cor_x_pts, reprojected_pts):
         x, x1 = orig[1], rep[1]
@@ -652,9 +657,10 @@ def plot_reprojected_on_img(\
         x1 = get_xy(x1)
         plot_rp(last_frame, x, x1)
 
-    print("Last frame")
+    print("\n\nShowing Last frame ...")
     cv2.imshow("Reprojection of average(X[mu], X[lambda]) on last frame",\
             last_frame)
+    print("OK")
     pass
 
 def plot_reprojected2(cor_x_pts, reprojected_x_pts):
@@ -711,8 +717,9 @@ def plot_xlambda_xmu_reprojected_separately(\
     reprojected_mu = get_reprojected_points(x_mu_3d, K, R, T)
 
     for orig, rep in zip(cor_points_x, reprojected_lambda):
-        print(orig[0].flatten())
-        print(rep[0].flatten())
+        if __debug__ and DEBUG:
+            print(orig[0].flatten())
+            print(rep[0].flatten())
         o = get_xy(orig[0])
         r = get_xy(rep[0])
         plot_points(ax[0], first_frame, o, r, "x[lambda] on first frame")
