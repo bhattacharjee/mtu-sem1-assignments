@@ -390,7 +390,7 @@ def print_validation_matrix(E, beta):
         R1, R2, T = cv2.decomposeEssentialMat(E)
         print('-' * 80)
         print("From CV2")
-        print('&&&---------------------------------------------&&&&&&&')
+        print('-' * 80)
         print(f"cv2 T1        = \n{T * beta}")
         print(f"cv2 R1        = \n{R1.T}")
         print(f"cv2 R2        = \n{R2.T}")
