@@ -336,6 +336,8 @@ def get_fundamental_matrix(p1_list, p2_list):
 
     return F, n_outliers, inliers_sum, is_outlier
 
+# TASK 2 PART H
+# Plot inliers and outliers as tracks
 def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
     e1 = tuple(e1.astype(int).tolist()[:2])
     e2 = tuple(e2.astype(int).tolist()[:2])
@@ -413,8 +415,10 @@ def calculate_epipoles(F):
     e2 = V[2,:]
     return e1,e2    
 
+# Task 3 Part A : Calculate the essential matrix
 def get_essential_matrix(K, F):
-    E = np.linalg.inv(K) @ F @ K
+    E = K.T @ F @ K
+
     U,S,V = np.linalg.svd(E)
 
     # Ensure S[0] and S[1] are the same
@@ -429,6 +433,8 @@ def get_essential_matrix(K, F):
     if np.linalg.det(V) < 0:
         V[2,:] *= -1
 
+    assert(np.linalg.det(U) >= 0 and np.linalg.det(V) >= 0)
+
     # Reconstruct fixed E
     E = U @ np.diag(S) @ V
 
@@ -436,7 +442,7 @@ def get_essential_matrix(K, F):
     assert(np.abs(S[0] - S[1]) < 1.0e-10)
 
     print("Essential matrix =\n", E)
-    return E, U, S, V
+    return E, U, S, V.T
 
 def get_w_v():
     W = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
@@ -851,6 +857,7 @@ def main():
 
     # Task 3
     E, E_U, E_S, E_V = get_essential_matrix(K, F)
+
     r_t_matrices = get_translation_rotation(E_U, E_S, E_V,\
                                 beta=get_distance_from_speed(30, n_frames, 50))
     print_validation_matrix(E, beta=get_distance_from_speed(30, n_frames, 50))
