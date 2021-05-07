@@ -17,7 +17,7 @@ import sys
 
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 GRIDSIZE = (5, 7, )
-VIDEO_DELAY = 1
+VIDEO_DELAY = int(1 / 30 * 1000)
 PLAY_VIDEO = True
 DRAW_CHECKERBOARD = True
 F_ITERATIONS = 10_000
@@ -240,19 +240,26 @@ def get_fundamental_matrix(p1_list, p2_list):
     mu2 = np.mean(p2_list, axis=0)
     sigma1 = np.std(p1_list, axis=0)
     sigma2 = np.std(p2_list, axis=0)
+
     T1 = get_T(mu1, sigma1)
     T2 = get_T(mu2, sigma2)
+
     y1 = np.matmul(T1, p1_list.T).T
     y2 = np.matmul(T2, p2_list.T).T
+
+    # Choose 8 random points without replacement
     chosen = np.array([False] * y1.shape[0], dtype=bool)
     chosen[np.random.choice(y1.shape[0], 8, replace=False)] = True
     yy1 = y1[chosen]
     yy2 = y2[chosen]
 
+    # For the chosen points, calculate the A matrix
     A = np.zeros((0,9), dtype=np.float32)
     for x1, x2 in zip(yy1, yy2):
         A = np.append(A, [np.kron(x1.T, x2.T)], axis=0)
     U,S,V = np.linalg.svd(A)
+
+    # Calculate F
     F = V[8,:].reshape(3,3).T
 
     # Enforce singularity
@@ -266,7 +273,7 @@ def get_fundamental_matrix(p1_list, p2_list):
         if np.linalg.det(V) < 0:
             V[2,:] *= -1
 
-    # Force the last diagnoal element to be 0
+    # Force the last diagnoal element to be 0, this is F-hat
     F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), V))
 
     # Verify it is indeed singular
@@ -277,8 +284,9 @@ def get_fundamental_matrix(p1_list, p2_list):
             print(f"F is not singular {np.linalg.det(F)}")
 
     # Assert singularity
-    assert(np.linalg.det(F) < 1.0e-10)
     F = T2.T @ F @ T1
+    assert(np.abs(np.linalg.det(F)) < 1.0e-10)
+
 
     if CHECK_SINGULARITY_ON_EACH_ITERATION:
         if np.linalg.det(F) < 1.0e-10:
