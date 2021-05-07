@@ -39,11 +39,21 @@ def plot_show():
     plt.show()
     print("Continuing ... OK\n")
 
+# TASK 1 Part A
+# Read all calibration images, find the corners, and display
+# the checkerboard
 def get_checkerboard(gridsize):
+    # Look for the calibration images in teh current directory
     imfiles = glob.glob("Assignment_MV_02_calibration*.png")
+
+    # Read the files as images
     images = [cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2GRAY) for f in imfiles]
+
+    # Read the files again for display purposes later
     or_images = [cv2.imread(fname) for fname in imfiles]
     corner_array_subpix = []
+
+    # For each image, find the corners
     for n, image in enumerate(images):
         ret, corners = cv2.findChessboardCorners(image, gridsize, 11)
         if ret:
@@ -58,6 +68,8 @@ def get_checkerboard(gridsize):
     wait_for_key_press()
     return images, or_images, corner_array_subpix
 
+# Task 1 Part B
+# Get the calibration matrix K using opencv
 def get_calibration_matrix(gridsize, images, corner_array_subpix):
     object3d = np.zeros((1, gridsize[0] * gridsize[1], 3), np.float32)
     object3d[0,:,:2] = np.mgrid[0:gridsize[0], 0:gridsize[1]].T.reshape(-1, 2)
