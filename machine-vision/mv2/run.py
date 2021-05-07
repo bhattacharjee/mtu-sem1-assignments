@@ -19,7 +19,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = True
 DRAW_CHECKERBOARD = True
-F_ITERATIONS = 10_000
+F_ITERATIONS = 10#_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -81,11 +81,15 @@ def get_calibration_matrix(gridsize, images, corner_array_subpix):
             camerapoints.append(corners)
     ret, matrix, distortion, rotation, translation = cv2.calibrateCamera(
         worldpoints, camerapoints, images[0].shape, None, None)
+    print(f"\nImage Aspect Ratio is {images[0].shape[1] / images[0].shape[0]} : 1")
+    print(f"\nFocal Length Aspect Ratio is {matrix[0,0]/matrix[1,1]} : 1")
     print(f"\nFocal lengths = {matrix[0, 0]}, {matrix[1, 1]}")
     print(f"\nPrincipal point = ({matrix[0, 2]},{matrix[1, 2]})")
     print(f"\nCalibration Matrix = \n{matrix}\n")
     return ret, matrix, distortion, rotation, translation
 
+# Task 1 Part C
+# Open the video and get the video
 def get_frames_for_video():
     frames = list()
     gray_frames = list()
@@ -127,10 +131,15 @@ def get_correspondence_array(X1, X2, K):
         directions.append((m, n,))
     return ret, directions
 
+# Part 1 Task C and D, and Part 2 Task A
 def get_correspondences(frames, gray_frames):
+    # Get good features to track
     p0 = cv2.goodFeaturesToTrack(gray_frames[0], 200, 0.3, 7) # shape = 109,1,2
+
+    # Refine the points to sub-pixel accuracy
     p0 = cv2.cornerSubPix(gray_frames[0], p0, (11, 11),\
             (-1, -1), STOP_CRITERIA)
+
     original_points = p0.copy()
     old_gray = gray_frames[0]
     frames = frames[1:]
@@ -141,15 +150,21 @@ def get_correspondences(frames, gray_frames):
     if len(p0) > 0:
         p = p0
         for n, (frame, gray,) in enumerate(zip(frames, gray_frames)):
+
+            # Track the features using OpenCV's KLT implementation
             p1, status, err = cv2.calcOpticalFlowPyrLK(old_gray, gray, p, None)
+
+            # Refine points to sub-pixel accuracy
             p1 = cv2.cornerSubPix(old_gray, p1, (11, 11), \
                     (-1, -1), STOP_CRITERIA)
             frame = frame.copy()
+
+            # Visualize the tracking
             for m, point in enumerate(p1[status.flatten() == 1]):
                 cv2.circle(frame, (int(point[0,0]), int(point[0,1])), \
                         2, (255,0,0), 2)
             if PLAY_VIDEO:
-                cv2.imshow('frame', frame)
+                cv2.imshow('Playing tracks', frame)
                 cv2.waitKey(VIDEO_DELAY)
             p = p1
             old_gray = gray
@@ -159,6 +174,7 @@ def get_correspondences(frames, gray_frames):
     x2 = np.zeros((0, 3,), dtype=np.float32)
     for i, j in zip(original_points[status.flatten() == 1], \
                     p1[status.flatten() == 1]):
+        # Get Normalized homogenous vectors for all tracks
         i = get_homogenous(i)
         j = get_homogenous(j)
         x1 = np.append(x1, i.reshape(1, 3), axis=0)
@@ -172,7 +188,7 @@ def get_correspondences(frames, gray_frames):
             j = tuple(j.flatten().astype(int))
             k = tuple(k.flatten().astype(int))
             cv2.line(frame, j, k, (0,0,255), 2)
-    cv2.imshow('frame', frame)
+    cv2.imshow('Showing tracks', frame)
     return original_points[status.flatten() == 1], p1[status.flatten() == 1], \
             (x1, x2), history, status.flatten()
 
