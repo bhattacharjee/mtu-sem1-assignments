@@ -222,6 +222,8 @@ def get_fundamental_matrix(p1_list, p2_list):
     # N_points x 3
     # One denotes the first frame, the other the last frame
 
+    # Task 2 Part B
+
     FORCE_POSITIVE_DETERMINANT = False
 
     # Setting it to false because it prints 100000 lines otherwise
@@ -247,6 +249,8 @@ def get_fundamental_matrix(p1_list, p2_list):
     y1 = np.matmul(T1, p1_list.T).T
     y2 = np.matmul(T2, p2_list.T).T
 
+    # Task 2 Part C
+
     # Choose 8 random points without replacement
     chosen = np.array([False] * y1.shape[0], dtype=bool)
     chosen[np.random.choice(y1.shape[0], 8, replace=False)] = True
@@ -258,6 +262,8 @@ def get_fundamental_matrix(p1_list, p2_list):
     for x1, x2 in zip(yy1, yy2):
         A = np.append(A, [np.kron(x1.T, x2.T)], axis=0)
 
+    # Task 2 Part D
+
     U,S,V = np.linalg.svd(A)
 
     # Calculate F
@@ -265,14 +271,6 @@ def get_fundamental_matrix(p1_list, p2_list):
 
     # Enforce singularity
     U,S,V = np.linalg.svd(F)
-
-    if FORCE_POSITIVE_DETERMINANT: # Currently set to False
-        # This part is not used
-        if np.linalg.det(U) < 0:
-            U[:,2] *= -1
-        # This part is not used
-        if np.linalg.det(V) < 0:
-            V[2,:] *= -1
 
     # Force the last diagnoal element to be 0, this is F-hat
     F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), V))
@@ -284,8 +282,10 @@ def get_fundamental_matrix(p1_list, p2_list):
         else:
             print(f"F is not singular {np.linalg.det(F)}")
 
-    # Assert singularity
+    # Get the actual Fundamental matrix from the normalized F-hat
     F = T2.T @ F @ T1
+
+    # Assert singularity
     assert(np.abs(np.linalg.det(F)) < 1.0e-10)
 
 
@@ -298,6 +298,7 @@ def get_fundamental_matrix(p1_list, p2_list):
     # Assert singularity
     assert(np.abs(np.linalg.det(F)) < 1.0e-10)
 
+    Task 2 Part E
     # NOTE:
     # The problem description says that gi and s^2 must be calculated
     # only for the other points, but we do it for all the points
@@ -315,9 +316,11 @@ def get_fundamental_matrix(p1_list, p2_list):
         x1 = x1.reshape((3,1,))
         x2 = x2.reshape((3,1,))
         gi = np.append(gi, x2.T @ F @ x1)
-        s2 = x1.T @ F @ CXX @ F.T @ x1 + x2.T @ F.T @ CXX @ F @ x2
+        s2 = x2.T @ F @ CXX @ F.T @ x2 + x1.T @ F.T @ CXX @ F @ x1
         sigma2 = np.append(sigma2, s2.reshape((1,)))
 
+
+    # Task 2 Part F
 
     T = np.square(gi) / sigma2
     is_outlier = (T > 6.635)
