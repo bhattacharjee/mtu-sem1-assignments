@@ -298,7 +298,8 @@ def get_fundamental_matrix(p1_list, p2_list):
     # Assert singularity
     assert(np.abs(np.linalg.det(F)) < 1.0e-10)
 
-    Task 2 Part E
+    # Task 2 Part E
+
     # NOTE:
     # The problem description says that gi and s^2 must be calculated
     # only for the other points, but we do it for all the points
@@ -362,25 +363,31 @@ def unskew(m):
     x3 = m[1][0]
     return np.array([[x1], [x2], [x3]])
 
+# Task 2
+# Task 2 PART G
 def get_best_fundamental_matrix(correspond):
     n_outliers = None
     F = None
     outliers_array = []
     least_outliers = len(correspond[0])
-    max_inliers_sum = 0
+    min_inliers_sum = 99999999999999999999999999999999.99
     is_outlier_array = None
+
     print(f"\n\nIterating {F_ITERATIONS} times. Please wait for next prompt")
     for i in range(F_ITERATIONS):
         if i != 0 and 0 == (i % (F_ITERATIONS / 10)):
             print(f"Completed {i} iterations, wait for next prompt")
         f, n_out, inliers_sum, outlier_arr = \
                 get_fundamental_matrix(correspond[0], correspond[1])
+
+
         if n_out < least_outliers or \
-                (n_out == least_outliers and max_inliers_sum < inliers_sum):
+                (n_out == least_outliers and min_inliers_sum > inliers_sum):
             least_outliers = n_out
-            max_inliers_sum = inliers_sum
+            min_inliers_sum = inliers_sum
             F = f
             is_outlier_array = outlier_arr
+
     print("OK\n")
     if np.linalg.det(F) < 1.0e-10:
         print("F is singular")
