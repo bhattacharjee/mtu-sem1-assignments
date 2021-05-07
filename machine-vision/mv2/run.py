@@ -170,6 +170,7 @@ def get_correspondences(frames, gray_frames):
             old_gray = gray
             history.append(p)
 
+    # Task 2 Part A
     x1 = np.zeros((0, 3,), dtype=np.float32)
     x2 = np.zeros((0, 3,), dtype=np.float32)
     for i, j in zip(original_points[status.flatten() == 1], \
@@ -180,6 +181,26 @@ def get_correspondences(frames, gray_frames):
         x1 = np.append(x1, i.reshape(1, 3), axis=0)
         x2 = np.append(x2, j.reshape(1, 3), axis=0)
 
+    # Plot all the tracks
+    # Every time we called calcOpticalFlowPyrLK, we got two arrays
+    # 1. An array to indicate where the new point is
+    # 2. An array to indicate whether the point is still valid or not
+    #
+    # Both these arrays are of the same dimensions as the original array
+    # 
+    # What we could have done was to weed out the invalid points and create
+    # a shorter array the next time we called calcOpticalFlowPyrLK, but
+    # this would have complicated things
+    #
+    # Instead we pass this the same array (which now has some invalid points)
+    # An invalid point will still be invalid on output from the function
+    # and the function does not behave improperly
+    #
+    # The in the last step, we only choose those points which are valid in the
+    # last frame
+    #
+    # Each time the function returns a set of points, that is stored in a
+    # history array, all elements of history array are of same length for simplicity
     frame = frames[0].copy()
     for i in range(len(history) - 1):
         h0 = history[i][status.flatten() == 1]
