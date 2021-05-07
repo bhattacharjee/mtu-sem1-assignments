@@ -12,6 +12,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import random
 from mpl_toolkits.mplot3d.proj3d import proj_transform
 from matplotlib.text import Annotation
+import sys
 
 
 STOP_CRITERIA = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -19,7 +20,7 @@ GRIDSIZE = (5, 7, )
 VIDEO_DELAY = 1
 PLAY_VIDEO = True
 DRAW_CHECKERBOARD = True
-F_ITERATIONS = 10#_000
+F_ITERATIONS = 10_000
 DEBUG = False
 PLOT_X_LAMBDA = True 
 PLOT_X_MU = True
@@ -213,9 +214,13 @@ def get_correspondences(frames, gray_frames):
     return original_points[status.flatten() == 1], p1[status.flatten() == 1], \
             (x1, x2), history, status.flatten()
 
-CXX = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 0]])
 
+# Task 2 Part B, C, D, E, F
+CXX = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 0]])
 def get_fundamental_matrix(p1_list, p2_list):
+    # p1_list and p2_list are numpy arrays of dimensions
+    # N_points x 3
+    # One denotes the first frame, the other the last frame
 
     FORCE_POSITIVE_DETERMINANT = False
 
@@ -253,13 +258,17 @@ def get_fundamental_matrix(p1_list, p2_list):
     # Enforce singularity
     U,S,V = np.linalg.svd(F)
 
-    if FORCE_POSITIVE_DETERMINANT:
+    if FORCE_POSITIVE_DETERMINANT: # Currently set to False
+        # This part is not used
         if np.linalg.det(U) < 0:
             U[:,2] *= -1
-        if np.linalg.det(V.T) < 0:
+        # This part is not used
+        if np.linalg.det(V) < 0:
             V[2,:] *= -1
 
+    # Force the last diagnoal element to be 0
     F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), V))
+
     # Verify it is indeed singular
     if CHECK_SINGULARITY_ON_EACH_ITERATION:
         if np.abs(np.linalg.det(F)) < 1.0e-10:
@@ -389,11 +398,11 @@ def get_essential_matrix(K, F):
     # Ensure U and V have non negative determinant
     if np.linalg.det(U) < 0:
         U[:,2] *= -1
-    if np.linalg.det(V.T) < 0:
+    if np.linalg.det(V) < 0:
         V[2,:] *= -1
 
     # Reconstruct fixed E
-    E = U @ np.diag(S) @ V.T
+    E = U @ np.diag(S) @ V
 
     # Task: Make sure that S[0] and S[1] are the same
     assert(np.abs(S[0] - S[1]) < 1.0e-10)
