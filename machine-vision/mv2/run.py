@@ -257,6 +257,7 @@ def get_fundamental_matrix(p1_list, p2_list):
     A = np.zeros((0,9), dtype=np.float32)
     for x1, x2 in zip(yy1, yy2):
         A = np.append(A, [np.kron(x1.T, x2.T)], axis=0)
+
     U,S,V = np.linalg.svd(A)
 
     # Calculate F
