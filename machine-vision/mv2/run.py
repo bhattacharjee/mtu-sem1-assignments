@@ -341,8 +341,12 @@ def plot_tracks(frames, history, is_outlier_array, e1, e2, desc):
     e2 = tuple(e2.astype(int).tolist()[:2])
     for i in range(1, len(frames)):
         frame = frames[i].copy()
-        cv2.circle(frame, e1, 2, (0, 255, 0), 5)
-        cv2.circle(frame, e2, 2, (0, 0, 255), 5)
+
+        cv2.circle(frame, e1, 2, (100, 255, 0), 15)
+        cv2.circle(frame, e1, 2, (0, 0, 0), 1)
+        cv2.circle(frame, e2, 2, (255,140,0), 5)
+        cv2.circle(frame, e2, 2, (0, 0, 0), 1)
+
         for j in range(i):
             p1s = history[j]
             p2s = history[j+1]
@@ -375,12 +379,16 @@ def get_best_fundamental_matrix(correspond):
 
     print(f"\n\nIterating {F_ITERATIONS} times. Please wait for next prompt")
     for i in range(F_ITERATIONS):
+
         if i != 0 and 0 == (i % (F_ITERATIONS / 10)):
             print(f"Completed {i} iterations, wait for next prompt")
+
         f, n_out, inliers_sum, outlier_arr = \
                 get_fundamental_matrix(correspond[0], correspond[1])
 
 
+        # Look for the F with the least outliers
+        # Break ties by looking for the smaller sum of test T
         if n_out < least_outliers or \
                 (n_out == least_outliers and min_inliers_sum > inliers_sum):
             least_outliers = n_out
@@ -397,6 +405,7 @@ def get_best_fundamental_matrix(correspond):
     print("Fundamental Matrix =\n", F, "\n")
     return F, n_outliers, outliers_array, is_outlier_array
             
+# Task 2 Part H
 def calculate_epipoles(F):
     U,S,V = np.linalg.svd(F)    
     e1 = V[2,:]
