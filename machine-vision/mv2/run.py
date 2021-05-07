@@ -264,16 +264,16 @@ def get_fundamental_matrix(p1_list, p2_list):
 
     # Task 2 Part D
 
-    U,S,V = np.linalg.svd(A)
+    U,S,VT = np.linalg.svd(A)
 
     # Calculate F
-    F = V[8,:].reshape(3,3).T
+    F = VT[8,:].reshape(3,3).T
 
     # Enforce singularity
-    U,S,V = np.linalg.svd(F)
+    U,S,VT = np.linalg.svd(F)
 
     # Force the last diagnoal element to be 0, this is F-hat
-    F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), V))
+    F = np.matmul(U, np.matmul(np.diag([S[0],S[1],0]), VT))
 
     # Verify it is indeed singular
     if CHECK_SINGULARITY_ON_EACH_ITERATION:
@@ -409,17 +409,17 @@ def get_best_fundamental_matrix(correspond):
             
 # Task 2 Part H
 def calculate_epipoles(F):
-    U,S,V = np.linalg.svd(F)    
-    e1 = V[2,:]
-    U,S,V = np.linalg.svd(F.T)    
-    e2 = V[2,:]
+    U,S,VT = np.linalg.svd(F)    
+    e1 = VT[2,:]
+    U,S,VT = np.linalg.svd(F.T)    
+    e2 = VT[2,:]
     return e1,e2    
 
 # Task 3 Part A : Calculate the essential matrix
 def get_essential_matrix(K, F):
     E = K.T @ F @ K
 
-    U,S,V = np.linalg.svd(E)
+    U,S,VT = np.linalg.svd(E)
 
     # Ensure S[0] and S[1] are the same
     S[0] = S[1] = ((S[0] + S[1]) / 2)
@@ -430,19 +430,19 @@ def get_essential_matrix(K, F):
     # Ensure U and V have non negative determinant
     if np.linalg.det(U) < 0:
         U[:,2] *= -1
-    if np.linalg.det(V) < 0:
-        V[2,:] *= -1
+    if np.linalg.det(VT) < 0:
+        VT[2,:] *= -1
 
-    assert(np.linalg.det(U) >= 0 and np.linalg.det(V) >= 0)
+    assert(np.linalg.det(U) >= 0 and np.linalg.det(VT) >= 0)
 
     # Reconstruct fixed E
-    E = U @ np.diag(S) @ V
+    E = U @ np.diag(S) @ VT
 
     # Task: Make sure that S[0] and S[1] are the same
     assert(np.abs(S[0] - S[1]) < 1.0e-10)
 
     print("Essential matrix =\n", E)
-    return E, U, S, V.T
+    return E, U, S, VT.T
 
 def get_w_v():
     W = np.array([[0, -1, 0], [1, 0, 0], [0, 0, 1]])
